@@ -17,8 +17,8 @@
  xml:lang="en">
 
 <front>
-  <title abbrev="Uncacheable">
-    Adding an Uncacheable Attribute to NFSv4.2
+  <title abbrev="erasure-encoding">
+    Erasure Encoding of Files in NFSv4.2
   </title>
   <seriesInfo name="Internet-Draft" value="draft-haynes-nfsv4-erasure-encoding-00"/>
   <author fullname="Thomas Haynes" initials="T." surname="Haynes">
@@ -27,7 +27,7 @@
       <email>loghyr@hammerspace.com</email>
     </address>
   </author>
-  <date year="2024" month="September" day="25"/>
+  <date year="2024" month="September" day="26"/>
   <area>Transport</area>
   <workgroup>Network File System Version 4</workgroup>
   <keyword>NFSv4</keyword>
@@ -92,11 +92,197 @@
   </section>
 </section>
 
-<section anchor="sec_uncacheable" numbered="true" removeInRFC="false" toc="default">
-  <name>Uncacheable Dirents</name>
+<section anchor="sec_erasure_encoding" numbered="true" removeInRFC="false" toc="default">
+  <name>Erasure Encoding</name>
   <t>
   </t>
 </section>
+
+<section anchor="WRITE_LOG" numbered="true" removeInRFC="false" toc="default">
+  <name>WRITE_LOG</name>
+  <t>
+  </t>
+
+  <sourcecode name="" type="" markers="true"><![CDATA[
+/// struct block_owner4 {
+///     changeid4   bo_change_id;
+///     clientid4   bo_client_id;
+///     bool        bo_logged;
+/// };
+]]>
+  </sourcecode>
+
+  <sourcecode name="" type="" markers="true"><![CDATA[
+/// struct write_block4 {
+///     uint32_t        wb_num;
+///     uint32_t        wb_crc;
+///     eff_block_len4  wb_effective_len;
+///     opaque          wb_block<>;
+/// };
+]]>
+  </sourcecode>
+
+  <sourcecode name="" type="" markers="true"><![CDATA[
+/// struct WRITE_LOG4args {
+///     /* CURRENT_FH: file */
+///     stateid4        wla_stateid;
+///     offset4         wla_offset;
+///     stable_how4     wla_stable;
+///     block_owner4    wla_owner;
+///     write_block4    wla_data<>; 
+};
+]]>
+  </sourcecode>
+
+  <sourcecode name="" type="" markers="true"><![CDATA[
+struct WRITE_LOGGED4resok {
+///     count4          wlr_count;  
+///     stable_how4     wlr_committed;
+///     verifier4       wlr_writeverf;
+///     block_owner4    wlr_owners<>; 
+/// };
+]]>
+  </sourcecode>
+
+  <sourcecode name="" type="" markers="true"><![CDATA[
+    /// union WRITE_LOG4res switch (nfsstat4 wlr_status) {
+    ///     case NFS4_OK:
+    ///         WRITE_LOG4resok    wlr_resok4;
+    ///     default:
+    ///         void;
+    /// };
+]]>
+  </sourcecode>
+</section>
+
+<section anchor="READ_LOG" numbered="true" removeInRFC="false" toc="default">
+  <name>READ_LOG</name>
+  <t>
+  </t>
+
+  <sourcecode name="" type="" markers="true"><![CDATA[
+/// struct READ_LOG4args {
+///     /* CURRENT_FH: file */
+///     stateid4    rla_stateid;
+///     offset4     rla_offset;
+///     count4      rla_count;
+/// };
+]]>
+  </sourcecode>
+
+  <sourcecode name="" type="" markers="true"><![CDATA[
+/// struct read_block4 {
+///     uint32_t        rb_num;
+///     uint32_t        rb_crc;
+///     eff_block_len4  rb_effective_len;
+///     block_owner4    rb_owner;
+///     opaque          rb_block<>;
+/// };
+]]>
+  </sourcecode>
+
+  <sourcecode name="" type="" markers="true"><![CDATA[
+/// struct READ_LOG4resok {
+///     bool        rlr_eof;
+///     read_block4 rlr_blocks<>;
+/// };
+]]>
+  </sourcecode>
+
+  <sourcecode name="" type="" markers="true"><![CDATA[
+/// union READ_LOG4res switch (nfsstat4 rlr_status) {
+///     case NFS4_OK:
+///          READ_LOG4resok     resok4;
+///     default:
+///          void;
+/// };
+]]>
+  </sourcecode>
+</section>
+
+<section anchor="READ_BLOCK_LOG" numbered="true" removeInRFC="false" toc="default">
+  <name>READ_BLOCK_LOG</name>
+  <t>
+  </t>
+
+  <sourcecode name="" type="" markers="true"><![CDATA[
+/// struct READ_BLOCK_LOG4args {
+///     /* CURRENT_FH: file */
+///     stateid4    rbla_stateid;
+///     offset4     rbla_offset;
+///     count4      rbla_count;
+/// };
+]]>
+  </sourcecode>
+
+  <sourcecode name="" type="" markers="true"><![CDATA[
+/// struct read_block_log4 {
+///     uint32_t        rbl_num;
+///     block_owner4    rbl_owner;
+/// };
+]]>
+  </sourcecode>
+
+  <sourcecode name="" type="" markers="true"><![CDATA[
+/// struct READ_BLOCK_LOG4resok {
+///     bool            rblr_eof;
+///     read_block_log4 rblr_blocks<>;
+/// };
+]]>
+  </sourcecode>
+
+  <sourcecode name="" type="" markers="true"><![CDATA[
+/// union READ_BLOCK_LOG4res switch (nfsstat4 rblr_status) {
+///     case NFS4_OK:
+///         READ_LOG4resok     resok4;
+///     default:
+///         void;
+/// };
+]]>
+  </sourcecode>
+</section>
+
+<section anchor="COMMIT_LOG" numbered="true" removeInRFC="false" toc="default">
+  <name>COMMIT_LOG</name>
+  <t>
+  </t>
+
+  <sourcecode name="" type="" markers="true"><![CDATA[
+/// struct commit_block4 {
+///     uint32_t        cb_num;
+///     block_owner4    cb_owner;
+/// };
+]]>
+  </sourcecode>
+
+  <sourcecode name="" type="" markers="true"><![CDATA[
+/// struct COMMIT_LOG4args {
+///     /* CURRENT_FH: file */
+///     offset4         cpa_offset;
+///     count4          cpa_count;    // Block counts or data length?
+///     commit_block4   cpa_blocks<>;
+/// };
+]]>
+  </sourcecode>
+
+  <sourcecode name="" type="" markers="true"><![CDATA[
+/// struct COMMIT_LOG4resok {
+///     verifier4       writeverf;
+/// };
+]]>
+  </sourcecode>
+
+  <sourcecode name="" type="" markers="true"><![CDATA[
+/// union COMMIT_LOG4res switch (nfsstat4 cpr_status) {
+///     case NFS4_OK:
+///         COMMIT_LOG4resok   resok4;
+///     default:
+///         void;
+/// };
+]]>
+  </sourcecode>
+</section>
+
 
 <section anchor="xdr_desc" numbered="true" removeInRFC="false" toc="default">
   <name>Extraction of XDR</name>
