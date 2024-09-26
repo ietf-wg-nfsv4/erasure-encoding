@@ -98,12 +98,12 @@
   </t>
 </section>
 
-<section anchor="WRITE_LOG" numbered="true" removeInRFC="false" toc="default">
-  <name>WRITE_LOG</name>
+<section anchor="block_owner" numbered="true" removeInRFC="false" toc="default">
+  <name>Block Owner</name>
   <t>
   </t>
 
-  <sourcecode name="" type="" markers="true"><![CDATA[
+  <sourcecode name="block_owner" type="" markers="true"><![CDATA[
 /// struct block_owner4 {
 ///     changeid4   bo_change_id;
 ///     clientid4   bo_client_id;
@@ -111,6 +111,12 @@
 /// };
 ]]>
   </sourcecode>
+</section>
+
+<section anchor="WRITE_LOG" numbered="true" removeInRFC="false" toc="default">
+  <name>WRITE_LOG</name>
+  <t>
+  </t>
 
   <sourcecode name="" type="" markers="true"><![CDATA[
 /// struct write_block4 {
