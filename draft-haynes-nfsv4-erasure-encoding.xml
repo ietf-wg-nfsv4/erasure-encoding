@@ -4,7 +4,7 @@
 
 <rfc
  category="std"
- docName="draft-haynes-nfsv4-erasure-encoding-00"
+ docName="draft-haynes-nfsv4-erasure-encoding-VERSIONVAR"
  ipr="trust200902"
  obsoletes=""
  scripts="Common,Latin"
@@ -20,14 +20,14 @@
   <title abbrev="erasure-encoding">
     Erasure Encoding of Files in NFSv4.2
   </title>
-  <seriesInfo name="Internet-Draft" value="draft-haynes-nfsv4-erasure-encoding-00"/>
+  <seriesInfo name="Internet-Draft" value="draft-haynes-nfsv4-erasure-encoding-VERSIONVAR"/>
   <author fullname="Thomas Haynes" initials="T." surname="Haynes">
     <organization abbrev="Hammerspace">Hammerspace</organization>
     <address>
       <email>loghyr@hammerspace.com</email>
     </address>
   </author>
-  <date year="2024" month="October" day="01"/>
+  <date year="YEARVAR" month="MONTHVAR" day="DAYVAR"/>
   <area>Transport</area>
   <workgroup>Network File System Version 4</workgroup>
   <keyword>NFSv4</keyword>
