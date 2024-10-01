@@ -92,6 +92,116 @@
     </section>
   </section>
 
+  <section numbered="true" removeInRFC="false" toc="default">
+    <name>Flexible File Layout Type Version 2</name>
+
+    <t>
+      The original layouttype4 introduced in <xref target="RFC5662"
+      format="default" sectionFormat="of" /> is modified to as in <xref
+      target='code_layout4' />.
+    </t>
+
+    <figure anchor='code_layout4'>
+      <sourcecode type='xdr'>
+       enum layouttype4 {
+           LAYOUT4_NFSV4_1_FILES   = 1,
+           LAYOUT4_OSD2_OBJECTS    = 2,
+           LAYOUT4_BLOCK_VOLUME    = 3,
+           LAYOUT4_FLEX_FILES      = 4,
+           LAYOUT4_FLEX_FILES_V2   = 5
+       };
+
+       struct layout_content4 {
+           layouttype4             loc_type;
+           opaque                  loc_body&lt;&gt;;
+       };
+
+       struct layout4 {
+           offset4                 lo_offset;
+           length4                 lo_length;
+           layoutiomode4           lo_iomode;
+           layout_content4         lo_content;
+       };
+      </sourcecode>
+    </figure>
+
+    <t>
+      This document defines structures associated with the layouttype4
+      value LAYOUT4_FLEX_FILES_V2.  <xref target="RFC8881" format="default"
+      sectionFormat="of" /> specifies the loc_body structure as an XDR
+      type "opaque".  The opaque layout is uninterpreted by the generic
+      pNFS client layers but is interpreted by the flexible file layout
+      type implementation.  This section defines the structure of this
+      otherwise opaque value, ffv2_layout4.
+    </t>
+
+    <section anchor="ffv2_layout" numbered="true" removeInRFC="false" toc="default">
+      <name>ffv2_layout4</name>
+
+      <figure anchor='code_ffv2_layout4'>
+        <sourcecode type='xdr'>
+   /// enum ff2_encoding_type {
+   ///     FF2_ENCODING_TYPE_MIRRORED       = 0x1;
+   /// };
+
+   /// const FF_FLAGS_NO_LAYOUTCOMMIT   = 0x00000001;
+   /// const FF_FLAGS_NO_IO_THRU_MDS    = 0x00000002;
+   /// const FF_FLAGS_NO_READ_IO        = 0x00000004;
+   /// const FF_FLAGS_WRITE_ONE_MIRROR  = 0x00000008;
+
+   /// typedef uint32_t            ff_flags4;
+   ///
+
+   /// /*
+   ///  * NFsv4.0, NFSv4.1, and NFSv4.2 can all
+   ///  * have unique stateids for the file.
+   ///  */
+   /// struct ffv2_file_info4 {
+   ///     stateid4                fffi_stateid;
+   ///     nfs_fh4                 fffi_fh_vers;
+   /// };
+   ///
+   /// /*
+   ///  * For now, allow all protection types to
+   ///  * be in the same flags space.
+   ///  */
+   /// const FFV2_DS_FLAGS_ACTIVE        = 0x00000001;
+   /// const FFV2_DS_FLAGS_SPARE         = 0x00000002;
+   /// const FFV2_DS_FLAGS_REPAIR        = 0x00000004;
+   ///
+   /// typedef uint32_t            ffv2_ds_flags4;
+   ///
+   /// struct ffv2_data_server4 {
+   ///     deviceid4               ffds_deviceid;
+   ///     uint32_t                ffds_efficiency;
+   ///     ffv2_file_info4         ffds_file_info&lt;&gt;;
+   ///     fattr4_owner            ffds_user;
+   ///     fattr4_owner_group      ffds_group;
+   ///     ffv2_ds_flags4          ffds_flags;
+   /// };
+   ///
+   /// struct ffv2_mirror4 {
+   ///     ffv2_data_server4       ffm_data_servers&lt;&gt;;
+   ///     ffv2_encoding_type      ffds_encoding;
+   /// };
+   ///
+   /// union ffv2_encoding_data switch (ffv2_encoding_type fed_type) {
+   ///     case FF2_ENCODING_TYPE_MIRRORED:
+   ///         void;
+   /// };
+   ///
+   /// struct ffv2_layout4 {
+   ///     length4                 ffl_stripe_unit;
+   ///     ffv2_mirror4            ffl_mirrors&lt;&gt;;
+   ///     ff_flags4               ffl_flags;
+   ///     uint32_t                ffl_stats_collect_hint;
+   /// };
+   ///
+        </sourcecode>
+      </figure>
+    </section>
+  </section>
+
   <section anchor="sec_erasure_encoding" numbered="true" removeInRFC="false" toc="default">
     <name>Erasure Encoding</name>
     <t>
@@ -114,7 +224,6 @@
     <t>
       The block_owner4 (see <xref target='code_block_owner4' />) is used to determine when and by whom a block was written.
     </t>
-
   </section>
 
   <section anchor="WRITE_LOG" numbered="true" removeInRFC="false" toc="default">
@@ -139,7 +248,7 @@
 ///     stable_how4     wla_stable;
 ///     block_owner4    wla_owner;
 ///     write_block4    wla_data&lt;&gt;; 
-};
+/// };
     </sourcecode>
 
     <sourcecode name="" type='xdr'>
@@ -152,12 +261,12 @@ struct WRITE_LOGGED4resok {
     </sourcecode>
 
     <sourcecode name="" type='xdr'>
-    /// union WRITE_LOG4res switch (nfsstat4 wlr_status) {
-    ///     case NFS4_OK:
-    ///         WRITE_LOG4resok    wlr_resok4;
-    ///     default:
-    ///         void;
-    /// };
+/// union WRITE_LOG4res switch (nfsstat4 wlr_status) {
+///     case NFS4_OK:
+///         WRITE_LOG4resok    wlr_resok4;
+///     default:
+///         void;
+/// };
     </sourcecode>
   </section>
 
@@ -348,6 +457,8 @@ sh extract.sh &lt; spec.txt &gt; erasure_coding_prot.x
        href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.2119.xml"/>
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
        href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.4506.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+       href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.5662.xml"/>
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
        href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.7862.xml"/>
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
