@@ -263,6 +263,10 @@
   <section anchor="WRITE_LOG" numbered="true" removeInRFC="false" toc="default">
     <name>WRITE_LOG</name>
     <t>
+      WRITE_LOG is WRITE (see Section 18.32 of <xref target="RFC8881"
+      format="default" sectionFormat="of" />) with additional semantics
+      over the block_owner and the logging of blocks. As such, all of
+      the normal semantics of WRITE directly apply.
     </t>
 
     <sourcecode name="" type='xdr'>
@@ -307,6 +311,10 @@ struct WRITE_LOGGED4resok {
   <section anchor="READ_LOG" numbered="true" removeInRFC="false" toc="default">
     <name>READ_LOG</name>
     <t>
+      READ_LOG is READ (see Section 18.22 of <xref target="RFC8881"
+      format="default" sectionFormat="of" />) with additional semantics
+      over the block_owner and the logging of blocks. As such, all of
+      the normal semantics of READ directly apply.
     </t>
 
     <sourcecode name="" type='xdr'>
@@ -386,6 +394,10 @@ struct WRITE_LOGGED4resok {
   <section anchor="COMMIT_LOG" numbered="true" removeInRFC="false" toc="default">
     <name>COMMIT_LOG</name>
     <t>
+      COMMIT_LOG is COMMIT (see Section 18.3 of <xref target="RFC8881"
+      format="default" sectionFormat="of" />) with additional semantics
+      over the block_owner and the logging of blocks. As such, all of
+      the normal semantics of COMMIT directly apply.
     </t>
 
     <sourcecode name="" type='xdr'>
@@ -399,7 +411,7 @@ struct WRITE_LOGGED4resok {
 /// struct COMMIT_LOG4args {
 ///     /* CURRENT_FH: file */
 ///     offset4         cpa_offset;
-///     count4          cpa_count;    // Block counts or data length?
+///     count4          cpa_count;
 ///     commit_block4   cpa_blocks&lt;&gt;;
 /// };
     </sourcecode>
@@ -607,10 +619,7 @@ sh extract.sh &lt; spec.txt &gt; erasure_coding_prot.x
   </t>
   <t>
     Christoph Helwig was instrumental in making sure Flex Files v2
-    was applicable to more than the Mojette Transformation.
-  </t>
-  <t>
-    Pierre Evenou provided the sections for the Mojette Transformation.
+    was applicable to more than one Erasure-Encoding Type.
   </t>
 </section>
 
