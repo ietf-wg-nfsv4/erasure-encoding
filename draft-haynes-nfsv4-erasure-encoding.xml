@@ -100,7 +100,15 @@
           in parallel.
         </dd>
 
+        <dt>integrity of data:</dt>
+        <dd>
+        </dd>
+
         <dt>non-systematic encoding:</dt>
+        <dd>
+        </dd>
+
+        <dt>replication of data:</dt>
         <dd>
         </dd>
 
@@ -169,15 +177,39 @@
       otherwise opaque value, ffv2_layout4.
     </t>
 
+    <section anchor="ffv2_encoding_type" numbered="true" removeInRFC="false" toc="default">
+      <name>ffv2_layout4</name>
+
+      <figure anchor='code_ffv2_encoding_type'>
+        <sourcecode type='xdr'>
+   /// enum ffv2_encoding_type {
+   ///     FFV2_ENCODING_TYPE_MIRRORED       = 0x1;
+   /// };
+        </sourcecode>
+      </figure>
+
+      <t>
+        The ffv2_encoding_type (see <xref target='code_ffv2_encoding_type' />)
+        encompasses a new IANA registry for "Flex Files V2 Erasure
+        Encoding Type Registry" (see <xref target='sec_iana_encoding' />).
+        I.e., instead of defining a new Layout Type for each
+        Erasure Encoding, we define a new Erasure Encoding Type.
+        Except for FFV2_ENCODING_TYPE_MIRRORED, each of the types
+        is expected to employ the new operations in this documement.
+      </t>
+
+      <t>
+        FFV2_ENCODING_TYPE_MIRRORED offers replication of data and
+        not integrity of data. As such, it does not need operations
+        like WRITE_LOG (see <xref target='WRITE_LOG' />).
+      </t>
+    </section>
+
     <section anchor="ffv2_layout" numbered="true" removeInRFC="false" toc="default">
       <name>ffv2_layout4</name>
 
       <figure anchor='code_ffv2_layout4'>
         <sourcecode type='xdr'>
-   /// enum ff2_encoding_type {
-   ///     FF2_ENCODING_TYPE_MIRRORED       = 0x1;
-   /// };
-
    /// const FF_FLAGS_NO_LAYOUTCOMMIT   = 0x00000001;
    /// const FF_FLAGS_NO_IO_THRU_MDS    = 0x00000002;
    /// const FF_FLAGS_NO_READ_IO        = 0x00000004;
@@ -219,7 +251,8 @@
    ///     ffv2_encoding_type      ffds_encoding;
    /// };
    ///
-   /// union ffv2_encoding_data switch (ffv2_encoding_type fed_type) {
+   /// union ffv2_encoding_data switch
+   ///         (ffv2_encoding_type fed_type) {
    ///     case FF2_ENCODING_TYPE_MIRRORED:
    ///         void;
    /// };
