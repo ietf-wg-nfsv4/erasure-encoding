@@ -33,6 +33,13 @@
   <keyword>NFSv4</keyword>
   <abstract>
     <t>
+      Parallel NFS (pNFS) allows a separation between the metadata (onto
+      a metadata server) and data (onto a storage device) for a file.
+      The flexible file layout type version 2 is defined in this document
+      as an extension to pNFS that allows the use of storage devices that
+      require only a limited degree of interaction with the metadata
+      server and use already-existing protocols.  Data replication is
+      also added to provide integrity.
     </t>
   </abstract>
 
@@ -53,6 +60,19 @@
   <section anchor="sec_intro" numbered="true" removeInRFC="false" toc="default">
     <name>Introduction</name>
     <t>
+      In Parallel NFS (pNFS), the metadata server returns layout type
+      structures that describe where file data is located.  There are
+      different layout types for different storage systems and methods
+      of arranging data on storage devices.  <xref target="RFC8881"
+      format="default" sectionFormat="of" /> defined the flexible
+      file layout type used with file-based data servers that are
+      accessed using the NFS protocols: NFSv3 <xref target="RFC1813"
+      format="default" sectionFormat="of" />, NFSv4.0 <xref
+      target="RFC7530" format="default" sectionFormat="of" />, NFSv4.1
+      <xref target="RFC8881" format="default" sectionFormat="of" />, and
+      NFSv4.2 <xref target="RFC7862" format="default" sectionFormat="of" />.
+      This document updates the flexible file layout type to version 2
+      by providing data replication for erasure encoding.
     </t>
 
     <t>
@@ -72,6 +92,20 @@
         <dd>
           A file based replication method where copies are maintained
           in parallel.
+        </dd>
+
+        <dt>Erasure Encoding:</dt>
+        <dd>
+          A file based replication method where copies are maintained
+          in parallel.
+        </dd>
+
+        <dt>non-systematic encoding:</dt>
+        <dd>
+        </dd>
+
+        <dt>systematic encoding:</dt>
+        <dd>
         </dd>
       </dl>
     </section>
@@ -96,7 +130,7 @@
     <name>Flexible File Layout Type Version 2</name>
 
     <t>
-      The original layouttype4 introduced in <xref target="RFC5662"
+      The original layouttype4 introduced in <xref target="RFC8881"
       format="default" sectionFormat="of" /> is modified to as in <xref
       target='code_layout4' />.
     </t>
@@ -439,9 +473,93 @@ sh extract.sh &lt; spec.txt &gt; erasure_coding_prot.x
 
   <section anchor="sec_iana" numbered="true" removeInRFC="false" toc="default">
     <name>IANA Considerations</name>
-    <t>
-      There are no IANA considerations.
-    </t>
+
+    <section anchor="sec_iana_layouts" numbered="true" removeInRFC="false" toc="default">
+      <name>pNFS Layout Types Registry</name>
+      <t>
+        <xref target="RFC8881" format="default" sectionFormat="of" />
+        introduced the "pNFS Layout Types Registry"; new layout type
+        numbers in this registry need to be assigned by IANA.  This document
+        defines the protocol associated with an existing layout type number:
+        LAYOUT4_FLEX_FILES_V2 (see <xref target='layoutlist' />).
+      </t>
+
+      <table anchor="layoutlist">
+        <name>Layout Type Assignments</name>
+        <thead>
+          <tr>
+            <th>Layout Type Name</th>
+            <th>Value</th>
+            <th>RFC</th>
+            <th>How</th>
+            <th>Minor Versions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>LAYOUT4_FLEX_FILES_V2</td> <td>0x6</td> <td>RFCTBD10</td> <td>L</td> <td>1</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section anchor="sec_iana_recallable" numbered="true" removeInRFC="false" toc="default">
+      <name>NFSv4 Recallable Object Types Registry</name>
+      <t>
+        <xref target="RFC8881" format="default" sectionFormat="of" /> also
+        introduced the "NFSv4 Recallable Object Types Registry".  This document
+        defines new recallable objects for RCA4_TYPE_MASK_FF2_LAYOUT_MIN and
+        RCA4_TYPE_MASK_FF2_LAYOUT_MAX (see <xref target='recalllist' />).
+      </t>
+
+      <table anchor="recalllist">
+        <name>Recallable Object Type Assignments</name>
+        <thead>
+          <tr>
+            <th>Recallable Object Type Name</th>
+            <th>Value</th>
+            <th>RFC</th>
+            <th>How</th>
+            <th>Minor Versions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>RCA4_TYPE_MASK_FF2_LAYOUT_MIN</td> <td>20</td> <td>RFCTBD10</td> <td>L</td> <td>1</td>
+          </tr>
+          <tr>
+            <td>RCA4_TYPE_MASK_FF2_LAYOUT_MAX</td> <td>21</td> <td>RFCTBD10</td> <td>L</td> <td>1</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section anchor="sec_iana_encoding" numbered="true" removeInRFC="false" toc="default">
+      <name>Flex Files V2 Erasure Encoding Type Registry</name>
+      <t>
+        This document introduces the "Flex Files V2 Erasure Encoding Type Registry". This
+        document defines the FF2_ENCODING_TYPE_MIRRORED type for Client-Side Mirroring
+        (see <xref target='erasure_encoding' />).
+      </t>
+
+      <table anchor="erasure_encoding">
+        <name>Flex Files V2 Erasure Encoding Type Assignments</name>
+        <thead>
+          <tr>
+            <th>Erasure Encoding Type Name</th>
+            <th>Value</th>
+            <th>RFC</th>
+            <th>How</th>
+            <th>Minor Versions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>FF2_ENCODING_TYPE_MIRRORED</td> <td>1</td> <td>RFCTBD10</td> <td>L</td> <td>1</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
   </section>
 
 </middle>
@@ -458,7 +576,7 @@ sh extract.sh &lt; spec.txt &gt; erasure_coding_prot.x
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
        href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.4506.xml"/>
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-       href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.5662.xml"/>
+       href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.7530.xml"/>
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
        href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.7862.xml"/>
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
@@ -471,6 +589,12 @@ sh extract.sh &lt; spec.txt &gt; erasure_coding_prot.x
        href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.8435.xml"/>
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
        href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.8881.xml"/>
+  </references>
+
+  <references>
+  <name>Informative References</name>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+       href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.1813.xml"/>
   </references>
 </references>
 
@@ -487,6 +611,16 @@ sh extract.sh &lt; spec.txt &gt; erasure_coding_prot.x
   </t>
   <t>
     Pierre Evenou provided the sections for the Mojette Transformation.
+  </t>
+</section>
+
+<section numbered="true" removeInRFC="true" toc="default">
+  <name>RFC Editor Notes</name>
+
+  <t>
+    [RFC Editor: prior to publishing this document as an RFC, please
+    replace all occurrences of RFCTBD10 with RFCxxxx where xxxx is the
+    RFC number of this document]
   </t>
 </section>
 
