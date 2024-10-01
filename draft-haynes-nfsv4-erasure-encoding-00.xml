@@ -27,7 +27,7 @@
       <email>loghyr@hammerspace.com</email>
     </address>
   </author>
-  <date year="2024" month="September" day="26"/>
+  <date year="2024" month="October" day="01"/>
   <area>Transport</area>
   <workgroup>Network File System Version 4</workgroup>
   <keyword>NFSv4</keyword>
@@ -50,306 +50,290 @@
 
 <middle>
 
-<section anchor="sec_intro" numbered="true" removeInRFC="false" toc="default">
-  <name>Introduction</name>
-  <t>
-  </t>
+  <section anchor="sec_intro" numbered="true" removeInRFC="false" toc="default">
+    <name>Introduction</name>
+    <t>
+    </t>
 
-  <t>
-    Using the process detailed in <xref target="RFC8178" format="default"
-    sectionFormat="of"/>, the revisions in this document become an
-    extension of NFSv4.2 <xref target="RFC7862" format="default"
-    sectionFormat="of"/>. They are built on top of the external data
-    representation (XDR) <xref target="RFC4506" format="default"
-    sectionFormat="of"/> generated from <xref target="RFC7863"
-    format="default" sectionFormat="of"/>.
-  </t>
+    <t>
+      Using the process detailed in <xref target="RFC8178" format="default"
+      sectionFormat="of"/>, the revisions in this document become an
+      extension of NFSv4.2 <xref target="RFC7862" format="default"
+      sectionFormat="of"/>. They are built on top of the external data
+      representation (XDR) <xref target="RFC4506" format="default"
+      sectionFormat="of"/> generated from <xref target="RFC7863"
+      format="default" sectionFormat="of"/>.
+    </t>
 
-  <section anchor="sec_defs" numbered="true" removeInRFC="false" toc="default">
-    <name>Definitions</name>
-    <dl newline="false" spacing="normal">
-      <dt>Client Side Mirroring:</dt>
-      <dd>
-        A file based replication method where copies are maintained
-        in parallel.
-      </dd>
-    </dl>
+    <section anchor="sec_defs" numbered="true" removeInRFC="false" toc="default">
+      <name>Definitions</name>
+      <dl newline="false" spacing="normal">
+        <dt>Client Side Mirroring:</dt>
+        <dd>
+          A file based replication method where copies are maintained
+          in parallel.
+        </dd>
+      </dl>
+    </section>
+
+    <section numbered="true" removeInRFC="false" toc="default">
+      <name>Requirements Language</name>
+      <t>
+        The key words "<bcp14>MUST</bcp14>", "<bcp14>MUST NOT</bcp14>",
+        "<bcp14>REQUIRED</bcp14>", "<bcp14>SHALL</bcp14>", "<bcp14>SHALL
+        NOT</bcp14>", "<bcp14>SHOULD</bcp14>", "<bcp14>SHOULD NOT</bcp14>",
+        "<bcp14>RECOMMENDED</bcp14>", "<bcp14>NOT RECOMMENDED</bcp14>",
+        "<bcp14>MAY</bcp14>", and "<bcp14>OPTIONAL</bcp14>" in this
+        document are to be interpreted as described in BCP&nbsp;14 <xref
+        target="RFC2119" format="default" sectionFormat="of"/> <xref
+        target="RFC8174" format="default" sectionFormat="of"/> when,
+        and only when, they appear in all capitals, as shown here.
+      </t>
+    </section>
   </section>
 
-  <section numbered="true" removeInRFC="false" toc="default">
-    <name>Requirements Language</name>
+  <section anchor="sec_erasure_encoding" numbered="true" removeInRFC="false" toc="default">
+    <name>Erasure Encoding</name>
     <t>
-      The key words "<bcp14>MUST</bcp14>", "<bcp14>MUST NOT</bcp14>",
-      "<bcp14>REQUIRED</bcp14>", "<bcp14>SHALL</bcp14>", "<bcp14>SHALL
-      NOT</bcp14>", "<bcp14>SHOULD</bcp14>", "<bcp14>SHOULD NOT</bcp14>",
-      "<bcp14>RECOMMENDED</bcp14>", "<bcp14>NOT RECOMMENDED</bcp14>",
-      "<bcp14>MAY</bcp14>", and "<bcp14>OPTIONAL</bcp14>" in this
-      document are to be interpreted as described in BCP&nbsp;14 <xref
-      target="RFC2119" format="default" sectionFormat="of"/> <xref
-      target="RFC8174" format="default" sectionFormat="of"/> when,
-      and only when, they appear in all capitals, as shown here.
     </t>
   </section>
-</section>
 
-<section anchor="sec_erasure_encoding" numbered="true" removeInRFC="false" toc="default">
-  <name>Erasure Encoding</name>
-  <t>
-  </t>
-</section>
+  <section anchor="block_owner" numbered="true" removeInRFC="false" toc="default">
+    <name>Block Owner</name>
 
-<section anchor="block_owner" numbered="true" removeInRFC="false" toc="default">
-  <name>Block Owner</name>
-  <t>
-  </t>
-
-  <sourcecode name="block_owner" type="" markers="true"><![CDATA[
+    <figure anchor='code_block_owner4'>
+      <sourcecode type='xdr'>
 /// struct block_owner4 {
 ///     changeid4   bo_change_id;
 ///     clientid4   bo_client_id;
 ///     bool        bo_logged;
 /// };
-]]>
-  </sourcecode>
-</section>
+      </sourcecode>
+    </figure>
 
-<section anchor="WRITE_LOG" numbered="true" removeInRFC="false" toc="default">
-  <name>WRITE_LOG</name>
-  <t>
-  </t>
+    <t>
+      The block_owner4 (see <xref target='code_block_owner4' />) is used to determine when and by whom a block was written.
+    </t>
 
-  <sourcecode name="" type="" markers="true"><![CDATA[
+  </section>
+
+  <section anchor="WRITE_LOG" numbered="true" removeInRFC="false" toc="default">
+    <name>WRITE_LOG</name>
+    <t>
+    </t>
+
+    <sourcecode name="" type='xdr'>
 /// struct write_block4 {
 ///     uint32_t        wb_num;
 ///     uint32_t        wb_crc;
 ///     eff_block_len4  wb_effective_len;
-///     opaque          wb_block<>;
+///     opaque          wb_block&lt;&gt;;
 /// };
-]]>
-  </sourcecode>
+    </sourcecode>
 
-  <sourcecode name="" type="" markers="true"><![CDATA[
+    <sourcecode name="" type='xdr'>
 /// struct WRITE_LOG4args {
 ///     /* CURRENT_FH: file */
 ///     stateid4        wla_stateid;
 ///     offset4         wla_offset;
 ///     stable_how4     wla_stable;
 ///     block_owner4    wla_owner;
-///     write_block4    wla_data<>; 
+///     write_block4    wla_data&lt;&gt;; 
 };
-]]>
-  </sourcecode>
+    </sourcecode>
 
-  <sourcecode name="" type="" markers="true"><![CDATA[
+    <sourcecode name="" type='xdr'>
 struct WRITE_LOGGED4resok {
 ///     count4          wlr_count;  
 ///     stable_how4     wlr_committed;
 ///     verifier4       wlr_writeverf;
-///     block_owner4    wlr_owners<>; 
+///     block_owner4    wlr_owners&lt;&gt;; 
 /// };
-]]>
-  </sourcecode>
+    </sourcecode>
 
-  <sourcecode name="" type="" markers="true"><![CDATA[
+    <sourcecode name="" type='xdr'>
     /// union WRITE_LOG4res switch (nfsstat4 wlr_status) {
     ///     case NFS4_OK:
     ///         WRITE_LOG4resok    wlr_resok4;
     ///     default:
     ///         void;
     /// };
-]]>
-  </sourcecode>
-</section>
+    </sourcecode>
+  </section>
 
-<section anchor="READ_LOG" numbered="true" removeInRFC="false" toc="default">
-  <name>READ_LOG</name>
-  <t>
-  </t>
+  <section anchor="READ_LOG" numbered="true" removeInRFC="false" toc="default">
+    <name>READ_LOG</name>
+    <t>
+    </t>
 
-  <sourcecode name="" type="" markers="true"><![CDATA[
+    <sourcecode name="" type='xdr'>
 /// struct READ_LOG4args {
 ///     /* CURRENT_FH: file */
 ///     stateid4    rla_stateid;
 ///     offset4     rla_offset;
 ///     count4      rla_count;
 /// };
-]]>
-  </sourcecode>
+    </sourcecode>
 
-  <sourcecode name="" type="" markers="true"><![CDATA[
+    <sourcecode name="" type='xdr'>
 /// struct read_block4 {
 ///     uint32_t        rb_num;
 ///     uint32_t        rb_crc;
 ///     eff_block_len4  rb_effective_len;
 ///     block_owner4    rb_owner;
-///     opaque          rb_block<>;
+///     opaque          rb_block&lt;&gt;;
 /// };
-]]>
-  </sourcecode>
+    </sourcecode>
 
-  <sourcecode name="" type="" markers="true"><![CDATA[
+    <sourcecode name="" type='xdr'>
 /// struct READ_LOG4resok {
 ///     bool        rlr_eof;
-///     read_block4 rlr_blocks<>;
+///     read_block4 rlr_blocks&lt;&gt;;
 /// };
-]]>
-  </sourcecode>
+    </sourcecode>
 
-  <sourcecode name="" type="" markers="true"><![CDATA[
+    <sourcecode name="" type='xdr'>
 /// union READ_LOG4res switch (nfsstat4 rlr_status) {
 ///     case NFS4_OK:
 ///          READ_LOG4resok     resok4;
 ///     default:
 ///          void;
 /// };
-]]>
-  </sourcecode>
-</section>
+    </sourcecode>
+  </section>
 
-<section anchor="READ_BLOCK_LOG" numbered="true" removeInRFC="false" toc="default">
-  <name>READ_BLOCK_LOG</name>
-  <t>
-  </t>
+  <section anchor="READ_BLOCK_LOG" numbered="true" removeInRFC="false" toc="default">
+    <name>READ_BLOCK_LOG</name>
+    <t>
+    </t>
 
-  <sourcecode name="" type="" markers="true"><![CDATA[
+    <sourcecode name="" type='xdr'>
 /// struct READ_BLOCK_LOG4args {
 ///     /* CURRENT_FH: file */
 ///     stateid4    rbla_stateid;
 ///     offset4     rbla_offset;
 ///     count4      rbla_count;
 /// };
-]]>
-  </sourcecode>
+    </sourcecode>
 
-  <sourcecode name="" type="" markers="true"><![CDATA[
+    <sourcecode name="" type='xdr'>
 /// struct read_block_log4 {
 ///     uint32_t        rbl_num;
 ///     block_owner4    rbl_owner;
 /// };
-]]>
-  </sourcecode>
+    </sourcecode>
 
-  <sourcecode name="" type="" markers="true"><![CDATA[
+    <sourcecode name="" type='xdr'>
 /// struct READ_BLOCK_LOG4resok {
 ///     bool            rblr_eof;
-///     read_block_log4 rblr_blocks<>;
+///     read_block_log4 rblr_blocks&lt;&gt;;
 /// };
-]]>
-  </sourcecode>
+    </sourcecode>
 
-  <sourcecode name="" type="" markers="true"><![CDATA[
+    <sourcecode name="" type='xdr'>
 /// union READ_BLOCK_LOG4res switch (nfsstat4 rblr_status) {
 ///     case NFS4_OK:
 ///         READ_LOG4resok     resok4;
 ///     default:
 ///         void;
 /// };
-]]>
-  </sourcecode>
-</section>
+    </sourcecode>
+  </section>
 
-<section anchor="COMMIT_LOG" numbered="true" removeInRFC="false" toc="default">
-  <name>COMMIT_LOG</name>
-  <t>
-  </t>
+  <section anchor="COMMIT_LOG" numbered="true" removeInRFC="false" toc="default">
+    <name>COMMIT_LOG</name>
+    <t>
+    </t>
 
-  <sourcecode name="" type="" markers="true"><![CDATA[
+    <sourcecode name="" type='xdr'>
 /// struct commit_block4 {
 ///     uint32_t        cb_num;
 ///     block_owner4    cb_owner;
 /// };
-]]>
-  </sourcecode>
+    </sourcecode>
 
-  <sourcecode name="" type="" markers="true"><![CDATA[
+    <sourcecode name="" type='xdr'>
 /// struct COMMIT_LOG4args {
 ///     /* CURRENT_FH: file */
 ///     offset4         cpa_offset;
 ///     count4          cpa_count;    // Block counts or data length?
-///     commit_block4   cpa_blocks<>;
+///     commit_block4   cpa_blocks&lt;&gt;;
 /// };
-]]>
-  </sourcecode>
+    </sourcecode>
 
-  <sourcecode name="" type="" markers="true"><![CDATA[
+    <sourcecode name="" type='xdr'>
 /// struct COMMIT_LOG4resok {
 ///     verifier4       writeverf;
 /// };
-]]>
-  </sourcecode>
+    </sourcecode>
 
-  <sourcecode name="" type="" markers="true"><![CDATA[
+    <sourcecode name="" type='xdr'>
 /// union COMMIT_LOG4res switch (nfsstat4 cpr_status) {
 ///     case NFS4_OK:
 ///         COMMIT_LOG4resok   resok4;
 ///     default:
 ///         void;
 /// };
-]]>
-  </sourcecode>
-</section>
+    </sourcecode>
+  </section>
 
-
-<section anchor="xdr_desc" numbered="true" removeInRFC="false" toc="default">
-  <name>Extraction of XDR</name>
-  <t>
-    This document contains the external data representation (XDR)
-    <xref target="RFC4506" format="default" sectionFormat="of"/> description of the uncacheable
-    attribute.
-    The XDR description is embedded in this
-    document in a way that makes it simple for the reader to extract
-    into a ready-to-compile form.  The reader can feed this document
-    into the following shell script to produce the machine readable
-    XDR description of the new flags:
-  </t>
-  <sourcecode name="" type="" markers="true"><![CDATA[
+  <section anchor="xdr_desc" numbered="true" removeInRFC="false" toc="default">
+    <name>Extraction of XDR</name>
+    <t>
+      This document contains the external data representation (XDR)
+      <xref target="RFC4506" format="default" sectionFormat="of"/> description of the uncacheable
+      attribute.  The XDR description is embedded in this
+      document in a way that makes it simple for the reader to extract
+      into a ready-to-compile form.  The reader can feed this document
+      into the following shell script to produce the machine readable
+      XDR description of the new flags:
+    </t>
+    <sourcecode name="" type='xdr'>
 #!/bin/sh
 grep '^ *///' $* | sed 's?^ */// ??' | sed 's?^ *///$??'
-    ]]>
-  </sourcecode>
-  <t>
-    That is, if the above script is stored in a file called "extract.sh", and
-    this document is in a file called "spec.txt", then the reader can do:
-  </t>
-  <sourcecode name="" type="" markers="true"><![CDATA[
-sh extract.sh < spec.txt > erasure_coding_prot.x
-    ]]>
-  </sourcecode>
-  <t>
-    The effect of the script is to remove leading white space from each
-    line, plus a sentinel sequence of "///".  XDR descriptions with the
-    sentinel sequence are embedded throughout the document.
-  </t>
-  <t>
-    Note that the XDR code contained in this document depends on types
-    from the NFSv4.2 nfs4_prot.x file (generated from
-    <xref target="RFC7863" format="default" sectionFormat="of"/>)
-    and the Flex Files Layout Type flexfiles.x file (generated from
-    <xref target="RFC8435" format="default" sectionFormat="of"/>).
-    This includes both nfs types that end with a 4, such as offset4,
-    length4, etc., as well as more generic types such as uint32_t and
-    uint64_t.
-  </t>
-  <t>
-    While the XDR can be appended to that from
-    <xref target="RFC7863" format="default" sectionFormat="of"/>,
-    the various code snippets belong in their respective areas of
-    that XDR.
-  </t>
-</section>
+    </sourcecode>
+    <t>
+      That is, if the above script is stored in a file called "extract.sh", and
+      this document is in a file called "spec.txt", then the reader can do:
+    </t>
+    <sourcecode name="" type='xdr'>
+sh extract.sh &lt; spec.txt &gt; erasure_coding_prot.x
+    </sourcecode>
+    <t>
+      The effect of the script is to remove leading white space from each
+      line, plus a sentinel sequence of "///".  XDR descriptions with the
+      sentinel sequence are embedded throughout the document.
+    </t>
+    <t>
+      Note that the XDR code contained in this document depends on types
+      from the NFSv4.2 nfs4_prot.x file (generated from
+      <xref target="RFC7863" format="default" sectionFormat="of"/>)
+      and the Flex Files Layout Type flexfiles.x file (generated from
+      <xref target="RFC8435" format="default" sectionFormat="of"/>).
+      This includes both nfs types that end with a 4, such as offset4,
+      length4, etc., as well as more generic types such as uint32_t and
+      uint64_t.
+    </t>
+    <t>
+      While the XDR can be appended to that from
+      <xref target="RFC7863" format="default" sectionFormat="of"/>,
+      the various code snippets belong in their respective areas of
+      that XDR.
+    </t>
+  </section>
 
-<section anchor="sec_security" numbered="true" removeInRFC="false" toc="default">
-  <name>Security Considerations</name>
-  <t>
-  </t>
-</section>
+  <section anchor="sec_security" numbered="true" removeInRFC="false" toc="default">
+    <name>Security Considerations</name>
+    <t>
+    </t>
+  </section>
 
-<section anchor="sec_iana" numbered="true" removeInRFC="false" toc="default">
-  <name>IANA Considerations</name>
-  <t>
-    There are no IANA considerations.
-  </t>
-</section>
+  <section anchor="sec_iana" numbered="true" removeInRFC="false" toc="default">
+    <name>IANA Considerations</name>
+    <t>
+      There are no IANA considerations.
+    </t>
+  </section>
 
 </middle>
 
