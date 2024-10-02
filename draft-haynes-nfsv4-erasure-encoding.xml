@@ -227,14 +227,9 @@
    ///     nfs_fh4                 fffi_fh_vers;
    /// };
    ///
-   /// /*
-   ///  * For now, allow all protection types to
-   ///  * be in the same flags space.
-   ///  */
    /// const FFV2_DS_FLAGS_ACTIVE        = 0x00000001;
    /// const FFV2_DS_FLAGS_SPARE         = 0x00000002;
    /// const FFV2_DS_FLAGS_REPAIR        = 0x00000004;
-   ///
    /// typedef uint32_t            ffv2_ds_flags4;
    ///
    /// struct ffv2_data_server4 {
