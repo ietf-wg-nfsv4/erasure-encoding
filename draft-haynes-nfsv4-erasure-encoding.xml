@@ -289,7 +289,24 @@
     </figure>
 
     <t>
-      The block_owner4 (see <xref target='code_block_owner4' />) is used to determine when and by whom a block was written.
+      The block_owner4 (see <xref target='code_block_owner4' />)
+      is used to determine when and by whom a block was written.
+      The bo_client_id <bcp14>MUST</bcp14> be the client id handed out
+      by the metadata server to the client as the eir_clientid during
+      the EXCHANGE_ID results (see Section 18.35 of <xref target="RFC8881"
+      format="default" sectionFormat="of" />)  and <bcp14>MUST NOT</bcp14>
+      be the client id supplied by the data server to the client. I.e.,
+      across all data files, the bo_client_id uniquely descibes one and
+      only one client.
+    </t>
+
+    <t>
+      The bo_change_id is like the change attribute
+      (see Section 5.8.1.4 of <xref target="RFC8881" format="default"
+      sectionFormat="of" />) in that each block write by a given
+      client has to have an unique bo_change_id. I.e., it can
+      be determined which transaction across all data files that
+      a block corresponds.
     </t>
   </section>
 
