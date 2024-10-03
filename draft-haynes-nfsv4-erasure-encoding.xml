@@ -63,7 +63,7 @@
       In Parallel NFS (pNFS), the metadata server returns layout type
       structures that describe where file data is located.  There are
       different layout types for different storage systems and methods
-      of arranging data on storage devices.  <xref target="RFC8881"
+      of arranging data on storage devices.  <xref target="RFC8435"
       format="default" sectionFormat="of" /> defined the flexible
       file layout type used with file-based data servers that are
       accessed using the NFS protocols: NFSv3 <xref target="RFC1813"
@@ -71,8 +71,23 @@
       target="RFC7530" format="default" sectionFormat="of" />, NFSv4.1
       <xref target="RFC8881" format="default" sectionFormat="of" />, and
       NFSv4.2 <xref target="RFC7862" format="default" sectionFormat="of" />.
-      This document updates the flexible file layout type to version 2
-      by providing data replication for erasure encoding.
+    </t>
+
+    <t>
+      The Client Side Mirroring (see Section 8 of <xref target="RFC8435"
+      format="default" sectionFormat="of"/>), introduced with the first
+      version of the flex file layout type, provides for replication
+      of data but does not provide for integerity of data. In the event
+      of an error, an user would be able to repair the file by resilvering
+      the mirror contents. I.e., they would pick one of the mirror
+      instances and replicate it to the other instance locations.
+    </t>
+
+    <t>
+      However, lacking integrity checks, silent corruptions are not able
+      to be detected and the choice of what consititues the good copy
+      is difficult.  This document updates the flexible file layout type to version 2
+      by providing data integrity for erasure encoding.
     </t>
 
     <t>
@@ -102,6 +117,8 @@
 
         <dt>integrity of data:</dt>
         <dd>
+          Data integrity refers to the accuracy, consistency, and
+          reliability of data throughout its lifecycle.
         </dd>
 
         <dt>non-systematic encoding:</dt>
