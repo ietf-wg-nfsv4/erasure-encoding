@@ -77,17 +77,17 @@
       The Client Side Mirroring (see Section 8 of <xref target="RFC8435"
       format="default" sectionFormat="of"/>), introduced with the first
       version of the flex file layout type, provides for replication
-      of data but does not provide for integerity of data. In the event
-      of an error, an user would be able to repair the file by resilvering
+      of data but does not provide for integrity of data. In the event
+      of an error, an user would be able to repair the file by silvering
       the mirror contents. I.e., they would pick one of the mirror
       instances and replicate it to the other instance locations.
     </t>
 
     <t>
       However, lacking integrity checks, silent corruptions are not able
-      to be detected and the choice of what consititues the good copy
-      is difficult.  This document updates the flexible file layout type to version 2
-      by providing data integrity for erasure encoding.
+      to be detected and the choice of what constitutes the good copy
+      is difficult.  This document updates the flexible file layout type
+      to version 2 by providing data integrity for erasure encoding.
     </t>
 
     <t>
@@ -118,7 +118,7 @@
         <dt>integrity of data:</dt>
         <dd>
           Data integrity refers to the accuracy, consistency, and
-          reliability of data throughout its lifecycle.
+          reliability of data throughout its life cycle.
         </dd>
 
         <dt>non-systematic encoding:</dt>
@@ -212,7 +212,7 @@
         I.e., instead of defining a new Layout Type for each
         Erasure Encoding, we define a new Erasure Encoding Type.
         Except for FFV2_ENCODING_TYPE_MIRRORED, each of the types
-        is expected to employ the new operations in this documement.
+        is expected to employ the new operations in this document.
       </t>
 
       <t>
@@ -225,16 +225,19 @@
     <section anchor="ffv2_layout" numbered="true" removeInRFC="false" toc="default">
       <name>ffv2_layout4</name>
 
-      <figure anchor='code_ffv2_layout4'>
+      <figure anchor='code_ff_flags4'>
         <sourcecode type='xdr'>
    /// const FF_FLAGS_NO_LAYOUTCOMMIT   = 0x00000001;
    /// const FF_FLAGS_NO_IO_THRU_MDS    = 0x00000002;
    /// const FF_FLAGS_NO_READ_IO        = 0x00000004;
    /// const FF_FLAGS_WRITE_ONE_MIRROR  = 0x00000008;
-
-   /// typedef uint32_t            ff_flags4;
    ///
+   /// typedef uint32_t            ff_flags4;
+        </sourcecode>
+      </figure>
 
+      <figure anchor='code_ffv2_file_info4'>
+        <sourcecode type='xdr'>
    /// /*
    ///  * NFsv4.0, NFSv4.1, and NFSv4.2 can all
    ///  * have unique stateids for the file.
@@ -243,12 +246,20 @@
    ///     stateid4                fffi_stateid;
    ///     nfs_fh4                 fffi_fh_vers;
    /// };
-   ///
+        </sourcecode>
+      </figure>
+
+      <figure anchor='code_ffv2_ds_flags4'>
+        <sourcecode type='xdr'>
    /// const FFV2_DS_FLAGS_ACTIVE        = 0x00000001;
    /// const FFV2_DS_FLAGS_SPARE         = 0x00000002;
    /// const FFV2_DS_FLAGS_REPAIR        = 0x00000004;
    /// typedef uint32_t            ffv2_ds_flags4;
-   ///
+        </sourcecode>
+      </figure>
+
+      <figure anchor='code_ffv2_data_server4'>
+        <sourcecode type='xdr'>
    /// struct ffv2_data_server4 {
    ///     deviceid4               ffds_deviceid;
    ///     uint32_t                ffds_efficiency;
@@ -257,26 +268,89 @@
    ///     fattr4_owner_group      ffds_group;
    ///     ffv2_ds_flags4          ffds_flags;
    /// };
-   ///
+        </sourcecode>
+      </figure>
+
+      <figure anchor='code_ffv2_mirror4'>
+        <sourcecode type='xdr'>
    /// struct ffv2_mirror4 {
    ///     ffv2_data_server4       ffm_data_servers&lt;&gt;;
    ///     ffv2_encoding_type      ffds_encoding;
    /// };
-   ///
+        </sourcecode>
+      </figure>
+
+      <figure anchor='code_ffv2_encoding_data'>
+        <sourcecode type='xdr'>
    /// union ffv2_encoding_data switch
    ///         (ffv2_encoding_type fed_type) {
    ///     case FF2_ENCODING_TYPE_MIRRORED:
    ///         void;
    /// };
-   ///
+        </sourcecode>
+      </figure>
+
+      <figure anchor='code_ffv2_layout4'>
+        <sourcecode type='xdr'>
    /// struct ffv2_layout4 {
    ///     length4                 ffl_stripe_unit;
    ///     ffv2_mirror4            ffl_mirrors&lt;&gt;;
    ///     ff_flags4               ffl_flags;
    ///     uint32_t                ffl_stats_collect_hint;
    /// };
-   ///
         </sourcecode>
+      </figure>
+    </section>
+
+    <section anchor="sec_mix_types" numbered="true" removeInRFC="false" toc="default">
+      <name>Mixing of Encoding Types</name>
+      <t>
+        Note that effectively, multiple encoding types can be present
+        in a flex files version 2 layout.  The ffv2_layout4 has an array
+        of ffv2_mirror4, each of which has a ffv2_encoding_type.
+        The main reason to allow for this is to provide for either the
+        assimilation of a non-erasure encoded file to an erasure
+        encoded file or the exporting of an erasure encoded file to
+        a non-erasure encoded file.
+      </t>
+      <t>
+
+        Assume there is an additional ffv2_encoding_type of
+        FF2_ENCODING_TYPE_OTHER and it needs 4 active blocks and 1
+        spare block. The user wants to actively assimilate a regular
+        file. As such, a layout might be as represented in <xref
+        target='mixed_layout' />.  As this is an assimilation, most of
+        the data reads will be satisfied by READ (see Section 18.22 of
+        <xref target="RFC8881" format="default" sectionFormat="of" />)
+        calls to index 0. However, as this is also an active file,
+        there could also be READ_LOG (see <xref target='READ_LOG' />)
+        calls to the other indexes.
+      </t>
+
+      <t>
+        <cref anchor="AI1" source="TH">
+          How does READ_LOG or READ indicate that there is no data at the location?
+        </cref>
+      </t>
+
+      <figure anchor='mixed_layout'>
+        <artwork>
+          +--------------+---------------+----------------+
+          | Mirror Index | Encoding Type | ffv2_ds_flags4 |
+          +--------------+---------------+----------------+
+          |        0     | _MIRRORED     |        0       |
+          +--------------+---------------+----------------+
+          |        1     | _OTHER        |   _ACTIVE      |
+          +--------------+---------------+----------------+
+          |        2     | _OTHER        |   _ACTIVE      |
+          +--------------+---------------+----------------+
+          |        3     | _OTHER        |   _ACTIVE      |
+          +--------------+---------------+----------------+
+          |        4     | _OTHER        |   _ACTIVE      |
+          +--------------+---------------+----------------+
+          |        5     | _OTHER        |   _SPARE       |
+          +--------------+---------------+----------------+
+        </artwork>
       </figure>
     </section>
   </section>
@@ -313,9 +387,8 @@
                               |
                               |
        +----------------------+-----------------------+
-       |        Erasure Encoding Transform Forward    |
+       |      Erasure Encoding (Transform Forward)    |
        +----+-------------------------------------+---+
-            |                                     |
             |                                     |
             |                                     |
         +---+----------------+         +----------+---------+
@@ -353,9 +426,8 @@
         +---+----------------+         +----------+---------+
             |                                     |
             |                                     |
-            |                                     |
        +----+-------------------------------------+---+
-       |        Erasure Encoding Transform Reverse    |
+       |      Erasure Decoding (Transform Reverse)    |
        +----------------------+-----------------------+
                               |
                               |
@@ -393,7 +465,7 @@
       the EXCHANGE_ID results (see Section 18.35 of <xref target="RFC8881"
       format="default" sectionFormat="of" />)  and <bcp14>MUST NOT</bcp14>
       be the client id supplied by the data server to the client. I.e.,
-      across all data files, the bo_client_id uniquely descibes one and
+      across all data files, the bo_client_id uniquely describes one and
       only one client.
     </t>
 
@@ -616,8 +688,8 @@ struct WRITE_LOGGED4resok {
     <name>Extraction of XDR</name>
     <t>
       This document contains the external data representation (XDR)
-      <xref target="RFC4506" format="default" sectionFormat="of"/> description of the uncacheable
-      attribute.  The XDR description is embedded in this
+      <xref target="RFC4506" format="default" sectionFormat="of"/> description of
+      the flex files version 2 layout type.  The XDR description is embedded in this
       document in a way that makes it simple for the reader to extract
       into a ready-to-compile form.  The reader can feed this document
       into the following shell script to produce the machine readable
