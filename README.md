@@ -9,6 +9,11 @@ NOTE: The drafts contained here may change after it is
 posted to the IETF site. The ITEF site is always the
 definitive authority on content.
 
+You can easily install xml2rfc to get the tools
+necessary to make the text file version:
+
+   > pip install xml2rfc
+
 To build:
 
 1. Bump the VERS in Makefile
