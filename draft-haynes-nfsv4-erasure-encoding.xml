@@ -331,16 +331,19 @@
       the normal semantics of WRITE directly apply.
     </t>
 
-    <sourcecode name="" type='xdr'>
+    <figure anchor='code_write_block4'>
+      <sourcecode type='xdr'>
 /// struct write_block4 {
 ///     uint32_t        wb_num;
 ///     uint32_t        wb_crc;
 ///     eff_block_len4  wb_effective_len;
 ///     opaque          wb_block&lt;&gt;;
 /// };
-    </sourcecode>
+      </sourcecode>
+    </figure>
 
-    <sourcecode name="" type='xdr'>
+    <figure anchor='code_WRITE_LOG4args'>
+      <sourcecode type='xdr'>
 /// struct WRITE_LOG4args {
 ///     /* CURRENT_FH: file */
 ///     stateid4        wla_stateid;
@@ -349,25 +352,30 @@
 ///     block_owner4    wla_owner;
 ///     write_block4    wla_data&lt;&gt;; 
 /// };
-    </sourcecode>
+      </sourcecode>
+    </figure>
 
-    <sourcecode name="" type='xdr'>
+    <figure anchor='code_WRITE_LOGGED4resok'>
+      <sourcecode type='xdr'>
 struct WRITE_LOGGED4resok {
 ///     count4          wlr_count;  
 ///     stable_how4     wlr_committed;
 ///     verifier4       wlr_writeverf;
 ///     block_owner4    wlr_owners&lt;&gt;; 
 /// };
-    </sourcecode>
+      </sourcecode>
+    </figure>
 
-    <sourcecode name="" type='xdr'>
+    <figure anchor='code_WRITE_LOG4res'>
+      <sourcecode type='xdr'>
 /// union WRITE_LOG4res switch (nfsstat4 wlr_status) {
 ///     case NFS4_OK:
 ///         WRITE_LOG4resok    wlr_resok4;
 ///     default:
 ///         void;
 /// };
-    </sourcecode>
+      </sourcecode>
+    </figure>
   </section>
 
   <section anchor="READ_LOG" numbered="true" removeInRFC="false" toc="default">
@@ -379,16 +387,19 @@ struct WRITE_LOGGED4resok {
       the normal semantics of READ directly apply.
     </t>
 
-    <sourcecode name="" type='xdr'>
+    <figure anchor='code_READ_LOG4args'>
+      <sourcecode type='xdr'>
 /// struct READ_LOG4args {
 ///     /* CURRENT_FH: file */
 ///     stateid4    rla_stateid;
 ///     offset4     rla_offset;
 ///     count4      rla_count;
 /// };
-    </sourcecode>
+      </sourcecode>
+    </figure>
 
-    <sourcecode name="" type='xdr'>
+    <figure anchor='code_read_block4'>
+      <sourcecode type='xdr'>
 /// struct read_block4 {
 ///     uint32_t        rb_num;
 ///     uint32_t        rb_crc;
@@ -396,23 +407,28 @@ struct WRITE_LOGGED4resok {
 ///     block_owner4    rb_owner;
 ///     opaque          rb_block&lt;&gt;;
 /// };
-    </sourcecode>
+      </sourcecode>
+    </figure>
 
-    <sourcecode name="" type='xdr'>
+    <figure anchor='code_READ_LOG4resok'>
+      <sourcecode type='xdr'>
 /// struct READ_LOG4resok {
 ///     bool        rlr_eof;
 ///     read_block4 rlr_blocks&lt;&gt;;
 /// };
-    </sourcecode>
+      </sourcecode>
+    </figure>
 
-    <sourcecode name="" type='xdr'>
+    <figure anchor='code_READ_LOG4res'>
+      <sourcecode type='xdr'>
 /// union READ_LOG4res switch (nfsstat4 rlr_status) {
 ///     case NFS4_OK:
 ///          READ_LOG4resok     resok4;
 ///     default:
 ///          void;
 /// };
-    </sourcecode>
+      </sourcecode>
+    </figure>
   </section>
 
   <section anchor="READ_BLOCK_LOG" numbered="true" removeInRFC="false" toc="default">
@@ -420,37 +436,45 @@ struct WRITE_LOGGED4resok {
     <t>
     </t>
 
-    <sourcecode name="" type='xdr'>
+    <figure anchor='code_READ_BLOCK_LOG4args'>
+      <sourcecode type='xdr'>
 /// struct READ_BLOCK_LOG4args {
 ///     /* CURRENT_FH: file */
 ///     stateid4    rbla_stateid;
 ///     offset4     rbla_offset;
 ///     count4      rbla_count;
 /// };
-    </sourcecode>
+      </sourcecode>
+    </figure>
 
-    <sourcecode name="" type='xdr'>
+    <figure anchor='code_read_block_log4'>
+      <sourcecode type='xdr'>
 /// struct read_block_log4 {
 ///     uint32_t        rbl_num;
 ///     block_owner4    rbl_owner;
 /// };
-    </sourcecode>
+      </sourcecode>
+    </figure>
 
-    <sourcecode name="" type='xdr'>
+    <figure anchor='code_READ_BLOCK_LOG4resok'>
+      <sourcecode type='xdr'>
 /// struct READ_BLOCK_LOG4resok {
 ///     bool            rblr_eof;
 ///     read_block_log4 rblr_blocks&lt;&gt;;
 /// };
-    </sourcecode>
+      </sourcecode>
+    </figure>
 
-    <sourcecode name="" type='xdr'>
+    <figure anchor='code_READ_BLOCK_LOG4res'>
+      <sourcecode type='xdr'>
 /// union READ_BLOCK_LOG4res switch (nfsstat4 rblr_status) {
 ///     case NFS4_OK:
 ///         READ_LOG4resok     resok4;
 ///     default:
 ///         void;
 /// };
-    </sourcecode>
+      </sourcecode>
+    </figure>
   </section>
 
   <section anchor="COMMIT_LOG" numbered="true" removeInRFC="false" toc="default">
@@ -462,36 +486,44 @@ struct WRITE_LOGGED4resok {
       the normal semantics of COMMIT directly apply.
     </t>
 
-    <sourcecode name="" type='xdr'>
+    <figure anchor='code_commit_block4'>
+      <sourcecode type='xdr'>
 /// struct commit_block4 {
 ///     uint32_t        cb_num;
 ///     block_owner4    cb_owner;
 /// };
-    </sourcecode>
+      </sourcecode>
+    </figure>
 
-    <sourcecode name="" type='xdr'>
+    <figure anchor='code_COMMIT_LOG4args'>
+      <sourcecode type='xdr'>
 /// struct COMMIT_LOG4args {
 ///     /* CURRENT_FH: file */
 ///     offset4         cpa_offset;
 ///     count4          cpa_count;
 ///     commit_block4   cpa_blocks&lt;&gt;;
 /// };
-    </sourcecode>
+      </sourcecode>
+    </figure>
 
-    <sourcecode name="" type='xdr'>
+    <figure anchor='code_COMMIT_LOG4resok'>
+      <sourcecode type='xdr'>
 /// struct COMMIT_LOG4resok {
 ///     verifier4       writeverf;
 /// };
-    </sourcecode>
+      </sourcecode>
+    </figure>
 
-    <sourcecode name="" type='xdr'>
+    <figure anchor='code_COMMIT_LOG4res'>
+      <sourcecode type='xdr'>
 /// union COMMIT_LOG4res switch (nfsstat4 cpr_status) {
 ///     case NFS4_OK:
 ///         COMMIT_LOG4resok   resok4;
 ///     default:
 ///         void;
 /// };
-    </sourcecode>
+      </sourcecode>
+    </figure>
   </section>
 
   <section anchor="xdr_desc" numbered="true" removeInRFC="false" toc="default">
@@ -505,7 +537,7 @@ struct WRITE_LOGGED4resok {
       into the following shell script to produce the machine readable
       XDR description of the new flags:
     </t>
-    <sourcecode name="" type='xdr'>
+    <sourcecode type='xdr'>
 #!/bin/sh
 grep '^ *///' $* | sed 's?^ */// ??' | sed 's?^ *///$??'
     </sourcecode>
@@ -513,7 +545,7 @@ grep '^ *///' $* | sed 's?^ */// ??' | sed 's?^ *///$??'
       That is, if the above script is stored in a file called "extract.sh", and
       this document is in a file called "spec.txt", then the reader can do:
     </t>
-    <sourcecode name="" type='xdr'>
+    <sourcecode type='xdr'>
 sh extract.sh &lt; spec.txt &gt; erasure_coding_prot.x
     </sourcecode>
     <t>
