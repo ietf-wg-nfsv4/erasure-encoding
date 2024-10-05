@@ -88,6 +88,12 @@
       to be detected and the choice of what constitutes the good copy
       is difficult.  This document updates the flexible file layout type
       to version 2 by providing data integrity for erasure encoding.
+      It introduces new variants of COMMIT (see Section 18.3 of <xref
+      target="RFC8881" format="default" sectionFormat="of" />) , READ
+      (see Section 18.22 of <xref target="RFC8881" format="default"
+      sectionFormat="of" />) , and WRITE (see Section 18.32 of <xref
+      target="RFC8881" format="default" sectionFormat="of" />) to allow
+      for the transmission of integrity checking.
     </t>
 
     <t>
@@ -121,15 +127,7 @@
           reliability of data throughout its life cycle.
         </dd>
 
-        <dt>non-systematic encoding:</dt>
-        <dd>
-        </dd>
-
         <dt>replication of data:</dt>
-        <dd>
-        </dd>
-
-        <dt>systematic encoding:</dt>
         <dd>
         </dd>
       </dl>
@@ -153,6 +151,13 @@
 
   <section numbered="true" removeInRFC="false" toc="default">
     <name>Flexible File Layout Type Version 2</name>
+
+    <t>
+      In order to introduce erasure encoding to pNFS, a new layout type
+      of LAYOUT4_FLEX_FILES_V2 needs to be defined.  While we could
+      define a new layout type per erasure encoding type, there exist
+      use cases where multiple erasure encoding types in the same layout.
+    </t>
 
     <t>
       The original layouttype4 introduced in <xref target="RFC8881"
@@ -195,7 +200,7 @@
     </t>
 
     <section anchor="ffv2_encoding_type" numbered="true" removeInRFC="false" toc="default">
-      <name>ffv2_layout4</name>
+      <name>ffv2_encoding_type</name>
 
       <figure anchor='code_ffv2_encoding_type'>
         <sourcecode type='xdr'>
@@ -222,32 +227,55 @@
       </t>
     </section>
 
-    <section anchor="ffv2_layout" numbered="true" removeInRFC="false" toc="default">
-      <name>ffv2_layout4</name>
+    <section anchor="ff_flags4" numbered="true" removeInRFC="false" toc="default">
+      <name>ff_flags4</name>
+
+      <t>
+        ff_flags4 is defined as in Section 5.1 of <xref target="RFC8435"
+        format="default" sectionFormat="of"/> and is shown
+        in <xref target='code_ff_flags4' /> for reference.
+      </t>
 
       <figure anchor='code_ff_flags4'>
         <sourcecode type='xdr'>
-   /// const FF_FLAGS_NO_LAYOUTCOMMIT   = 0x00000001;
-   /// const FF_FLAGS_NO_IO_THRU_MDS    = 0x00000002;
-   /// const FF_FLAGS_NO_READ_IO        = 0x00000004;
-   /// const FF_FLAGS_WRITE_ONE_MIRROR  = 0x00000008;
-   ///
-   /// typedef uint32_t            ff_flags4;
+   const FF_FLAGS_NO_LAYOUTCOMMIT   = 0x00000001;
+   const FF_FLAGS_NO_IO_THRU_MDS    = 0x00000002;
+   const FF_FLAGS_NO_READ_IO        = 0x00000004;
+   const FF_FLAGS_WRITE_ONE_MIRROR  = 0x00000008;
+   typedef uint32_t            ff_flags4;
         </sourcecode>
       </figure>
 
+    </section>
+
+    <section anchor="ffv2_file_info4" numbered="true" removeInRFC="false" toc="default">
+      <name>ffv2_file_info4</name>
+
+      <t>
+        The ffv2_file_info4 is a new structure to help with
+        the stateid issue discussed in Section 5.1
+        of <xref target="RFC8435"
+        format="default" sectionFormat="of"/>. I.e., in
+        version 1 of the flex file layout type, there
+        was the singleton ffds_stateid combined with the
+        ffds_fh_vers array. I.e., each NFSv4 version has
+        its own stateid. In <xref target='code_ffv2_file_info4' />,
+        each NFSv4 filehandle has a one-to-one
+        correspondence to a stateid.
+      </t>
+
       <figure anchor='code_ffv2_file_info4'>
         <sourcecode type='xdr'>
-   /// /*
-   ///  * NFsv4.0, NFSv4.1, and NFSv4.2 can all
-   ///  * have unique stateids for the file.
-   ///  */
    /// struct ffv2_file_info4 {
    ///     stateid4                fffi_stateid;
    ///     nfs_fh4                 fffi_fh_vers;
    /// };
         </sourcecode>
       </figure>
+    </section>
+
+    <section anchor="ffv2_layout" numbered="true" removeInRFC="false" toc="default">
+      <name>ffv2_layout4</name>
 
       <figure anchor='code_ffv2_ds_flags4'>
         <sourcecode type='xdr'>
@@ -314,7 +342,6 @@
         a non-erasure encoded file.
       </t>
       <t>
-
         Assume there is an additional ffv2_encoding_type of
         FF2_ENCODING_TYPE_OTHER and it needs 4 active blocks and 1
         spare block. The user wants to actively assimilate a regular
@@ -326,13 +353,6 @@
         there could also be READ_LOG (see <xref target='READ_LOG' />)
         calls to the other indexes.
       </t>
-
-      <t>
-        <cref anchor="AI1" source="TH">
-          How does READ_LOG or READ indicate that there is no data at the location?
-        </cref>
-      </t>
-
       <figure anchor='mixed_layout'>
         <artwork>
           +--------------+---------------+----------------+
@@ -352,6 +372,31 @@
           +--------------+---------------+----------------+
         </artwork>
       </figure>
+      <t>
+        When performing I/O via a FFV2_ENCODING_TYPE_MIRRORED encoding
+        type, the non-transformed data will be used, Whereas with
+        other encoding types, the projected header and payload will
+        be sent. Further, when reading data from the instance files,
+        the client <bcp14>MUST</bcp14> be prepared to have one of the
+        encoding types supply data and the other type not to supply
+        data. I.e., the READ_BLOCK call might return rlr_eof set to true
+        (see <xref target='code_READ_LOG4resok' />),
+        which indicates that there is no data, where the  READ call might
+        return eof to be false, which indicates that there is data. The
+        client <bcp14>MUST</bcp14> determine that there is in fact data.
+      </t>
+      <t>
+        An example use case is the active assimilation of a file to
+        ensure integrity. As the client is helping to translated the
+        file to the new encoding scheme, it is actively modifying the
+        file. As such, it might be sequentially reading the file in
+        order to translate. The READ call would be returning data and
+        the READ_BLOCK would not be returning data. As the client
+        overwrites the file, the WRITE call and the WRITE_BLOCK
+        call would both have data sent. Finally, if the client
+        read back a section which had been modified earlier, both
+        the READ and READ_BLOCK calls would return data.
+      </t>
     </section>
   </section>
 
