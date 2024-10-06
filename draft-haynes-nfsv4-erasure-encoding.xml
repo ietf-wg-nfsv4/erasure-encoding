@@ -53,6 +53,20 @@
       <eref target="https://datatracker.ietf.org/wg/nfsv4/about/"/>.
     </t>
   </note>
+
+  <note removeInRFC="true">
+    <t>
+      This draft starts sparse and will be filled in as details are
+      ironed out. For example, WRITE_LOG in <xref target='WRITE_LOG' />
+      is presented as being WRITE (see Section 18.32 of <xref
+      target="RFC8881" format="default" sectionFormat="of" />) plus
+      some semantical changes. In the first draft, we simply explain the
+      semantical changes. As these are accepted by the knowlegable reviewers,
+      we will flesh out the WRITE_LOG section to include sub-sections more
+      akin to 18.32.1 to 18.32.4 of <xref
+      target="RFC8881" format="default" sectionFormat="of" />.
+    </t>
+  </note>
 </front>
 
 <middle>
@@ -117,7 +131,15 @@
 
         <dt>Erasure Encoding:</dt>
         <dd>
-          A file based replication method where copies are maintained
+          A data protection scheme where a block of data is replicated
+          into fragments and additional redundant fragments are added
+          to achieve parity. The new blocks are stored in different
+          locations.
+        </dd>
+
+        <dt>Client Side Erasure Encoding:</dt>
+        <dd>
+          A file based integrity method where copies are maintained
           in parallel.
         </dd>
 
@@ -129,6 +151,8 @@
 
         <dt>replication of data:</dt>
         <dd>
+          Data replication is making and storing multiple copies
+          of data in different locations.
         </dd>
       </dl>
     </section>
@@ -524,17 +548,190 @@
     </t>
   </section>
 
-  <section anchor="WRITE_LOG" numbered="true" removeInRFC="false" toc="default">
-    <name>WRITE_LOG</name>
-    <t>
-      WRITE_LOG is WRITE (see Section 18.32 of <xref target="RFC8881"
-      format="default" sectionFormat="of" />) with additional semantics
-      over the block_owner and the logging of blocks. As such, all of
-      the normal semantics of WRITE directly apply.
-    </t>
+  <section anchor="ops" numbered="true" removeInRFC="false" toc="default">
+    <name>New NFSv4.2 Operations</name>
+    <section anchor="COMMIT_LOG" numbered="true" removeInRFC="false" toc="default">
+      <name>Operation 77: COMMIT_LOG - Commit Cached Log Data</name>
+      <section anchor="COMMIT_LOG_args" numbered="true" removeInRFC="false" toc="exclude">
+        <name>ARGUMENTS</name>
+        <figure anchor='code_commit_block4'>
+          <sourcecode type='xdr'>
+/// struct commit_block4 {
+///     uint32_t        cb_num;
+///     block_owner4    cb_owner;
+/// };
+          </sourcecode>
+        </figure>
 
-    <figure anchor='code_write_block4'>
-      <sourcecode type='xdr'>
+        <figure anchor='code_COMMIT_LOG4args'>
+          <sourcecode type='xdr'>
+/// struct COMMIT_LOG4args {
+///     /* CURRENT_FH: file */
+///     offset4         cpa_offset;
+///     count4          cpa_count;
+///     commit_block4   cpa_blocks&lt;&gt;;
+/// };
+          </sourcecode>
+        </figure>
+      </section>
+
+      <section anchor="COMMIT_LOG_res" numbered="true" removeInRFC="false" toc="exclude">
+        <name>RESULTS</name>
+        <figure anchor='code_COMMIT_LOG4resok'>
+          <sourcecode type='xdr'>
+/// struct COMMIT_LOG4resok {
+///     verifier4       writeverf;
+/// };
+          </sourcecode>
+        </figure>
+
+        <figure anchor='code_COMMIT_LOG4res'>
+          <sourcecode type='xdr'>
+/// union COMMIT_LOG4res switch (nfsstat4 cpr_status) {
+///     case NFS4_OK:
+///         COMMIT_LOG4resok   resok4;
+///     default:
+///         void;
+/// };
+          </sourcecode>
+        </figure>
+      </section>
+
+      <section anchor="COMMIT_LOG_desc" numbered="true" removeInRFC="false" toc="exclude">
+        <name>DESCRIPTION</name>
+        <t>
+          COMMIT_LOG is COMMIT (see Section 18.3 of <xref target="RFC8881"
+          format="default" sectionFormat="of" />) with additional semantics
+          over the block_owner and the logging of blocks. As such, all of
+          the normal semantics of COMMIT directly apply.
+        </t>
+      </section>
+    </section>
+
+    <section anchor="READ_BLOCK_LOG" numbered="true" removeInRFC="false" toc="default">
+      <name>Operation 78: READ_BLOCK_LOG - Read Block Log from File</name>
+      <section anchor="READ_BLOCK_LOG_args" numbered="true" removeInRFC="false" toc="exclude">
+        <name>ARGUMENTS</name>
+        <figure anchor='code_READ_BLOCK_LOG4args'>
+          <sourcecode type='xdr'>
+/// struct READ_BLOCK_LOG4args {
+///     /* CURRENT_FH: file */
+///     stateid4    rbla_stateid;
+///     offset4     rbla_offset;
+///     count4      rbla_count;
+/// };
+          </sourcecode>
+        </figure>
+
+        <figure anchor='code_read_block_log4'>
+          <sourcecode type='xdr'>
+/// struct read_block_log4 {
+///     uint32_t        rbl_num;
+///     block_owner4    rbl_owner;
+/// };
+          </sourcecode>
+        </figure>
+      </section>
+
+      <section anchor="READ_BLOCK_LOG_res" numbered="true" removeInRFC="false" toc="exclude">
+        <name>RESULTS</name>
+        <figure anchor='code_READ_BLOCK_LOG4resok'>
+          <sourcecode type='xdr'>
+/// struct READ_BLOCK_LOG4resok {
+///     bool            rblr_eof;
+///     read_block_log4 rblr_blocks&lt;&gt;;
+/// };
+          </sourcecode>
+        </figure>
+
+        <figure anchor='code_READ_BLOCK_LOG4res'>
+          <sourcecode type='xdr'>
+/// union READ_BLOCK_LOG4res switch (nfsstat4 rblr_status) {
+///     case NFS4_OK:
+///         READ_LOG4resok     resok4;
+///     default:
+///         void;
+/// };
+          </sourcecode>
+        </figure>
+      </section>
+
+      <section anchor="READ_BLOCK_LOG_desc" numbered="true" removeInRFC="false" toc="exclude">
+        <name>DESCRIPTION</name>
+        <t>
+        </t>
+      </section>
+    </section>
+
+    <section anchor="READ_LOG" numbered="true" removeInRFC="false" toc="default">
+      <name>Operation 79: READ_LOG - Read Log from File</name>
+      <section anchor="READ_LOG_args" numbered="true" removeInRFC="false" toc="exclude">
+        <name>ARGUMENTS</name>
+        <figure anchor='code_READ_LOG4args'>
+          <sourcecode type='xdr'>
+/// struct READ_LOG4args {
+///     /* CURRENT_FH: file */
+///     stateid4    rla_stateid;
+///     offset4     rla_offset;
+///     count4      rla_count;
+/// };
+          </sourcecode>
+        </figure>
+      </section>
+
+      <section anchor="READ_LOG_res" numbered="true" removeInRFC="false" toc="exclude">
+        <name>RESULTS</name>
+
+        <figure anchor='code_read_block4'>
+          <sourcecode type='xdr'>
+/// struct read_block4 {
+///     uint32_t        rb_num;
+///     uint32_t        rb_crc;
+///     eff_block_len4  rb_effective_len;
+///     block_owner4    rb_owner;
+///     opaque          rb_block&lt;&gt;;
+/// };
+          </sourcecode>
+        </figure>
+
+        <figure anchor='code_READ_LOG4resok'>
+          <sourcecode type='xdr'>
+/// struct READ_LOG4resok {
+///     bool        rlr_eof;
+///     read_block4 rlr_blocks&lt;&gt;;
+/// };
+          </sourcecode>
+        </figure>
+
+        <figure anchor='code_READ_LOG4res'>
+          <sourcecode type='xdr'>
+/// union READ_LOG4res switch (nfsstat4 rlr_status) {
+///     case NFS4_OK:
+///          READ_LOG4resok     resok4;
+///     default:
+///          void;
+/// };
+          </sourcecode>
+        </figure>
+      </section>
+
+      <section anchor="READ_LOG_desc" numbered="true" removeInRFC="false" toc="exclude">
+        <name>DESCRIPTION</name>
+        <t>
+          READ_LOG is READ (see Section 18.22 of <xref target="RFC8881"
+          format="default" sectionFormat="of" />) with additional semantics
+          over the block_owner and the logging of blocks. As such, all of
+          the normal semantics of READ directly apply.
+        </t>
+      </section>
+    </section>
+
+    <section anchor="WRITE_LOG" numbered="true" removeInRFC="false" toc="default">
+      <name>Operation 80: WRITE - Write Log to File</name>
+      <section anchor="WRITE_LOG_args" numbered="true" removeInRFC="false" toc="exclude">
+        <name>ARGUMENTS</name>
+        <figure anchor='code_write_block4'>
+          <sourcecode type='xdr'>
 /// struct write_block4 {
 ///     uint32_t        wb_num;
 ///     uint32_t        wb_id;
@@ -542,11 +739,11 @@
 ///     uint32_t        wb_crc;
 ///     opaque          wb_block&lt;&gt;;
 /// };
-      </sourcecode>
-    </figure>
+          </sourcecode>
+        </figure>
 
-    <figure anchor='code_WRITE_LOG4args'>
-      <sourcecode type='xdr'>
+        <figure anchor='code_WRITE_LOG4args'>
+          <sourcecode type='xdr'>
 /// struct WRITE_LOG4args {
 ///     /* CURRENT_FH: file */
 ///     stateid4        wla_stateid;
@@ -555,179 +752,47 @@
 ///     block_owner4    wla_owner;
 ///     write_block4    wla_data&lt;&gt;; 
 /// };
-      </sourcecode>
-    </figure>
+          </sourcecode>
+        </figure>
+      </section>
 
-    <figure anchor='code_WRITE_LOGGED4resok'>
-      <sourcecode type='xdr'>
+      <section anchor="WRITE_LOG_res" numbered="true" removeInRFC="false" toc="exclude">
+        <name>RESULTS</name>
+
+        <figure anchor='code_WRITE_LOGGED4resok'>
+          <sourcecode type='xdr'>
 struct WRITE_LOGGED4resok {
 ///     count4          wlr_count;  
 ///     stable_how4     wlr_committed;
 ///     verifier4       wlr_writeverf;
 ///     block_owner4    wlr_owners&lt;&gt;; 
 /// };
-      </sourcecode>
-    </figure>
+          </sourcecode>
+        </figure>
 
-    <figure anchor='code_WRITE_LOG4res'>
-      <sourcecode type='xdr'>
+        <figure anchor='code_WRITE_LOG4res'>
+          <sourcecode type='xdr'>
 /// union WRITE_LOG4res switch (nfsstat4 wlr_status) {
 ///     case NFS4_OK:
 ///         WRITE_LOG4resok    wlr_resok4;
 ///     default:
 ///         void;
 /// };
-      </sourcecode>
-    </figure>
-  </section>
+          </sourcecode>
+        </figure>
+      </section>
 
-  <section anchor="READ_LOG" numbered="true" removeInRFC="false" toc="default">
-    <name>READ_LOG</name>
-    <t>
-      READ_LOG is READ (see Section 18.22 of <xref target="RFC8881"
-      format="default" sectionFormat="of" />) with additional semantics
-      over the block_owner and the logging of blocks. As such, all of
-      the normal semantics of READ directly apply.
-    </t>
-
-    <figure anchor='code_READ_LOG4args'>
-      <sourcecode type='xdr'>
-/// struct READ_LOG4args {
-///     /* CURRENT_FH: file */
-///     stateid4    rla_stateid;
-///     offset4     rla_offset;
-///     count4      rla_count;
-/// };
-      </sourcecode>
-    </figure>
-
-    <figure anchor='code_read_block4'>
-      <sourcecode type='xdr'>
-/// struct read_block4 {
-///     uint32_t        rb_num;
-///     uint32_t        rb_crc;
-///     eff_block_len4  rb_effective_len;
-///     block_owner4    rb_owner;
-///     opaque          rb_block&lt;&gt;;
-/// };
-      </sourcecode>
-    </figure>
-
-    <figure anchor='code_READ_LOG4resok'>
-      <sourcecode type='xdr'>
-/// struct READ_LOG4resok {
-///     bool        rlr_eof;
-///     read_block4 rlr_blocks&lt;&gt;;
-/// };
-      </sourcecode>
-    </figure>
-
-    <figure anchor='code_READ_LOG4res'>
-      <sourcecode type='xdr'>
-/// union READ_LOG4res switch (nfsstat4 rlr_status) {
-///     case NFS4_OK:
-///          READ_LOG4resok     resok4;
-///     default:
-///          void;
-/// };
-      </sourcecode>
-    </figure>
-  </section>
-
-  <section anchor="READ_BLOCK_LOG" numbered="true" removeInRFC="false" toc="default">
-    <name>READ_BLOCK_LOG</name>
-    <t>
-    </t>
-
-    <figure anchor='code_READ_BLOCK_LOG4args'>
-      <sourcecode type='xdr'>
-/// struct READ_BLOCK_LOG4args {
-///     /* CURRENT_FH: file */
-///     stateid4    rbla_stateid;
-///     offset4     rbla_offset;
-///     count4      rbla_count;
-/// };
-      </sourcecode>
-    </figure>
-
-    <figure anchor='code_read_block_log4'>
-      <sourcecode type='xdr'>
-/// struct read_block_log4 {
-///     uint32_t        rbl_num;
-///     block_owner4    rbl_owner;
-/// };
-      </sourcecode>
-    </figure>
-
-    <figure anchor='code_READ_BLOCK_LOG4resok'>
-      <sourcecode type='xdr'>
-/// struct READ_BLOCK_LOG4resok {
-///     bool            rblr_eof;
-///     read_block_log4 rblr_blocks&lt;&gt;;
-/// };
-      </sourcecode>
-    </figure>
-
-    <figure anchor='code_READ_BLOCK_LOG4res'>
-      <sourcecode type='xdr'>
-/// union READ_BLOCK_LOG4res switch (nfsstat4 rblr_status) {
-///     case NFS4_OK:
-///         READ_LOG4resok     resok4;
-///     default:
-///         void;
-/// };
-      </sourcecode>
-    </figure>
-  </section>
-
-  <section anchor="COMMIT_LOG" numbered="true" removeInRFC="false" toc="default">
-    <name>COMMIT_LOG</name>
-    <t>
-      COMMIT_LOG is COMMIT (see Section 18.3 of <xref target="RFC8881"
-      format="default" sectionFormat="of" />) with additional semantics
-      over the block_owner and the logging of blocks. As such, all of
-      the normal semantics of COMMIT directly apply.
-    </t>
-
-    <figure anchor='code_commit_block4'>
-      <sourcecode type='xdr'>
-/// struct commit_block4 {
-///     uint32_t        cb_num;
-///     block_owner4    cb_owner;
-/// };
-      </sourcecode>
-    </figure>
-
-    <figure anchor='code_COMMIT_LOG4args'>
-      <sourcecode type='xdr'>
-/// struct COMMIT_LOG4args {
-///     /* CURRENT_FH: file */
-///     offset4         cpa_offset;
-///     count4          cpa_count;
-///     commit_block4   cpa_blocks&lt;&gt;;
-/// };
-      </sourcecode>
-    </figure>
-
-    <figure anchor='code_COMMIT_LOG4resok'>
-      <sourcecode type='xdr'>
-/// struct COMMIT_LOG4resok {
-///     verifier4       writeverf;
-/// };
-      </sourcecode>
-    </figure>
-
-    <figure anchor='code_COMMIT_LOG4res'>
-      <sourcecode type='xdr'>
-/// union COMMIT_LOG4res switch (nfsstat4 cpr_status) {
-///     case NFS4_OK:
-///         COMMIT_LOG4resok   resok4;
-///     default:
-///         void;
-/// };
-      </sourcecode>
-    </figure>
-  </section>
+      <section anchor="WRITE_LOG_desc" numbered="true" removeInRFC="false" toc="exclude">
+        <name>DESCRIPTION</name>
+        <t>
+          WRITE_LOG is WRITE (see Section 18.32 of <xref target="RFC8881"
+          format="default" sectionFormat="of" />) with additional semantics
+          over the block_owner and the logging of blocks. As such, all of
+          the normal semantics of WRITE directly apply.
+        </t>
+      </section>
+    </section>
+ </section>
 
   <section anchor="xdr_desc" numbered="true" removeInRFC="false" toc="default">
     <name>Extraction of XDR</name>
