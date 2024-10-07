@@ -458,7 +458,6 @@
 
   <section anchor="sec_erasure_encoding" numbered="true" removeInRFC="false" toc="default">
     <name>Erasure Encoding</name>
-
     <t>
       Erasure Encoding takes an user data block and transforms it to
       send to the data servers (see <xref target='encoding' />). It
@@ -474,7 +473,6 @@
       parts of the projection, integrity is ensured for both the
       parts.
     </t>
-
     <t>
       The projection payload contains redundancy which will allow
       the erasure encoding type algorithm to repair payload
@@ -526,10 +524,10 @@
         sent to the data servers as shown in <xref target='encoding' />.
         As WRITE_BLOCK (see <xref target='WRITE_BLOCK' />) can encode
         multiple write_block4 into a single transaction, a more accurate
-        description of a WRITE_BLOCK might be as in <xref target='encoded_write_block' />.
+        description of a WRITE_BLOCK might be as in <xref target='example_WRITE_BLOCK_args_1' />.
       </t>
 
-      <figure anchor='encoded_write_block'>
+      <figure anchor='example_WRITE_BLOCK_args_1'>
         <artwork>
         +------------------------------------+
         | WRITE_BLOCK4args                   |
@@ -539,39 +537,95 @@
         | wba_stable: FILE_SYNC4             |
         | wba_id: 0                          |
         | wba_owner:                         |
-        +------------------------------------+
-        |            bo_change_id: 3         |
-        |            bo_client_id: 6         |
-        +------------------------------------+
+        +----------+-------------------------+
+        |          | bo_change_id: 3         |
+        |          | bo_client_id: 6         |
+        +----------+-------------------------+
         | wba_block[0]:                      |
-        +------------------------------------+
-        |            wb_effective_len  : 4kB |
-        |            wb_crc    :  32ef89     |
-        |            wb_block  :             |
-        +------------------------------------+
+        +----------+-------------------------+
+        |          | wb_crc    :  32ef89     |
+        |          | wb_block  :             |
+        +----------+--+----------------------+
+        |             | wb_block_len  : 4kB  |
+        |             | wb_block_val  :      |
+        +----------+--+----------------------+
         | wba_block[1]:                      |
-        +------------------------------------+
-        |            wb_effective_len  : 4kB |
-        |            wb_crc    :  56fa89     |
-        |            wb_block  :             |
-        +------------------------------------+
+        +----------+-------------------------+
+        |          | wb_crc    :  56fa89     |
+        |          | wb_block  :             |
+        +----------+--+----------------------+
+        |             | wb_block_len  : 4kB  |
+        |             | wb_block_val  :      |
+        +----------+--+----------------------+
         | wba_block[2]:                      |
-        +------------------------------------+
-        |            wb_effective_len  : 3k3 |
-        |            wb_crc    :  7693af     |
-        |            wb_block  :             |
-        +------------------------------------+
+        +----------+-------------------------+
+        |          | wb_crc    :  7693af     |
+        |          | wb_block  :             |
+        +----------+--+----------------------+
+        |             | wb_block_len  : 3kB  |
+        |             | wb_block_val  :      |
+        +----------+--+----------------------+
         </artwork>
       </figure>
 
       <t>
         This describes a 11kB write of data from an offset of 4kB in the file.
+        Instead of presenting a wb_effective_len, we rely on the XDR decoding
+        of wb_block (see <xref target='code_write_block4' />) to create
+        a data structure as in <xref target='c_code_write_block4' />.
+        I.e., an opaque will have both "_len" and "_data" generated fields.
         Note that each data server of the N will be sent a corresponding
         array of write_block4. As each block shares the wba_owner, it is only
         presented once. I.e., the data server will be able to construct the
         projection header for each wba_block from the wba_id, wba_owner,
-        wb_effective_len, and wb_crc.
+        wb_block_len, and wb_crc.
       </t>
+    
+      <figure anchor='c_code_write_block4'>
+        <sourcecode type='c'>
+typedef struct {
+    uint32_t  wb_crc;
+    struct {
+        u_int wb_block_len;
+        char *wb_block_val;
+    } wb_block;
+} write_block4;
+        </sourcecode>
+      </figure>
+
+      <t>
+        Assuming that there were no issues, <xref target='example_WRITE_BLOCK_res_1' />
+        illustrates the results. The projection id is implicit in the WRITE_BLOCK4args.
+      </t>
+
+      <figure anchor='example_WRITE_BLOCK_res_1'>
+        <artwork>
+        +------------------------------------+
+        | WRITE_BLOCK4resok                  |
+        +------------------------------------+
+        | wbr_count: 11kB                    |
+        | wbr_committed: FILE_SYNC4          |
+        | wbr_writeverf: f1234abc            |
+        | wbr_owners[0]:                     |
+        +----------+-------------------------+
+        |          | bo_change_id: 3         |
+        |          | bo_client_id: 6         |
+        |          | bo_logged: true         |
+        +----------+-------------------------+
+        | wbr_owners[1]:                     |
+        +----------+-------------------------+
+        |          | bo_change_id: 3         |
+        |          | bo_client_id: 6         |
+        |          | bo_logged: true         |
+        +----------+-------------------------+
+        | wbr_owners[2]:                     |
+        +----------+-------------------------+
+        |          | bo_change_id: 3         |
+        |          | bo_client_id: 6         |
+        |          | bo_logged: true         |
+        +----------+-------------------------+
+        </artwork>
+      </figure>
     </section>
 
     <section anchor="sec_deccoding_projection" numbered="true" removeInRFC="false" toc="default">
@@ -615,39 +669,85 @@
     </section>
   </section>
 
-  <section anchor="block_owner" numbered="true" removeInRFC="false" toc="default">
-    <name>Block Owner</name>
+  <section anchor="supporting" numbered="true" removeInRFC="false" toc="default">
+    <name>New Infrastructure</name>
 
-    <figure anchor='code_block_owner4'>
-      <sourcecode type='xdr'>
+    <section anchor="errors" numbered="true" removeInRFC="false" toc="default">
+      <name>Errors</name>
+      <section anchor="NFS4ERR_BLOCK_NOT_ALIGNED" numbered="true" removeInRFC="false" toc="exclude">
+        <name>Error 10097 - NFS4ERR_BLOCK_NOT_ALIGNED</name>
+        <t>
+          A block operation was not aligned to the file's block length.
+        </t>
+      </section>
+      <section anchor="NFS4ERR_ERASURE_ENCODING_NOT_SUPPORTED" numbered="true" removeInRFC="false" toc="exclude">
+        <name>Error 10098 - NFS4ERR_ERASURE_ENCODING_NOT_SUPPORTED</name>
+        <t>
+          The client requested a ffv2_encoding_type which the server does not support.
+          <cref anchor="AI2" source="TH">Get this straight</cref>
+        </t>
+      </section>
+    </section>
+
+    <section anchor="attrs" numbered="true" removeInRFC="false" toc="default">
+      <name>Attributes</name>
+      <section anchor="attr_block_size" numbered="true" removeInRFC="false" toc="exclude">
+        <name>fattr4_block_size</name>
+
+        <figure anchor='code_fattr4_block_size'>
+          <sourcecode type='xdr'>
+///
+/// typedef unit32_t      fattr4_block_size;
+///
+/// const FATTR4_BLOCK_SIZE            = 88;
+///
+          </sourcecode>
+        </figure>
+
+        <t>
+          The block size for READ_BLOCK and WRITE_BLOCK operations. If not supplied
+          by the server before a WRITE_BLOCK, it <bcp14>MUST</bcp14> become the
+          block size of the first WRITE_BLOCK.
+
+          <cref anchor="AI3" source="TH">How does the data server get this information?</cref>
+        </t>
+      </section>
+    </section>
+
+    <section anchor="block_owner" numbered="true" removeInRFC="false" toc="default">
+      <name>Block Owner</name>
+
+      <figure anchor='code_block_owner4'>
+        <sourcecode type='xdr'>
 /// struct block_owner4 {
 ///     changeid4   bo_change_id;
 ///     clientid4   bo_client_id;
 ///     bool        bo_logged;
 /// };
-      </sourcecode>
-    </figure>
+        </sourcecode>
+      </figure>
 
-    <t>
-      The block_owner4 (see <xref target='code_block_owner4' />)
-      is used to determine when and by whom a block was written.
-      The bo_client_id <bcp14>MUST</bcp14> be the client id handed out
-      by the metadata server to the client as the eir_clientid during
-      the EXCHANGE_ID results (see Section 18.35 of <xref target="RFC8881"
-      format="default" sectionFormat="of" />)  and <bcp14>MUST NOT</bcp14>
-      be the client id supplied by the data server to the client. I.e.,
-      across all data files, the bo_client_id uniquely describes one and
-      only one client.
-    </t>
+      <t>
+        The block_owner4 (see <xref target='code_block_owner4' />)
+        is used to determine when and by whom a block was written.
+        The bo_client_id <bcp14>MUST</bcp14> be the client id handed out
+        by the metadata server to the client as the eir_clientid during
+        the EXCHANGE_ID results (see Section 18.35 of <xref target="RFC8881"
+        format="default" sectionFormat="of" />)  and <bcp14>MUST NOT</bcp14>
+        be the client id supplied by the data server to the client. I.e.,
+        across all data files, the bo_client_id uniquely describes one and
+        only one client.
+      </t>
 
-    <t>
-      The bo_change_id is like the change attribute
-      (see Section 5.8.1.4 of <xref target="RFC8881" format="default"
-      sectionFormat="of" />) in that each block write by a given
-      client has to have an unique bo_change_id. I.e., it can
-      be determined which transaction across all data files that
-      a block corresponds.
-    </t>
+      <t>
+        The bo_change_id is like the change attribute
+        (see Section 5.8.1.4 of <xref target="RFC8881" format="default"
+        sectionFormat="of" />) in that each block write by a given
+        client has to have an unique bo_change_id. I.e., it can
+        be determined which transaction across all data files that
+        a block corresponds.
+      </t>
+    </section>
   </section>
 
   <section anchor="ops" numbered="true" removeInRFC="false" toc="default">
@@ -825,6 +925,16 @@
           over the block_owner and the logging of blocks. As such, all of
           the normal semantics of READ directly apply.
         </t>
+        <t>
+          The main area of difference is that READ_BLOCK works with blocks
+          of data and not raw data streams. As such rba_offset
+          <bcp14>MUST</bcp14> be a multiple of the block size. I.e., the
+          reads <bcp14>MUST</bcp14> be aligned and <bcp14>MUST NOT</bcp14>
+          overlap as that would cause corruption. When the server
+          processes a READ_BLOCK, it <bcp14>MUST</bcp14> return an
+          error of NFS4ERR_BLOCK_NOT_ALIGNED if the first block to be
+          written would cause data corruption.
+        </t>
       </section>
     </section>
 
@@ -835,7 +945,6 @@
         <figure anchor='code_write_block4'>
           <sourcecode type='xdr'>
 /// struct write_block4 {
-///     eff_block_len4  wb_effective_len;
 ///     uint32_t        wb_crc;
 ///     opaque          wb_block&lt;&gt;;
 /// };
@@ -890,6 +999,19 @@
           format="default" sectionFormat="of" />) with additional semantics
           over the block_owner and the logging of blocks. As such, all of
           the normal semantics of WRITE directly apply.
+        </t>
+        <t>
+          The main difference between the two operations is that WRITE_BLOCK
+          works on blocks and not a raw data stream. As such wba_offset
+          <bcp14>MUST</bcp14> be a multiple of the block size. I.e., the
+          writes <bcp14>MUST</bcp14> be aligned and <bcp14>MUST NOT</bcp14>
+          overlap as that would cause corruption. When the server
+          processes a WRITE_BLOCK, it <bcp14>MUST</bcp14> return an
+          error of NFS4ERR_BLOCK_NOT_ALIGNED if the first block to be
+          written would cause data corruption.
+        </t>
+        <t>
+          <cref anchor="AI1" source="TH">Need to have a new attribute for block size</cref>
         </t>
       </section>
     </section>
