@@ -57,12 +57,12 @@
   <note removeInRFC="true">
     <t>
       This draft starts sparse and will be filled in as details are
-      ironed out. For example, WRITE_LOG in <xref target='WRITE_LOG' />
+      ironed out. For example, WRITE_BLOCK in <xref target='WRITE_BLOCK' />
       is presented as being WRITE (see Section 18.32 of <xref
       target="RFC8881" format="default" sectionFormat="of" />) plus
       some semantical changes. In the first draft, we simply explain the
       semantical changes. As these are accepted by the knowlegable reviewers,
-      we will flesh out the WRITE_LOG section to include sub-sections more
+      we will flesh out the WRITE_BLOCK section to include sub-sections more
       akin to 18.32.1 to 18.32.4 of <xref
       target="RFC8881" format="default" sectionFormat="of" />.
     </t>
@@ -247,7 +247,7 @@
       <t>
         FFV2_ENCODING_TYPE_MIRRORED offers replication of data and
         not integrity of data. As such, it does not need operations
-        like WRITE_LOG (see <xref target='WRITE_LOG' />).
+        like WRITE_BLOCK (see <xref target='WRITE_BLOCK' />).
       </t>
     </section>
 
@@ -269,7 +269,6 @@
    typedef uint32_t            ff_flags4;
         </sourcecode>
       </figure>
-
     </section>
 
     <section anchor="ffv2_file_info4" numbered="true" removeInRFC="false" toc="default">
@@ -298,9 +297,8 @@
       </figure>
     </section>
 
-    <section anchor="ffv2_layout" numbered="true" removeInRFC="false" toc="default">
-      <name>ffv2_layout4</name>
-
+    <section anchor="ffv2_ds_flags4" numbered="true" removeInRFC="false" toc="default">
+      <name>ffv2_ds_flags4</name>
       <figure anchor='code_ffv2_ds_flags4'>
         <sourcecode type='xdr'>
    /// const FFV2_DS_FLAGS_ACTIVE        = 0x00000001;
@@ -309,7 +307,13 @@
    /// typedef uint32_t            ffv2_ds_flags4;
         </sourcecode>
       </figure>
+      <t>
+        The ffv2_layout4 (in <xref target='code_ffv2_ds_flags4' />) flags detail the state of the data servers.
+      </t>
+    </section>
 
+    <section anchor="ffv2_data_server4" numbered="true" removeInRFC="false" toc="default">
+      <name>ffv2_data_server4</name>
       <figure anchor='code_ffv2_data_server4'>
         <sourcecode type='xdr'>
    /// struct ffv2_data_server4 {
@@ -322,7 +326,13 @@
    /// };
         </sourcecode>
       </figure>
+      <t>
+        The ffv2_data_server4 (in <xref target='code_ffv2_data_server4' />) describes 
+      </t>
+    </section>
 
+    <section anchor="ffv2_mirror4" numbered="true" removeInRFC="false" toc="default">
+      <name>ffv2_mirror4</name>
       <figure anchor='code_ffv2_mirror4'>
         <sourcecode type='xdr'>
    /// struct ffv2_mirror4 {
@@ -374,7 +384,7 @@
         the data reads will be satisfied by READ (see Section 18.22 of
         <xref target="RFC8881" format="default" sectionFormat="of" />)
         calls to index 0. However, as this is also an active file,
-        there could also be READ_LOG (see <xref target='READ_LOG' />)
+        there could also be READ_BLOCK (see <xref target='READ_BLOCK' />)
         calls to the other indexes.
       </t>
       <figure anchor='mixed_layout'>
@@ -404,7 +414,7 @@
         the client <bcp14>MUST</bcp14> be prepared to have one of the
         encoding types supply data and the other type not to supply
         data. I.e., the READ_BLOCK call might return rlr_eof set to true
-        (see <xref target='code_READ_LOG4resok' />),
+        (see <xref target='code_READ_BLOCK4resok' />),
         which indicates that there is no data, where the  READ call might
         return eof to be false, which indicates that there is data. The
         client <bcp14>MUST</bcp14> determine that there is in fact data.
@@ -550,9 +560,9 @@
 
   <section anchor="ops" numbered="true" removeInRFC="false" toc="default">
     <name>New NFSv4.2 Operations</name>
-    <section anchor="COMMIT_LOG" numbered="true" removeInRFC="false" toc="default">
-      <name>Operation 77: COMMIT_LOG - Commit Cached Log Data</name>
-      <section anchor="COMMIT_LOG_args" numbered="true" removeInRFC="false" toc="exclude">
+    <section anchor="COMMIT_BLOCK" numbered="true" removeInRFC="false" toc="default">
+      <name>Operation 77: COMMIT_BLOCK - Commit Cached Block Data</name>
+      <section anchor="COMMIT_BLOCK_args" numbered="true" removeInRFC="false" toc="exclude">
         <name>ARGUMENTS</name>
         <figure anchor='code_commit_block4'>
           <sourcecode type='xdr'>
@@ -563,33 +573,33 @@
           </sourcecode>
         </figure>
 
-        <figure anchor='code_COMMIT_LOG4args'>
+        <figure anchor='code_COMMIT_BLOCK4args'>
           <sourcecode type='xdr'>
-/// struct COMMIT_LOG4args {
+/// struct COMMIT_BLOCK4args {
 ///     /* CURRENT_FH: file */
-///     offset4         cpa_offset;
-///     count4          cpa_count;
-///     commit_block4   cpa_blocks&lt;&gt;;
+///     offset4         cba_offset;
+///     count4          cba_count;
+///     commit_block4   cba_blocks&lt;&gt;;
 /// };
           </sourcecode>
         </figure>
       </section>
 
-      <section anchor="COMMIT_LOG_res" numbered="true" removeInRFC="false" toc="exclude">
+      <section anchor="COMMIT_BLOCK_res" numbered="true" removeInRFC="false" toc="exclude">
         <name>RESULTS</name>
-        <figure anchor='code_COMMIT_LOG4resok'>
+        <figure anchor='code_COMMIT_BLOCK4resok'>
           <sourcecode type='xdr'>
-/// struct COMMIT_LOG4resok {
-///     verifier4       writeverf;
+/// struct COMMIT_BLOCK4resok {
+///     verifier4       cbr_writeverf;
 /// };
           </sourcecode>
         </figure>
 
-        <figure anchor='code_COMMIT_LOG4res'>
+        <figure anchor='code_COMMIT_BLOCK4res'>
           <sourcecode type='xdr'>
-/// union COMMIT_LOG4res switch (nfsstat4 cpr_status) {
+/// union COMMIT_BLOCK4res switch (nfsstat4 cbr_status) {
 ///     case NFS4_OK:
-///         COMMIT_LOG4resok   resok4;
+///         COMMIT_BLOCK4resok   cbr_resok4;
 ///     default:
 ///         void;
 /// };
@@ -597,10 +607,10 @@
         </figure>
       </section>
 
-      <section anchor="COMMIT_LOG_desc" numbered="true" removeInRFC="false" toc="exclude">
+      <section anchor="COMMIT_BLOCK_desc" numbered="true" removeInRFC="false" toc="exclude">
         <name>DESCRIPTION</name>
         <t>
-          COMMIT_LOG is COMMIT (see Section 18.3 of <xref target="RFC8881"
+          COMMIT_BLOCK is COMMIT (see Section 18.3 of <xref target="RFC8881"
           format="default" sectionFormat="of" />) with additional semantics
           over the block_owner and the logging of blocks. As such, all of
           the normal semantics of COMMIT directly apply.
@@ -648,7 +658,7 @@
           <sourcecode type='xdr'>
 /// union READ_BLOCK_LOG4res switch (nfsstat4 rblr_status) {
 ///     case NFS4_OK:
-///         READ_LOG4resok     resok4;
+///         READ_BLOCK4resok     rblr_resok4;
 ///     default:
 ///         void;
 /// };
@@ -663,23 +673,23 @@
       </section>
     </section>
 
-    <section anchor="READ_LOG" numbered="true" removeInRFC="false" toc="default">
-      <name>Operation 79: READ_LOG - Read Log from File</name>
-      <section anchor="READ_LOG_args" numbered="true" removeInRFC="false" toc="exclude">
+    <section anchor="READ_BLOCK" numbered="true" removeInRFC="false" toc="default">
+      <name>Operation 79: READ_BLOCK - Read Blocks from File</name>
+      <section anchor="READ_BLOCK_args" numbered="true" removeInRFC="false" toc="exclude">
         <name>ARGUMENTS</name>
-        <figure anchor='code_READ_LOG4args'>
+        <figure anchor='code_READ_BLOCK4args'>
           <sourcecode type='xdr'>
-/// struct READ_LOG4args {
+/// struct READ_BLOCK4args {
 ///     /* CURRENT_FH: file */
-///     stateid4    rla_stateid;
-///     offset4     rla_offset;
-///     count4      rla_count;
+///     stateid4    rba_stateid;
+///     offset4     rba_offset;
+///     count4      rba_count;
 /// };
           </sourcecode>
         </figure>
       </section>
 
-      <section anchor="READ_LOG_res" numbered="true" removeInRFC="false" toc="exclude">
+      <section anchor="READ_BLOCK_res" numbered="true" removeInRFC="false" toc="exclude">
         <name>RESULTS</name>
 
         <figure anchor='code_read_block4'>
@@ -694,20 +704,20 @@
           </sourcecode>
         </figure>
 
-        <figure anchor='code_READ_LOG4resok'>
+        <figure anchor='code_READ_BLOCK4resok'>
           <sourcecode type='xdr'>
-/// struct READ_LOG4resok {
-///     bool        rlr_eof;
-///     read_block4 rlr_blocks&lt;&gt;;
+/// struct READ_BLOCK4resok {
+///     bool        rbr_eof;
+///     read_block4 rbr_blocks&lt;&gt;;
 /// };
           </sourcecode>
         </figure>
 
-        <figure anchor='code_READ_LOG4res'>
+        <figure anchor='code_READ_BLOCK4res'>
           <sourcecode type='xdr'>
-/// union READ_LOG4res switch (nfsstat4 rlr_status) {
+/// union READ_BLOCK4res switch (nfsstat4 rbr_status) {
 ///     case NFS4_OK:
-///          READ_LOG4resok     resok4;
+///          READ_BLOCK4resok     rbr_resok4;
 ///     default:
 ///          void;
 /// };
@@ -715,10 +725,10 @@
         </figure>
       </section>
 
-      <section anchor="READ_LOG_desc" numbered="true" removeInRFC="false" toc="exclude">
+      <section anchor="READ_BLOCK_desc" numbered="true" removeInRFC="false" toc="exclude">
         <name>DESCRIPTION</name>
         <t>
-          READ_LOG is READ (see Section 18.22 of <xref target="RFC8881"
+          READ_BLOCK is READ (see Section 18.22 of <xref target="RFC8881"
           format="default" sectionFormat="of" />) with additional semantics
           over the block_owner and the logging of blocks. As such, all of
           the normal semantics of READ directly apply.
@@ -726,9 +736,9 @@
       </section>
     </section>
 
-    <section anchor="WRITE_LOG" numbered="true" removeInRFC="false" toc="default">
-      <name>Operation 80: WRITE - Write Log to File</name>
-      <section anchor="WRITE_LOG_args" numbered="true" removeInRFC="false" toc="exclude">
+    <section anchor="WRITE_BLOCK" numbered="true" removeInRFC="false" toc="default">
+      <name>Operation 80: WRITE_BLOCK - Write Blocks to File</name>
+      <section anchor="WRITE_BLOCK_args" numbered="true" removeInRFC="false" toc="exclude">
         <name>ARGUMENTS</name>
         <figure anchor='code_write_block4'>
           <sourcecode type='xdr'>
@@ -742,39 +752,39 @@
           </sourcecode>
         </figure>
 
-        <figure anchor='code_WRITE_LOG4args'>
+        <figure anchor='code_WRITE_BLOCK4args'>
           <sourcecode type='xdr'>
-/// struct WRITE_LOG4args {
+/// struct WRITE_BLOCK4args {
 ///     /* CURRENT_FH: file */
-///     stateid4        wla_stateid;
-///     offset4         wla_offset;
-///     stable_how4     wla_stable;
-///     block_owner4    wla_owner;
-///     write_block4    wla_data&lt;&gt;; 
+///     stateid4        wba_stateid;
+///     offset4         wba_offset;
+///     stable_how4     wba_stable;
+///     block_owner4    wba_owner;
+///     write_block4    wba_data&lt;&gt;; 
 /// };
           </sourcecode>
         </figure>
       </section>
 
-      <section anchor="WRITE_LOG_res" numbered="true" removeInRFC="false" toc="exclude">
+      <section anchor="WRITE_BLOCK_res" numbered="true" removeInRFC="false" toc="exclude">
         <name>RESULTS</name>
 
-        <figure anchor='code_WRITE_LOGGED4resok'>
+        <figure anchor='code_WRITE_BLOCK4resok'>
           <sourcecode type='xdr'>
-struct WRITE_LOGGED4resok {
-///     count4          wlr_count;  
-///     stable_how4     wlr_committed;
-///     verifier4       wlr_writeverf;
-///     block_owner4    wlr_owners&lt;&gt;; 
+/// struct WRITE_BLOCK4resok {
+///     count4          wbr_count;  
+///     stable_how4     wbr_committed;
+///     verifier4       wbr_writeverf;
+///     block_owner4    wbr_owners&lt;&gt;; 
 /// };
           </sourcecode>
         </figure>
 
-        <figure anchor='code_WRITE_LOG4res'>
+        <figure anchor='code_WRITE_BLOCK4res'>
           <sourcecode type='xdr'>
-/// union WRITE_LOG4res switch (nfsstat4 wlr_status) {
+/// union WRITE_BLOCK4res switch (nfsstat4 wbr_status) {
 ///     case NFS4_OK:
-///         WRITE_LOG4resok    wlr_resok4;
+///         WRITE_BLOCK4resok    wbr_resok4;
 ///     default:
 ///         void;
 /// };
@@ -782,10 +792,10 @@ struct WRITE_LOGGED4resok {
         </figure>
       </section>
 
-      <section anchor="WRITE_LOG_desc" numbered="true" removeInRFC="false" toc="exclude">
+      <section anchor="WRITE_BLOCK_desc" numbered="true" removeInRFC="false" toc="exclude">
         <name>DESCRIPTION</name>
         <t>
-          WRITE_LOG is WRITE (see Section 18.32 of <xref target="RFC8881"
+          WRITE_BLOCK is WRITE (see Section 18.32 of <xref target="RFC8881"
           format="default" sectionFormat="of" />) with additional semantics
           over the block_owner and the logging of blocks. As such, all of
           the normal semantics of WRITE directly apply.
@@ -842,6 +852,10 @@ sh extract.sh &lt; spec.txt &gt; erasure_coding_prot.x
   <section anchor="sec_security" numbered="true" removeInRFC="false" toc="default">
     <name>Security Considerations</name>
     <t>
+      This draft has the same security considerations as both Flex Files
+      Layout Type version 1 (see Section 15 of <xref target="RFC8435"
+      format="default" sectionFormat="of" />) and NFSv4.2 (see Section 17 of <xref
+      target="RFC7862" format="default" sectionFormat="of" />).
     </t>
   </section>
 
