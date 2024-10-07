@@ -154,6 +154,13 @@
           Data replication is making and storing multiple copies
           of data in different locations.
         </dd>
+
+        <dt>write hole:</dt>
+        <dd>
+          A write hole is a data corruption scenario where either
+          two clients are trying to write to the same block or
+          one client is overwriting an existing block of data.
+        </dd>
       </dl>
     </section>
 
