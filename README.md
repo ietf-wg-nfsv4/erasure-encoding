@@ -1,4 +1,4 @@
-This draft describes an extension to the NFSv42 protocol.
+This draft describes an extension to the NFSv4.2 protocol.
 
 In particular, it introduces Client side erasure encoding.
 
