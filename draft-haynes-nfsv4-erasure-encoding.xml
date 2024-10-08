@@ -423,6 +423,18 @@
         there could also be READ_BLOCK (see <xref target='READ_BLOCK' />)
         calls to the other indexes.
       </t>
+      <t>
+        <cref anchor="AI12" source="TH">The figure is two data structures together?</cref>
+      </t>
+      <t>
+        <cref anchor="AI14" source="TH">ACTIVE always has the same mirror index</cref>
+      </t>
+      <t>
+        <cref anchor="AI15" source="TH">SPARE might never have the same mirror index</cref>
+      </t>
+      <t>
+        <cref anchor="AI16" source="TH">Need term for set of projections</cref>
+      </t>
       <figure anchor='mixed_layout'>
         <artwork>
          +--------------------------------------------------+
@@ -1497,7 +1509,7 @@ typedef struct {
           written would cause data corruption.
         </t>
         <t>
-          <cref anchor="AI1" source="TH">Need to have a new attribute for block size</cref>
+          <cref anchor="AI3" source="TH">Need to have a new attribute for block size</cref>
         </t>
       </section>
     </section>
