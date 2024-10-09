@@ -746,8 +746,7 @@ typedef struct {
       </t>
       <t>
         Note that the repair process can throw away the projection blocks
-        by writing projection blocks with zero payload to that location on
-        the data server.
+        by using the ROLLBACK_BLOCK operation to unstage the pending written blocks.
       </t>
     </section>
 
@@ -1240,7 +1239,7 @@ typedef struct {
           written would cause data corruption.
         </t>
         <t>
-          READ_BLOCK also only returs the committed block at the location.
+          READ_BLOCK also only returns the committed block at the location.
           <cref anchor="AI6" source="TH">Expand on this...</cref>
         </t>
         <t>
