@@ -655,6 +655,61 @@ typedef struct {
         +----------+--------------------+
         </artwork>
       </figure>
+
+      <section anchor="calculating_crc" numbered="true" removeInRFC="false" toc="exclude">
+        <name>Calculating the CRC32</name>
+        <figure anchor='crc_before_calc'>
+          <artwork>
+        +---+----------------+
+        | PROJECTION HEADER  |
+        +--------------------+
+        | change_id: 7       |
+        | client_id: 6       |
+        | id       : 0       |
+        | eff_len  : 3kB     |
+        | crc32    : 0       |
+        +--------------------+
+        | PROJECTION PAYLOAD |
+        +--------------------+
+        | Data               |
+        +--------------------+
+             Data Server 1
+          </artwork>
+        </figure>
+
+        <t>
+          Assuming the projection header and payload as in <xref target='crc_before_calc' />,
+          the crc32 needs to be calculated in order to fill in the wb_crc field. In this
+          case, the crc32 is calculated over the 5 fields as shown in the projection
+          header and the 3kB of projection payload. In this example, it is calculated
+          to be 21de8. The resulting WRITE_BLOCK is shown in <xref target='crc_after_calc' />.
+        </t>
+
+        <figure anchor='crc_after_calc'>
+          <artwork>
+        +------------------------------------+
+        | WRITE_BLOCK4args                   |
+        +------------------------------------+
+        | wba_stateid: 2f04                  |
+        | wba_offset: 4k                     |
+        | wba_stable: FILE_SYNC4             |
+        | wba_id: 0                          |
+        | wba_owner:                         |
+        +----------+-------------------------+
+        |          | bo_change_id: 7         |
+        |          | bo_client_id: 6         |
+        +----------+-------------------------+
+        | wba_block[0]:                      |
+        +----------+-------------------------+
+        |          | wb_crc    :  21de8      |
+        |          | wb_block  :  ......     |
+        +----------+--+----------------------+
+        |             | wb_block_len  : 3kB  |
+        |             | wb_block_val  :      |
+        +----------+--+----------------------+
+          </artwork>
+        </figure>
+      </section>
     </section>
 
     <section anchor="sec_decoding_projection" numbered="true" removeInRFC="false" toc="default">
@@ -701,6 +756,63 @@ typedef struct {
         and repair are out of the scope of this document and <bcp14>MUST</bcp14>
         be addressed in the document describing each erasure encoding type.
       </t>
+
+      <section anchor="checking_crc" numbered="true" removeInRFC="false" toc="exclude">
+        <name>Checking the CRC32</name>
+
+        <figure anchor='crc_on_wire'>
+          <artwork>
+        +------------------------------------+
+        | READ_BLOCK4resok                   |
+        +------------------------------------+
+        | rbr_eof: false                     |
+        | rbr_blocks[0]:                     |
+        +----------+-------------------------+
+        |          | rb_crc: 21de8           |
+        |          | wb_crc    :  21de8      |
+        +----------+----+--------------------+
+        |               | bo_block_id: 1     |
+        |               | bo_change_id: 7    |
+        |               | bo_client_id: 6    |
+        |               | bo_committed: true |
+        +----------+----+--------------------+
+        |          | rb_block  :  ......     |
+        +----------+--+----------------------+
+        |             | rb_block_len  : 3kB  |
+        |             | rb_block_val  :      |
+        +----------+--+----------------------+
+          </artwork>
+        </figure>
+
+        <t>
+          Assuming the READ_BLOCK results as in <xref target='crc_on_wire' />,
+          the crc32 needs to be checked in order to ensure data integrity. Conceptually,
+          a projection header and payload can be built as shown in <xref target='crc_checking' />.
+          The crc32 is calculated over the 5 fields as shown in the projection
+          header and the 3kB of projection payload. In this example, it is calculated
+          to be 21de8. Thus this projection for the data server has data integrity.
+        </t>
+
+        <figure anchor='crc_checking'>
+          <artwork>
+        +---+----------------+
+        | PROJECTION HEADER  |
+        +--------------------+
+        | change_id: 7       |
+        | client_id: 6       |
+        | id       : 0       |
+        | eff_len  : 3kB     |
+        | crc32    : 0       |
+        +--------------------+
+        | PROJECTION PAYLOAD |
+        +--------------------+
+        | Data               |
+        +--------------------+
+             Data Server 1
+          </artwork>
+        </figure>
+
+      </section>
     </section>
   </section>
 
@@ -1199,9 +1311,7 @@ typedef struct {
         <figure anchor='code_read_block4'>
           <sourcecode type='xdr'>
 /// struct read_block4 {
-///     uint32_t        rb_num;
 ///     uint32_t        rb_crc;
-///     eff_block_len4  rb_effective_len;
 ///     block_owner4    rb_owner;
 ///     opaque          rb_block&lt;&gt;;
 /// };
