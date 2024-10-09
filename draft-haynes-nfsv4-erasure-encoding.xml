@@ -828,10 +828,6 @@ typedef struct {
         the existing projection blocks to back out the change.
       </t>
 
-      <t>
-        <cref anchor="AI10" source="TH">Can we uncommit the blocks?</cref>
-      </t>
-
       <figure anchor='example_READ_BLOCK_COMMIT_args_1'>
         <artwork>
 
@@ -1236,8 +1232,62 @@ typedef struct {
       </section>
     </section>
 
+    <section anchor="ROLLBACK_BLOCK" numbered="true" removeInRFC="false" toc="default">
+      <name>Operation 80: ROLLBACK_BLOCK - Rollback Cached Block Data</name>
+      <section anchor="ROLLBACK_BLOCK_args" numbered="true" removeInRFC="false" toc="exclude">
+        <name>ARGUMENTS</name>
+        <figure anchor='code_ROLLBACK_BLOCK4args'>
+          <sourcecode type='xdr'>
+/// struct ROLLBACK_BLOCK4args {
+///     /* CURRENT_FH: file */
+///     offset4         rba_offset;
+///     count4          rba_count;
+///     block_owner4    rba_blocks&lt;&gt;;
+/// };
+          </sourcecode>
+        </figure>
+      </section>
+
+      <section anchor="ROLLBACK_BLOCK_res" numbered="true" removeInRFC="false" toc="exclude">
+        <name>RESULTS</name>
+        <figure anchor='code_ROLLBACK_BLOCK4resok'>
+          <sourcecode type='xdr'>
+/// struct ROLLBACK_BLOCK4resok {
+///     verifier4       rbr_writeverf;
+/// };
+          </sourcecode>
+        </figure>
+
+        <figure anchor='code_ROLLBACK_BLOCK4res'>
+          <sourcecode type='xdr'>
+/// union ROLLBACK_BLOCK4res switch (nfsstat4 rbr_status) {
+///     case NFS4_OK:
+///         ROLLBACK_BLOCK4resok   rbr_resok4;
+///     default:
+///         void;
+/// };
+          </sourcecode>
+        </figure>
+      </section>
+
+      <section anchor="ROLLBACK_BLOCK_desc" numbered="true" removeInRFC="false" toc="exclude">
+        <name>DESCRIPTION</name>
+        <t>
+          ROLLBACK_BLOCK is a new form like COMMIT (see Section 18.3 of <xref target="RFC8881"
+          format="default" sectionFormat="of" />) with additional semantics
+          over the block_owner the rolling back the writing of blocks. As such, all of
+          the normal semantics of COMMIT directly apply.
+        </t>
+
+        <t>
+          ROLLBACK_BLOCK uncommits prior WRITE_BLOCK transactions. In case of write
+          holes, it allows the client to undo transactions to repair the file.
+        </t>
+      </section>
+    </section>
+
     <section anchor="WRITE_BLOCK" numbered="true" removeInRFC="false" toc="default">
-      <name>Operation 80: WRITE_BLOCK - Write Blocks to File</name>
+      <name>Operation 81: WRITE_BLOCK - Write Blocks to File</name>
       <section anchor="WRITE_BLOCK_args" numbered="true" removeInRFC="false" toc="exclude">
         <name>ARGUMENTS</name>
         <figure anchor='code_write_block4'>
