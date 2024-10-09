@@ -588,6 +588,10 @@
       </figure>
 
       <t>
+        <cref anchor="AI3" source="DF">pay attention to the 128 bits alignment for wb_block_val</cref>
+      </t>
+
+      <t>
         This describes a 11kB write of data from an offset of 4kB in the file.
         Instead of presenting a wb_effective_len, we rely on the XDR decoding
         of wb_block (see <xref target='code_write_block4' />) to create
