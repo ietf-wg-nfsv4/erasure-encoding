@@ -833,24 +833,28 @@ typedef struct {
       </figure>
 
       <t>
-        But assume that data server 6 does not respond to the WRITE_BLOCK
-        operation. The client issues a READ_BLOCK_COMMIT (see <xref target='example_READ_BLOCK_COMMIT_args_1' />)
+        But assume that data server 4 does not respond to the WRITE_BLOCK
+        operation. While the client can detect this and send the WRITE_BLOCK
+        to any data server marked as FFV2_DS_FLAGS_SPARE, it might decide
+        to see if the data server did in fact do the transaction. It might
+        also be the case that there are no data servers marked as
+        FFV2_DS_FLAGS_SPARE.  The client issues a READ_BLOCK_COMMIT
+        (see <xref target='example_READ_BLOCK_COMMIT_args_1' />)
         and gets the results in <xref target='example_READ_BLOCK_COMMIT_res_2_b' />.
-        This indicates that data server 6 did not get the WRITE_BLOCK
+        This indicates that data server 4 did not get the WRITE_BLOCK
         request. 
       </t>
 
       <t>
         In general, the client can either resend the WRITE_BLOCK request,
         determine by the erasure encoding type that there is sufficient
-        projection blocks present to decode the data block, or overwrite
+        projection blocks present to decode the data block, or ROLLBACK_BLOCK
         the existing projection blocks to back out the change.
       </t>
 
       <figure anchor='example_READ_BLOCK_COMMIT_args_1'>
         <artwork>
-
-                Data Server 6
+                Data Server 4
         +--------------------------------+
         | READ_BLOCK_COMMIT4args         |
         +--------------------------------+
@@ -872,7 +876,7 @@ typedef struct {
       <figure anchor='example_READ_BLOCK_COMMIT_res_2_b'>
         <artwork>
 
-                Data Server 6
+                Data Server 4
         +--------------------------------+
         | READ_BLOCK_COMMIT4resok        |
         +--------------------------------+
