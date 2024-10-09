@@ -554,7 +554,7 @@
         +------------------------------------+
         | WRITE_BLOCK4args                   |
         +------------------------------------+
-        | wba_stateid: 1ef3                  |
+        | wba_stateid: 0                     |
         | wba_offset: 4k                     |
         | wba_stable: FILE_SYNC4             |
         | wba_id: 0                          |
@@ -690,7 +690,7 @@ typedef struct {
         +------------------------------------+
         | WRITE_BLOCK4args                   |
         +------------------------------------+
-        | wba_stateid: 2f04                  |
+        | wba_stateid: 0                     |
         | wba_offset: 4k                     |
         | wba_stable: FILE_SYNC4             |
         | wba_id: 0                          |
@@ -879,7 +879,7 @@ typedef struct {
         +------------------------------------+
         | WRITE_BLOCK4args                   |
         +------------------------------------+
-        | wba_stateid: 1ef3                  |
+        | wba_stateid: 0                     |
         | wba_offset: 4k                     |
         | wba_stable: FILE_SYNC4             |
         | wba_id: 0                          |
@@ -973,16 +973,12 @@ typedef struct {
         +--------------------------------+
         | READ_BLOCK_COMMIT4args         |
         +--------------------------------+
-        | rbca_stateid: 1ef3             |
+        | rbca_stateid: 0                |
         | rbca_offset: 4kB               |
         | rbca_count: 3                  |
         +----------+---------------------+
         </artwork>
       </figure>
-
-      <t>
-        <cref anchor="AI8" source="TH">Fix the stateid here and above</cref>
-      </t>
 
       <t>
         <cref anchor="AI9" source="TH">Are the count bytes or number of blocks?</cref>
