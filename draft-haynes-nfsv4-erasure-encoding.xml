@@ -354,7 +354,7 @@
         <sourcecode type='xdr'>
    /// struct ffv2_mirror4 {
    ///     ffv2_data_server4       ffm_data_servers&lt;&gt;;
-   ///     ffv2_encoding_type      ffds_encoding;
+   ///     ffv2_encoding_type      ffm_encoding;
    /// };
         </sourcecode>
       </figure>
@@ -424,21 +424,26 @@
       </t>
       <figure anchor='mixed_layout'>
         <artwork>
-          +--------------+---------------+----------------+
-          | Mirror Index | Encoding Type | ffv2_ds_flags4 |
-          +--------------+---------------+----------------+
-          |        0     | _MIRRORED     |        0       |
-          +--------------+---------------+----------------+
-          |        1     | _OTHER        |   _ACTIVE      |
-          +--------------+---------------+----------------+
-          |        2     | _OTHER        |   _ACTIVE      |
-          +--------------+---------------+----------------+
-          |        3     | _OTHER        |   _ACTIVE      |
-          +--------------+---------------+----------------+
-          |        4     | _OTHER        |   _ACTIVE      |
-          +--------------+---------------+----------------+
-          |        5     | _OTHER        |   _SPARE       |
-          +--------------+---------------+----------------+
+         +--------------------------------------------------+
+         | ffv2_layout4:                                    |
+         +--------------------------------------------------+
+         |     ffl_mirrors[0]:                              |
+         |         ffv2_data_server4                        |
+         |             ffds_flags: 0                        |
+         |         ffm_encoding: FF2_ENCODING_TYPE_MIRRORED |
+         +--------------------------------------------------+
+         |     ffl_mirrors[1]:                              |
+         |         ffv2_data_server4                        |
+         |             ffds_flags: FFV2_DS_FLAGS_ACTIVE     |
+         |         ffm_encoding: FF2_ENCODING_TYPE_MIRRORED |
+         +--------------------------------------------------+
+                               ...
+         +--------------------------------------------------+
+         |     ffl_mirrors[5]:                              |
+         |         ffv2_data_server4                        |
+         |             ffds_flags: FFV2_DS_FLAGS_SPARE      |
+         |         ffm_encoding: FF2_ENCODING_TYPE_MIRRORED |
+         +--------------------------------------------------+
         </artwork>
       </figure>
       <t>
