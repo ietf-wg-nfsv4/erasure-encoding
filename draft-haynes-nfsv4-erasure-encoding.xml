@@ -413,7 +413,8 @@
       </t>
       <t>
         Assume there is an additional ffv2_encoding_type of
-        FF2_ENCODING_TYPE_OTHER and it needs 4 active blocks and 1
+        FF2_ENCODING_TYPE_REED_SOLOMON and it needs 4 active blocks,
+        2 parity blocks, and 2
         spare block. The user wants to actively assimilate a regular
         file. As such, a layout might be as represented in <xref
         target='mixed_layout' />.  As this is an assimilation, most of
@@ -450,15 +451,21 @@
          |         ffm_data_servers:                        |
          |             ffv2_data_server4[0]                 |
          |                 ffds_flags: FFV2_DS_FLAGS_ACTIVE |
-         |         ffm_encoding: FF2_ENCODING_TYPE_MIRRORED |
-         +--------------------------------------------------+
-                               ...
-         +--------------------------------------------------+
-         |     ffl_mirrors[5]:                              |
-         |         ffm_data_servers:                        |
-         |             ffv2_data_server4[0]                 |
+         |             ffv2_data_server4[1]                 |
+         |                 ffds_flags: FFV2_DS_FLAGS_ACTIVE |
+         |             ffv2_data_server4[2]                 |
+         |                 ffds_flags: FFV2_DS_FLAGS_ACTIVE |
+         |             ffv2_data_server4[3]                 |
+         |                 ffds_flags: FFV2_DS_FLAGS_ACTIVE |
+         |             ffv2_data_server4[4]                 |
+         |                 ffds_flags: FFV2_DS_FLAGS_PARITY |
+         |             ffv2_data_server4[5]                 |
+         |                 ffds_flags: FFV2_DS_FLAGS_PARITY |
+         |             ffv2_data_server4[6]                 |
          |                 ffds_flags: FFV2_DS_FLAGS_SPARE  |
-         |         ffm_encoding: FF2_ENCODING_TYPE_MIRRORED |
+         |             ffv2_data_server4[7]                 |
+         |                 ffds_flags: FFV2_DS_FLAGS_SPARE  |
+         |     ffm_encoding: FF2_ENCODING_TYPE_REED_SOLOMON |
          +--------------------------------------------------+
         </artwork>
       </figure>
