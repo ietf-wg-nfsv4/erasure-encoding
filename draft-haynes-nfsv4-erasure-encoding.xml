@@ -370,7 +370,7 @@
       <figure anchor='code_ffv2_encoding_type_data'>
         <sourcecode type='xdr'>
    /// union ffv2_encoding_type_data switch
-   ///         (ffv2_encoding_type fed_encoding) {
+   ///         (ffv2_encoding_type fetd_encoding) {
    ///     case FFV2_ENCODING_TYPE_MIRRORED:
    ///         void;
    /// };
@@ -402,6 +402,29 @@
         the flex files layout version 2.
       </t>
     </section>
+
+    <section anchor="ffv2_layouthint4" numbered="true" removeInRFC="false" toc="default">
+      <name>ffv2_layouthint4</name>
+      <figure anchor='code_ffv2_layouthint4'>
+        <sourcecode type='xdr'>
+/// union ffv2_mirrors_hint switch (ffv2_encoding_type ffmh_type) {
+///     case FFV2_ENCODING_TYPE_MIRRORED:
+///         void;
+/// };
+///
+/// struct ffv2_layouthint4 {
+///     ffv2_encoding_type fflh_supported_types&lt;&gt;;
+///     ffv2_mirrors_hint fflh_mirrors_hint;
+/// };
+        </sourcecode>
+      </figure>
+      <t>
+        The ffv2_layouthint4 (in <xref target='code_ffv2_layouthint4' />) describes
+        the layout_hint (see Section 5.12.4 of <xref target="RFC8881" format="default" sectionFormat="of" />)
+        that the client can provide to the metadata server.
+      </t>
+    </section>
+
 
     <section anchor="sec_mix_types" numbered="true" removeInRFC="false" toc="default">
       <name>Mixing of Encoding Types</name>
