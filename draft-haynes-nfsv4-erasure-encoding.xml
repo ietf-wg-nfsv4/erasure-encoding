@@ -710,6 +710,16 @@ typedef struct {
       the case of write holes is in the scope of this document.
     </t>
 
+    <t>
+      What is out of scope of this document is the manner in which the
+      data servers implement the semantics of the new operations. I.e.,
+      the data servers might be able to leverage the native file system
+      to achieve the semantics or it might completely implement a
+      multi-file approach to stage WRITE_BLOCK results and then
+      shuffle blocks when the COMMIT_BLOCK or ROLLBACK_BLOCK operations
+      commit the data.
+    </t>
+
     <section anchor="client_died" numbered="true" removeInRFC="false" toc="default">
       <name>Dead or Partitioned Client</name>
       <t>
