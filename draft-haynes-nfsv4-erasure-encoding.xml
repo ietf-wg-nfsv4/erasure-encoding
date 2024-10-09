@@ -588,7 +588,7 @@
       </figure>
 
       <t>
-        <cref anchor="AI3" source="DF">pay attention to the 128 bits alignment for wb_block_val</cref>
+        <cref anchor="AI13" source="DF">pay attention to the 128 bits alignment for wb_block_val</cref>
       </t>
 
       <t>
@@ -1021,7 +1021,9 @@ typedef struct {
           The block size for READ_BLOCK and WRITE_BLOCK operations. If not supplied
           by the server before a WRITE_BLOCK, it <bcp14>MUST</bcp14> become the
           block size of the first WRITE_BLOCK.
+        </t>
 
+        <t>
           <cref anchor="AI3" source="TH">How does the data server get this information?</cref>
         </t>
       </section>
