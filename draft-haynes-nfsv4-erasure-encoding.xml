@@ -74,7 +74,8 @@
   <section anchor="sec_intro" numbered="true" removeInRFC="false" toc="default">
     <name>Introduction</name>
     <t>
-      In Parallel NFS (pNFS), the metadata server returns layout type
+      In Parallel NFS (pNFS) (see Section 12 of
+      <xref target="RFC8881" format="default" sectionFormat="of" />), the metadata server returns layout type
       structures that describe where file data is located.  There are
       different layout types for different storage systems and methods
       of arranging data on storage devices.  <xref target="RFC8435"
