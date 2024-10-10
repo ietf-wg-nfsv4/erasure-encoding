@@ -767,7 +767,16 @@
       <t>
         When reading blocks via a READ_BLOCK operation, the client will decode
         the projection headers and payload into data blocks as shown in
-        <xref target='decoding_projection' />. Note that at this time, the
+        <xref target='decoding_projection' />.  If the resulting data block
+        is to be sized less than a data block, i.e., the rb_effective_len
+        is less than the data block size, then the inverse transformation
+        <bcp14>MUST</bcp14> fill the remainder of the data block with 0s.
+        It must appear as a freshly written data block which was not
+        completely filled.
+      </t>
+
+      <t>
+        Note that at this time, the
         client could detect issues in the inetgrity of the data. The handling
         and repair are out of the scope of this document and <bcp14>MUST</bcp14>
         be addressed in the document describing each erasure encoding type.
