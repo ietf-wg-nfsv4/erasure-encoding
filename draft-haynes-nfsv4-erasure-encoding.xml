@@ -165,7 +165,8 @@
         <dd>
           One of the resulting blocks to be exchanged with a data
           server after a transformation has been applied to
-          a data block.
+          a data block. Note that the resulting projection block
+          may be a different size than the data block.
         </dd>
 
         <dt>replication of data:</dt>
@@ -181,6 +182,11 @@
           one client is overwriting an existing block of data.
         </dd>
       </dl>
+
+      <t>
+        In this document, block by itself will mean the projection
+        block and not the data block.
+      </t>
     </section>
 
     <section numbered="true" removeInRFC="false" toc="default">
@@ -618,22 +624,22 @@
         | WRITE_BLOCK4args                   |
         +------------------------------------+
         | wba_stateid: 0                     |
-        | wba_offset: 4k                     |
+        | wba_offset: 1                      |
         | wba_stable: FILE_SYNC4             |
         | wba_id: 0                          |
         | wba_owner:                         |
         |            bo_change_id: 3         |
         |            bo_client_id: 6         |
         | wba_block[0]:                      |
-        |            wb_crc    :  32ef89     |
+        |            wb_crc    :  0x32ef89   |
         |            wb_effective_len  : 4kB |
         |            wb_block  :  ......     |
         | wba_block[1]:                      |
-        |            wb_crc    :  56fa89     |
+        |            wb_crc    :  0x56fa89   |
         |            wb_effective_len  : 4kB |
         |            wb_block  :  ......     |
         | wba_block[2]:                      |
-        |            wb_crc    :  7693af     |
+        |            wb_crc    :  0x7693af   |
         |            wb_effective_len  : 3kB |
         |            wb_block  :  ......     |
         +------------------------------------+
@@ -645,7 +651,7 @@
       </t>
 
       <t>
-        This describes a 11kB write of data from an offset of 4kB in the file.
+        This describes a 3 block write of data from an offset of 1 block in the file.
         As each block shares the wba_owner, it is only
         presented once. I.e., the data server will be able to construct the
         projection header for each wba_block from the wba_id, wba_owner,
@@ -664,7 +670,7 @@
         +-------------------------------+
         | wbr_count: 3                  |
         | wbr_committed: FILE_SYNC4     |
-        | wbr_writeverf: f1234abc       |
+        | wbr_writeverf: 0xf1234abc     |
         | wbr_owners[0]:                |
         |            bo_block_id: 1     |
         |            bo_change_id: 3    |
@@ -710,7 +716,7 @@
           the crc32 needs to be calculated in order to fill in the wb_crc field. In this
           case, the crc32 is calculated over the 5 fields as shown in the projection
           header and the data of the projection payload. In this example, it is calculated
-          to be 21de8. The resulting WRITE_BLOCK is shown in <xref target='crc_after_calc' />.
+          to be 0x21de8. The resulting WRITE_BLOCK is shown in <xref target='crc_after_calc' />.
         </t>
 
         <figure anchor='crc_after_calc'>
@@ -719,14 +725,14 @@
         | WRITE_BLOCK4args                   |
         +------------------------------------+
         | wba_stateid: 0                     |
-        | wba_offset: 4k                     |
+        | wba_offset: 1                      |
         | wba_stable: FILE_SYNC4             |
         | wba_id: 0                          |
         | wba_owner:                         |
         |            bo_change_id: 7         |
         |            bo_client_id: 6         |
         | wba_block[0]:                      |
-        |            wb_crc    :  21de8      |
+        |            wb_crc    :  0x21de8    |
         |            wb_effective_len  : 3kB |
         |            wb_block  :  ......     |
         +------------------------------------+
@@ -790,7 +796,7 @@
         +------------------------------------+
         | rbr_eof: false                     |
         | rbr_blocks[0]:                     |
-        |            rb_crc: 21de8           |
+        |            rb_crc: 0x21de8         |
         |            rb_effective_len  : 3kB |
         |            rb_owner:               |
         |                 bo_block_id: 1     |
@@ -808,7 +814,7 @@
           a projection header and payload can be built as shown in <xref target='crc_checking' />.
           The crc32 is calculated over the 5 fields as shown in the projection
           header and the 3kB of projection payload. In this example, it is calculated
-          to be 21de8. Thus this projection for the data server has data integrity.
+          to be 0x21de8. Thus this projection for the data server has data integrity.
         </t>
 
         <figure anchor='crc_checking'>
@@ -898,18 +904,18 @@
         | WRITE_BLOCK4args                   |
         +------------------------------------+
         | wba_stateid: 0                     |
-        | wba_offset: 4k                     |
+        | wba_offset: 1                      |
         | wba_stable: FILE_SYNC4             |
         | wba_id: 0                          |
         | wba_owner:                         |
         |            bo_change_id: 3         |
         |            bo_client_id: 6         |
         | wba_block[0]:                      |
-        |            wb_crc    :  32ef89     |
+        |            wb_crc    :  0x32ef89   |
         |            wb_effective_len  : 4kB |
         |            wb_block  :  ......     |
         | wba_block[1]:                      |
-        |            wb_crc    :  56fa89     |
+        |            wb_crc    :  0x56fa89   |
         |            wb_effective_len  : 4kB |
         |            wb_block  :  ......     |
         +------------------------------------+
@@ -931,7 +937,7 @@
         +--------------------------------+
         | wbr_count: 3                   |
         | wbr_committed: FILE_SYNC4      |
-        | wbr_writeverf: f1234abc        |
+        | wbr_writeverf: 0xf1234abc      |
         | wbr_owners[0]:                 |
         |            bo_block_id: 1      |
         |            bo_change_id: 2     |
@@ -978,15 +984,11 @@
         | READ_BLOCK_COMMIT4args         |
         +--------------------------------+
         | rbca_stateid: 0                |
-        | rbca_offset: 4kB               |
+        | rbca_offset: 1                 |
         | rbca_count: 3                  |
         +----------+---------------------+
         </artwork>
       </figure>
-
-      <t>
-        <cref anchor="AI9" source="TH">Are the count bytes or number of blocks?</cref>
-      </t>
 
       <figure anchor='example_READ_BLOCK_COMMIT_res_2_b'>
         <artwork>
@@ -1036,7 +1038,7 @@
         +--------------------------------+
         | wbr_count: 3                   |
         | wbr_committed: FILE_SYNC4      |
-        | wbr_writeverf: f1234abc        |
+        | wbr_writeverf: 0xf1234abc      |
         | wbr_owners[0]:                 |
         |            bo_block_id: 1      |
         |            bo_change_id: 3     |
@@ -1064,7 +1066,7 @@
         +--------------------------------+
         | wbr_count: 3                   |
         | wbr_committed: FILE_SYNC4      |
-        | wbr_writeverf: f1234abc        |
+        | wbr_writeverf: 0xf1234abc      |
         | wbr_owners[0]:                 |
         |            bo_block_id: 1      |
         |            bo_change_id: 3     |
@@ -1091,44 +1093,14 @@
 
     <section anchor="errors" numbered="true" removeInRFC="false" toc="default">
       <name>Errors</name>
-      <section anchor="NFS4ERR_BLOCK_NOT_ALIGNED" numbered="true" removeInRFC="false" toc="exclude">
-        <name>Error 10097 - NFS4ERR_BLOCK_NOT_ALIGNED</name>
-        <t>
-          A block operation was not aligned to the file's block length.
-        </t>
-      </section>
       <section anchor="NFS4ERR_ERASURE_ENCODING_NOT_SUPPORTED" numbered="true" removeInRFC="false" toc="exclude">
-        <name>Error 10098 - NFS4ERR_ERASURE_ENCODING_NOT_SUPPORTED</name>
+        <name>Error 10097 - NFS4ERR_ERASURE_ENCODING_NOT_SUPPORTED</name>
         <t>
-          The client requested a ffv2_encoding_type which the server does not support.
-          <cref anchor="AI2" source="TH">Get this straight</cref>
-        </t>
-      </section>
-    </section>
-
-    <section anchor="attrs" numbered="true" removeInRFC="false" toc="default">
-      <name>Attributes</name>
-      <section anchor="attr_block_size" numbered="true" removeInRFC="false" toc="exclude">
-        <name>fattr4_block_size</name>
-
-        <figure anchor='code_fattr4_block_size'>
-          <sourcecode type='xdr'>
-///
-/// typedef unit32_t      fattr4_block_size;
-///
-/// const FATTR4_BLOCK_SIZE            = 88;
-///
-          </sourcecode>
-        </figure>
-
-        <t>
-          The block size for READ_BLOCK and WRITE_BLOCK operations. If not supplied
-          by the server before a WRITE_BLOCK, it <bcp14>MUST</bcp14> become the
-          block size of the first WRITE_BLOCK.
-        </t>
-
-        <t>
-          <cref anchor="AI3" source="TH">How does the data server get this information?</cref>
+          The client requested a ffv2_encoding_type which the server does not support. I.e.,
+          if the client sends a layout_hint requesting an erasure encoding type that the
+          metadata server does not support, this error code can be returned. The client
+          might have to send the layout_hint several times to determine the overlapping
+          set of supported erasure encoding types.
         </t>
       </section>
     </section>
@@ -1227,6 +1199,21 @@
           over the block_owner the committing of blocks. As such, all of
           the normal semantics of COMMIT directly apply.
         </t>
+        <t>
+          The main difference between the two operations is that COMMIT_BLOCK
+          works on blocks and not a raw data stream. As such cba_offset
+          is the starting block offset in the file and not the byte
+          offset in the file. Some erasure encoding types can have
+          different projection block sizes depending on the projection
+          block type. Further, cba_count is a count of blocks to commit
+          and not bytes to commit.
+        </t>
+        <t>
+          Further, while it may appear that the combination of cba_offset
+          and cba_count are redundant to cba_blocks, the purpose of
+          cba_blocks is to allow the data server to differeniate between
+          potentially multiple uncommitted blocks.
+        </t>
       </section>
     </section>
 
@@ -1303,6 +1290,7 @@
 ///     uint32_t        rb_crc;
 ///     uint32_t        rb_effective_len;
 ///     block_owner4    rb_owner;
+///     uint32_t        rb_id;
 ///     opaque          rb_block&lt;&gt;;
 /// };
           </sourcecode>
@@ -1338,25 +1326,93 @@
           the normal semantics of READ directly apply.
         </t>
         <t>
-          The main area of difference is that READ_BLOCK works with blocks
-          of data and not raw data streams. As such rba_offset
-          <bcp14>MUST</bcp14> be a multiple of the block size. I.e., the
-          reads <bcp14>MUST</bcp14> be aligned and <bcp14>MUST NOT</bcp14>
-          overlap as that would cause corruption. When the server
-          processes a READ_BLOCK, it <bcp14>MUST</bcp14> return an
-          error of NFS4ERR_BLOCK_NOT_ALIGNED if the first block to be
-          written would cause data corruption.
+          The main difference between the two operations is that READ_BLOCK
+          works on blocks and not a raw data stream. As such rba_offset
+          is the starting block offset in the file and not the byte
+          offset in the file. Some erasure encoding types can have
+          different projection block sizes depending on the projection
+          block type. Further, rba_count is a count of blocks to read
+          and not bytes to read.
         </t>
         <t>
           READ_BLOCK also only returns the committed block at the location.
-          <cref anchor="AI6" source="TH">Expand on this...</cref>
+          I.e., if a client overwites a block at offset 10, then tries
+          to read the block without commiting it, then the original
+          block is returned.
         </t>
         <t>
-          <cref anchor="AI4" source="TH">Describe what happens on reading an incomplete data block.</cref>
+          When reading a set of blocks across the data servers, it can be
+          the case that some data servers do not have any data at that
+          location. In that case, the server either returns rbr_eof
+          if the rba_offset exceeds the number of projection blocks that
+          the data server is aware or it returns an empty projection block
+          for that block.
         </t>
+
         <t>
-          <cref anchor="AI5" source="TH">Describe what happens on reading a data block which was never written.</cref>
+          For example, in <xref target='example_READ_BLOCK_args_1' />, the
+          client asks for 4 blocks starting with the 3rd block in the file.
+          The second data server responds as in <xref target='example_READ_BLOCK_res_1' />.
+          The client would read this as there is valid data for blocks 2 and
+          4, there is a hole at block 3, and there is no data for block 5.
+          Note that the data server <bcp14>MUST</bcp14> calculate a valid
+          rb_crc for block 3 based on the generated fields.
         </t>
+
+        <figure anchor='example_READ_BLOCK_args_1'>
+          <artwork>
+                Data Server 2
+        +--------------------------------+
+        | READ_BLOCK4args                |
+        +--------------------------------+
+        | rbca_stateid: 0                |
+        | rbca_offset: 2                 |
+        | rbca_count: 4                  |
+        +----------+---------------------+
+          </artwork>
+        </figure>
+
+      <figure anchor='example_READ_BLOCK_res_1'>
+        <artwork>
+                Data Server 2
+        +--------------------------------+
+        | READ_BLOCK4resok               |
+        +--------------------------------+
+        | rbr_eof: true                  |
+        | rbr_blocks[0]:                 |
+        |     rb_crc: 0x3faddace         |
+        |     rb_effective_len: 4kB      |
+        |     rb_owner:                  |
+        |            bo_block_id: 2      |
+        |            bo_change_id: 3     |
+        |            bo_client_id: 6     |
+        |            bo_committed: true  |
+        |     rb_id: 1                   |
+        |     rb_block: ....             |
+        | rbr_blocks[0]:                 |
+        |     rb_crc: 0xdeade4e5         |
+        |     rb_effective_len: 4kB      |
+        |     rb_owner:                  |
+        |            bo_block_id: 3      |
+        |            bo_change_id: 0     |
+        |            bo_client_id: 0     |
+        |            bo_committed: false |
+        |     rb_id: 1                   |
+        |     rb_block: 0000...00000     |
+        | rbr_blocks[0]:                 |
+        |     rb_crc: 0x7778abcd         |
+        |     rb_effective_len: 2kB      |
+        |     rb_owner:                  |
+        |            bo_block_id: 4      |
+        |            bo_change_id: 3     |
+        |            bo_client_id: 6     |
+        |            bo_committed: true  |
+        |     rb_id: 1                   |
+        |     rb_block: ....             |
+        +--------------------------------+
+        </artwork>
+      </figure>
+
       </section>
     </section>
 
@@ -1405,6 +1461,22 @@
           format="default" sectionFormat="of" />) with additional semantics
           over the block_owner the rolling back the writing of blocks. As such, all of
           the normal semantics of COMMIT directly apply.
+        </t>
+
+        <t>
+          The main difference between the two operations is that ROLLBACK_BLOCK
+          works on blocks and not a raw data stream. As such rba_offset
+          is the starting block offset in the file and not the byte
+          offset in the file. Some erasure encoding types can have
+          different projection block sizes depending on the projection
+          block type. Further, rba_count is a count of blocks to rollback
+          and not bytes to rollback.
+        </t>
+        <t>
+          Further, while it may appear that the combination of rba_offset
+          and rba_count are redundant to rba_blocks, the purpose of
+          rba_blocks is to allow the data server to differeniate between
+          potentially multiple uncommitted blocks.
         </t>
 
         <t>
@@ -1480,15 +1552,11 @@
         <t>
           The main difference between the two operations is that WRITE_BLOCK
           works on blocks and not a raw data stream. As such wba_offset
-          <bcp14>MUST</bcp14> be a multiple of the block size. I.e., the
-          writes <bcp14>MUST</bcp14> be aligned and <bcp14>MUST NOT</bcp14>
-          overlap as that would cause corruption. When the server
-          processes a WRITE_BLOCK, it <bcp14>MUST</bcp14> return an
-          error of NFS4ERR_BLOCK_NOT_ALIGNED if the first block to be
-          written would cause data corruption.
-        </t>
-        <t>
-          <cref anchor="AI23" source="TH">Need to have a new attribute for block size</cref>
+          is the starting block offset in the file and not the byte
+          offset in the file. Some erasure encoding types can have
+          different projection block sizes depending on the projection
+          block type. Further, wbr_count is a count of written blocks
+          and not written bytes.
         </t>
       </section>
     </section>
@@ -1702,4 +1770,4 @@ sh extract.sh &lt; spec.txt &gt; erasure_coding_prot.x
 
 </back>
 
-</rfc
+</rfc>
