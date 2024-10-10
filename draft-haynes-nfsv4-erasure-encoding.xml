@@ -463,18 +463,7 @@
         there could also be READ_BLOCK (see <xref target='READ_BLOCK' />)
         calls to the other indexes.
       </t>
-      <t>
-        <cref anchor="AI12" source="TH">The figure is two data structures together?</cref>
-      </t>
-      <t>
-        <cref anchor="AI14" source="TH">ACTIVE always has the same mirror index</cref>
-      </t>
-      <t>
-        <cref anchor="AI15" source="TH">SPARE might never have the same mirror index</cref>
-      </t>
-      <t>
-        <cref anchor="AI16" source="TH">Need term for set of projections</cref>
-      </t>
+
       <figure anchor='mixed_layout'>
         <artwork>
          +---------------------------------------------------+
@@ -561,9 +550,6 @@
       payload blocks with the data integrity being compromised by
       parity blocks. Another example would be the Mojette Transformation,
       which might have 1kB projection payload block lengths.
-    </t>
-    <t>
-      <cref anchor="AI17" source="TH">Do I need to be scared of mentioning Mojette Transformation?</cref>
     </t>
     <t>
       The set of projection payload contains redundancy which will allow
@@ -1028,7 +1014,14 @@
       </t>
 
       <t>
-        <cref anchor="AI11" source="TH">What are our options here?</cref>
+        <cref anchor="AI11" source="TH">
+          What are our options here? We
+          could say that the client with the lowest 32 bit value in the
+          clientid is the one to act. While HS and Linux servers use the
+          upper 32 bits as a boot identifier, we can't guareentee all
+          servers will do that. The clients could send a request to the
+          mds to repair the write hole?
+        </cref>
       </t>
 
       <figure anchor='example_WRITE_BLOCK_res_3_a'>
