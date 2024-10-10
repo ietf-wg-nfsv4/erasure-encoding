@@ -441,7 +441,7 @@
         Assume there is an additional ffv2_encoding_type of
         FFV2_ENCODING_TYPE_REED_SOLOMON and it needs 4 active blocks,
         2 parity blocks, and 2
-        spare block. The user wants to actively assimilate a regular
+        spare blocks. The user wants to actively assimilate a regular
         file. As such, a layout might be as represented in <xref
         target='mixed_layout' />.  As this is an assimilation, most of
         the data reads will be satisfied by READ (see Section 18.22 of
@@ -541,6 +541,18 @@
       parts.
     </t>
     <t>
+      While the data block might have a length of 4kB, that does not
+      necessarily mean that the length of the projection payload block
+      is 4kB. That length is determined by the erasure encoding type
+      algorithm. For example, Reed Solomon might have 4kB projection
+      payload blocks with the data integrity being compromised by
+      parity blocks. Another example would be the Mojette Transformation,
+      which might have 1kB projection payload block lengths.
+    </t>
+    <t>
+      <cref anchor="AI17" source="TH">Do I need to be scared of mentioning Mojette Transformation?</cref>
+    </t>
+    <t>
       The set of projection payload contains redundancy which will allow
       the erasure encoding type algorithm to repair payload
       blocks in the projection as it is transformed back to a data block (see
@@ -579,7 +591,7 @@
         +--------------------+         +--------------------+
         | PROJECTION PAYLOAD |         | PROJECTION PAYLOAD |
         +--------------------+         +--------------------+
-        | Data               |         | Data               |
+        | data: ....         |         | data: ....         |
         +--------------------+         +--------------------+
              Data Server 1                 Data Server 6
         </artwork>
@@ -611,26 +623,20 @@
         | wba_block[0]:                      |
         +----------+-------------------------+
         |          | wb_crc    :  32ef89     |
+        |          | wb_effective_len  : 4kB |
         |          | wb_block  :  ......     |
-        +----------+--+----------------------+
-        |             | wb_block_len  : 4kB  |
-        |             | wb_block_val  :      |
         +----------+--+----------------------+
         | wba_block[1]:                      |
         +----------+-------------------------+
         |          | wb_crc    :  56fa89     |
+        |          | wb_effective_len  : 4kB |
         |          | wb_block  :  ......     |
-        +----------+--+----------------------+
-        |             | wb_block_len  : 4kB  |
-        |             | wb_block_val  :      |
         +----------+--+----------------------+
         | wba_block[2]:                      |
         +----------+-------------------------+
         |          | wb_crc    :  7693af     |
+        |          | wb_effective_len  : 3kB |
         |          | wb_block  :  ......     |
-        +----------+--+----------------------+
-        |             | wb_block_len  : 3kB  |
-        |             | wb_block_val  :      |
         +----------+--+----------------------+
         </artwork>
       </figure>
@@ -641,28 +647,11 @@
 
       <t>
         This describes a 11kB write of data from an offset of 4kB in the file.
-        Instead of presenting a wb_effective_len, we rely on the XDR decoding
-        of wb_block (see <xref target='code_write_block4' />) to create
-        a data structure as in <xref target='c_code_write_block4' />.
-        I.e., an opaque will have both "_len" and "_data" generated fields.
-        Note that each data server of the N will be sent a corresponding
-        array of write_block4. As each block shares the wba_owner, it is only
+        As each block shares the wba_owner, it is only
         presented once. I.e., the data server will be able to construct the
         projection header for each wba_block from the wba_id, wba_owner,
-        wb_block_len, and wb_crc.
+        wb_effective_len, and wb_crc.
       </t>
-
-      <figure anchor='c_code_write_block4'>
-        <sourcecode type='c'>
-typedef struct {
-    uint32_t  wb_crc;
-    struct {
-        u_int wb_block_len;
-        char *wb_block_val;
-    } wb_block;
-} write_block4;
-        </sourcecode>
-      </figure>
 
       <t>
         Assuming that there were no issues, <xref target='example_WRITE_BLOCK_res_1' />
@@ -716,7 +705,7 @@ typedef struct {
         +--------------------+
         | PROJECTION PAYLOAD |
         +--------------------+
-        | Data               |
+        | data:  ....        |
         +--------------------+
              Data Server 1
           </artwork>
@@ -747,10 +736,8 @@ typedef struct {
         | wba_block[0]:                      |
         +----------+-------------------------+
         |          | wb_crc    :  21de8      |
+        |          | wb_effective_len  : 3kB |
         |          | wb_block  :  ......     |
-        +----------+--+----------------------+
-        |             | wb_block_len  : 3kB  |
-        |             | wb_block_val  :      |
         +----------+--+----------------------+
           </artwork>
         </figure>
@@ -773,7 +760,7 @@ typedef struct {
         +--------------------+         +--------------------+
         | PROJECTION PAYLOAD |         | PROJECTION PAYLOAD |
         +--------------------+         +--------------------+
-        | Data               |         | Data               |
+        | data:  ....        |         | data:  ....        |
         +---+----------------+         +----------+---------+
             |                                     |
             |                                     |
@@ -814,7 +801,8 @@ typedef struct {
         | rbr_blocks[0]:                     |
         +----------+-------------------------+
         |          | rb_crc: 21de8           |
-        |          | wb_crc    :  21de8      |
+        |          | rb_effective_len  : 3kB |
+        |          | rb_owner:               |
         +----------+----+--------------------+
         |               | bo_block_id: 1     |
         |               | bo_change_id: 7    |
@@ -822,10 +810,7 @@ typedef struct {
         |               | bo_committed: true |
         +----------+----+--------------------+
         |          | rb_block  :  ......     |
-        +----------+--+----------------------+
-        |             | rb_block_len  : 3kB  |
-        |             | rb_block_val  :      |
-        +----------+--+----------------------+
+        +----------+-------------------------+
           </artwork>
         </figure>
 
@@ -851,7 +836,7 @@ typedef struct {
         +--------------------+
         | PROJECTION PAYLOAD |
         +--------------------+
-        | Data               |
+        | data:  ....        |
         +--------------------+
              Data Server 1
           </artwork>
@@ -936,18 +921,14 @@ typedef struct {
         | wba_block[0]:                      |
         +----------+-------------------------+
         |          | wb_crc    :  32ef89     |
+        |          | wb_effective_len  : 4kB |
         |          | wb_block  :  ......     |
-        +----------+--+----------------------+
-        |             | wb_block_len  : 4kB  |
-        |             | wb_block_val  :      |
         +----------+--+----------------------+
         | wba_block[1]:                      |
         +----------+-------------------------+
         |          | wb_crc    :  56fa89     |
+        |          | wb_effective_len  : 4kB |
         |          | wb_block  :  ......     |
-        +----------+--+----------------------+
-        |             | wb_block_len  : 4kB  |
-        |             | wb_block_val  :      |
         +----------+--+----------------------+
         </artwork>
       </figure>
@@ -1357,6 +1338,7 @@ typedef struct {
           <sourcecode type='xdr'>
 /// struct read_block4 {
 ///     uint32_t        rb_crc;
+///     uint32_t        rb_effective_len;
 ///     block_owner4    rb_owner;
 ///     opaque          rb_block&lt;&gt;;
 /// };
@@ -1477,6 +1459,7 @@ typedef struct {
           <sourcecode type='xdr'>
 /// struct write_block4 {
 ///     uint32_t        wb_crc;
+///     uint32_t        wb_effective_len;
 ///     opaque          wb_block&lt;&gt;;
 /// };
           </sourcecode>
