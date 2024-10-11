@@ -550,6 +550,7 @@
       parts of the payload, integrity is ensured for both the
       parts.
     </t>
+
     <t>
       While the data block might have a length of 4kB, that does not
       necessarily mean that the length of the block
@@ -560,10 +561,13 @@
       which might have 1kB block lengths.
     </t>
     <t>
-      The set of blocks contains redundancy which will allow
+      The payload contains redundancy which will allow
       the erasure encoding type algorithm to repair
       blocks in the payload as it is transformed back to a data block (see
       <xref target='decoding_transformation' />).
+      A payload is consistent when all of the contained headers
+      share the same change_id and client_id. It has integrity
+      when it is consistent and the blocks all pass the crc32 checks.
     </t>
 
     <section anchor="sec_encoding_transformation" numbered="true" removeInRFC="false" toc="default">
@@ -1094,6 +1098,25 @@
         +--------------------------------+
         </artwork>
       </figure>
+    </section>
+
+    <section anchor="reader_writer" numbered="true" removeInRFC="false" toc="default">
+      <name>Reader and Writer Racing</name>
+      <t>
+        In addition to the above write hole scenerios, a further complication
+        is a racing reader and writer. If the client reads a block and determines
+        that the payload is not consistent (i.e., not all of the payload blocks
+        share the same client_id and change_id), then it can assume that it
+        has encountered a race with another client writing to the file. It
+        <bcp14>SHOULD</bcp14> retry the READ_BLOCK operation until payload
+        consistency is achieved.
+
+        <cref anchor='AI24' source='TH'>
+          And should it hang forever? Perhaps
+          a new layout error that the client can send the MDS?
+          Or should it probe with READ_BLOCK_COMMIT to try to repair?
+        </cref>
+      </t>
     </section>
   </section>
 
