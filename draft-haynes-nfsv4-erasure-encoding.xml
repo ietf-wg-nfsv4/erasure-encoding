@@ -1109,12 +1109,16 @@
         share the same client_id and change_id), then it can assume that it
         has encountered a race with another client writing to the file. It
         <bcp14>SHOULD</bcp14> retry the READ_BLOCK operation until payload
-        consistency is achieved.
+        consistency is achieved. It may determine to send a LAYOUTERROR
+        to the metadata server with an error of NFS4ERR_ERASURE_ENCODING_NOT_CONSISTENT.
 
         <cref anchor='AI24' source='TH'>
           And should it hang forever? Perhaps
           a new layout error that the client can send the MDS?
           Or should it probe with READ_BLOCK_COMMIT to try to repair?
+        </cref>
+        <cref anchor='AI25' source='TH'>
+          Perhaps a LAYOUTERROR_BLOCK to send an encoding type specific location?
         </cref>
       </t>
     </section>
@@ -1125,8 +1129,27 @@
 
     <section anchor="errors" numbered="true" removeInRFC="false" toc="default">
       <name>Errors</name>
+      <section anchor="NFS4ERR_ERASURE_ENCODING_NOT_CONSISTENT" numbered="true" removeInRFC="false" toc="exclude">
+        <name>Error 10097 - NFS4ERR_ERASURE_ENCODING_NOT_CONSISTENT</name>
+        <t>
+          The client encountered a payload in which the blocks were inconsistent and
+          stays inconsistent. As the client can not tell if another client is 
+          actively writing, it informs the metadata server of this error via
+          LAYOUTERROR (see Section 15.6 of <xref target="RFC7862" format="default"
+          sectionFormat="of" />). The metadata server can then arrange for
+          repair of the file.
+        </t>
+        <t>
+          Note that due to the opaqueness of the clientid4, the client can not 
+          differentiate between boot instances of the metadata server or client, but the
+          metadata server can do that differentiation. I.e., it can tell if the
+          inconsistency is from the same client, whether that client is active
+          and actively writing to the file (i.e., does the client have the file
+          open and with a LAYOUTIOMODE4_RW layout?).
+        </t>
+      </section>
       <section anchor="NFS4ERR_ERASURE_ENCODING_NOT_SUPPORTED" numbered="true" removeInRFC="false" toc="exclude">
-        <name>Error 10097 - NFS4ERR_ERASURE_ENCODING_NOT_SUPPORTED</name>
+        <name>Error 10098 - NFS4ERR_ERASURE_ENCODING_NOT_SUPPORTED</name>
         <t>
           The client requested a ffv2_encoding_type which the server does not support. I.e.,
           if the client sends a layout_hint requesting an erasure encoding type that the
