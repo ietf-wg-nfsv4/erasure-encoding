@@ -1106,7 +1106,7 @@
         </artwork>
       </figure>
 
-      <section anchor='multiple_writers' numbered='true' removeInRFC='false' toc='default'>
+      <section anchor='multiple_writers' numbered='true' removeInRFC='false' toc='exclude'>
         <name>Multiple Writers</name>
         <t>
           Note that nothing prevents uncommitted blocks from accumulating or from more than
@@ -1608,6 +1608,7 @@
 /// struct write_block4 {
 ///     uint32_t        wb_crc;
 ///     uint32_t        wb_effective_len;
+///     bool            wb_update_header_only;
 ///     opaque          wb_block&lt;&gt;;
 /// };
           </sourcecode>
@@ -1724,6 +1725,38 @@
             no guarantee at all as to the contents of the file.
           </cref>
         </t>
+
+        <section anchor='update_header' numbered='true' removeInRFC='false' toc='exclude'>
+          <name>Updating the header only</name>
+          <t>
+            Some erasure encoding types keep their blocks in plain text and
+            have parity blocks in order to provide integrity. A common
+            configuration for Reed Solomon is 4 active blocks, 2
+            parity blocks, and 2 spares. Assuming 4kB data blocks,
+            then each payload delivers 16kB of data and 8kb of parity.
+            If the application modifies the first data block, then
+            all that needs to change is the first active block and the
+            two parity blocks in the payload.
+          </t>
+          <t>
+            In any other approach, only 12kB of the total 24kB has to
+            be written to storage. If that is attempted in the Flexible
+            Files Layout Type Version 2, then the payload will be deemed
+            as inconsistent. The reason for this is that the change_id
+            for the unmodified blocks will not match those of the
+            modified blocks.
+          </t>
+          <t>
+            The wb_update_header_only field can be used to save
+            the transmission of the blocks. If it is set, then
+            the wb_block is ignored. It <bcp14>MUST</bcp14> be
+            empty. Note that the client <bcp14>MUST</bcp14> only 
+            modify both the wb_crc and the wba_owner.bo_change_id
+            fields in this case. The wb_crc <bcp14>MUST</bcp14> 
+            change as the wba_owner.bo_change_id has been modified
+            (see <xref target='calculating_crc' />).
+          </t>
+        </section>
       </section>
     </section>
  </section>
