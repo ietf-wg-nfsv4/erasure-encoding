@@ -1756,6 +1756,12 @@
             change as the wba_owner.bo_change_id has been modified
             (see <xref target='calculating_crc' />).
           </t>
+          <t>
+            <cref anchor='AI27' source='TH'>
+              Does updating the header cause the commit state
+              to change? I.e., what happens with multiple writers?
+            </cref>
+          </t>
         </section>
       </section>
     </section>
