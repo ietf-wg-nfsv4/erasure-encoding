@@ -364,22 +364,6 @@
       </t>
     </section>
 
-    <section anchor="ffv2_mirror4" numbered="true" removeInRFC="false" toc="default">
-      <name>ffv2_mirror4</name>
-      <figure anchor='code_ffv2_mirror4'>
-        <sourcecode type='xdr'>
-   /// struct ffv2_mirror4 {
-   ///     ffv2_data_server4       ffm_data_servers&lt;&gt;;
-   ///     ffv2_encoding_type      ffm_encoding;
-   /// };
-        </sourcecode>
-      </figure>
-      <t>
-        The ffv2_mirror4 (in <xref target='code_ffv2_mirror4' />) describes
-        the Flexible File Layout Version 2 specific fields.
-      </t>
-    </section>
-
     <section anchor="ffv2_encoding_type_data" numbered="true" removeInRFC="false" toc="default">
       <name>ffv2_encoding_type_data</name>
       <figure anchor='code_ffv2_encoding_type_data'>
@@ -399,6 +383,23 @@
       </t>
     </section>
 
+
+    <section anchor="ffv2_mirror4" numbered="true" removeInRFC="false" toc="default">
+      <name>ffv2_mirror4</name>
+      <figure anchor='code_ffv2_mirror4'>
+        <sourcecode type='xdr'>
+   /// struct ffv2_mirror4 {
+   ///     ffv2_data_server4       ffm_data_servers&lt;&gt;;
+   ///     ffv2_encoding_type_data ffm_encoding_type_data;
+   /// };
+        </sourcecode>
+      </figure>
+      <t>
+        The ffv2_mirror4 (in <xref target='code_ffv2_mirror4' />) describes
+        the Flexible File Layout Version 2 specific fields.
+      </t>
+    </section>
+
     <section anchor="ffv2_layout4" numbered="true" removeInRFC="false" toc="default">
       <name>ffv2_layout4</name>
       <figure anchor='code_ffv2_layout4'>
@@ -408,7 +409,6 @@
    ///     ffv2_mirror4            ffl_mirrors&lt;&gt;;
    ///     ff_flags4               ffl_flags;
    ///     uint32_t                ffl_stats_collect_hint;
-   ///     ffv2_encoding_type_data ffl_encoding_type_data;
    /// };
         </sourcecode>
       </figure>
@@ -995,7 +995,6 @@
 
       <figure anchor='example_READ_BLOCK_COMMIT_res_2_b'>
         <artwork>
-
                 Data Server 4
         +--------------------------------+
         | READ_BLOCK_COMMIT4resok        |
