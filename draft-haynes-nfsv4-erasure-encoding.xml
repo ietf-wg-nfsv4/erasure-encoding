@@ -390,7 +390,6 @@
       </t>
     </section>
 
-
     <section anchor='ffv2_mirror4' numbered='true' removeInRFC='false' toc='default'>
       <name>ffv2_mirror4</name>
       <figure anchor='code_ffv2_mirror4'>
@@ -1036,18 +1035,19 @@
 
       <t>
         As a subsequent READ_BLOCK will produce garbage, the clients need
-        to agree on how to fix this issue without any communication.
+        to agree on how to fix this issue without any communication. A simplistic
+        approach is for each client to retry the WRITE_BLOCK until such time
+        as the payload is consistent. Note, this does not mean that both
+        clients win, it just means that one of them wins.
       </t>
 
       <t>
-        <cref anchor='AI11' source='TH'>
-          What are our options here? We
-          could say that the client with the lowest 32 bit value in the
-          clientid is the one to act. While HS and Linux servers use the
-          upper 32 bits as a boot identifier, we can't guarantee all
-          servers will do that. The clients could send a request to the
-          mds to repair the write hole?
-        </cref>
+        Another option is for the clients to report a LAYOUTERROR
+        (see Section 15.6 of <xref target='RFC7862' format='default'
+        sectionFormat='of' /> to the metadata server with an error of
+        NFS4ERR_ERASURE_ENCODING_NOT_CONSISTENT. That would then
+        allow the metadata server to assign the repairing of the
+        file.
       </t>
 
       <figure anchor='example_WRITE_BLOCK_res_3_a'>
@@ -1105,6 +1105,54 @@
         +--------------------------------+
         </artwork>
       </figure>
+
+      <section anchor='multiple_writers' numbered='true' removeInRFC='false' toc='default'>
+        <name>Multiple Writers</name>
+        <t>
+          Note that nothing prevents uncommitted blocks from accumulating or from more than
+          2 writers trying to write the same payload. An example of such a WRITE_BLOCK4resok
+          in response to the example of <xref target='example_WRITE_BLOCK_args_2' /> is shown
+          in <xref target='example_WRITE_BLOCK_res_3_c' />. Note only has client 6 tried to
+          update the block 1, but both clients 20 and 6 are attempting to update it.
+        </t>
+        <figure anchor='example_WRITE_BLOCK_res_3_c'>
+          <artwork>
+                Data Server 2
+        +--------------------------------+
+        | WRITE_BLOCK4resok              |
+        +--------------------------------+
+        | wbr_count: 3                   |
+        | wbr_committed: FILE_SYNC4      |
+        | wbr_writeverf: 0xf1234abc      |
+        | wbr_owners[0]:                 |
+        |            bo_block_id: 1      |
+        |            bo_change_id: 3     |
+        |            bo_client_id: 6     |
+        |            bo_committed: true  |
+        | wbr_owners[1]:                 |
+        |            bo_block_id: 1      |
+        |            bo_change_id: 4     |
+        |            bo_client_id: 6     |
+        |            bo_committed: false |
+        | wbr_owners[2]:                 |
+        |            bo_block_id: 1      |
+        |            bo_change_id: 20    |
+        |            bo_client_id: 7     |
+        |            bo_committed: false |
+        | wbr_owners[3]:                 |
+        |            bo_block_id: 1      |
+        |            bo_change_id: 3     |
+        |            bo_client_id: 10    |
+        |            bo_committed: false |
+        | wbr_owners[4]:                 |
+        |            bo_block_id: 3      |
+        |            bo_change_id: 3     |
+        |            bo_client_id: 6     |
+        |            bo_committed: true  |
+        +--------------------------------+
+          </artwork>
+        </figure>
+      </section>
     </section>
 
     <section anchor='reader_writer' numbered='true' removeInRFC='false' toc='default'>
@@ -1142,8 +1190,7 @@
           The client encountered a payload in which the blocks were inconsistent and
           stays inconsistent. As the client can not tell if another client is 
           actively writing, it informs the metadata server of this error via
-          LAYOUTERROR (see Section 15.6 of <xref target='RFC7862' format='default'
-          sectionFormat='of' />). The metadata server can then arrange for
+          LAYOUTERROR.  The metadata server can then arrange for
           repair of the file.
         </t>
         <t>
