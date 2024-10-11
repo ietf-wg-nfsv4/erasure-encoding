@@ -330,7 +330,7 @@
         was the singleton ffds_stateid combined with the
         ffds_fh_vers array. I.e., each NFSv4 version has
         its own stateid. In <xref target='code_ffv2_file_info4' />,
-        each NFSv4 filehandle has a one-to-one
+        each NFSv4 file handle has a one-to-one
         correspondence to a stateid.
       </t>
     </section>
@@ -1044,7 +1044,7 @@
       <t>
         Another option is for the clients to report a LAYOUTERROR
         (see Section 15.6 of <xref target='RFC7862' format='default'
-        sectionFormat='of' /> to the metadata server with an error of
+        sectionFormat='of' />) to the metadata server with an error of
         NFS4ERR_ERASURE_ENCODING_NOT_CONSISTENT. That would then
         allow the metadata server to assign the repairing of the
         file.
@@ -1733,7 +1733,7 @@
             have parity blocks in order to provide integrity. A common
             configuration for Reed Solomon is 4 active blocks, 2
             parity blocks, and 2 spares. Assuming 4kB data blocks,
-            then each payload delivers 16kB of data and 8kb of parity.
+            then each payload delivers 16kB of data and 8kB of parity.
             If the application modifies the first data block, then
             all that needs to change is the first active block and the
             two parity blocks in the payload.
