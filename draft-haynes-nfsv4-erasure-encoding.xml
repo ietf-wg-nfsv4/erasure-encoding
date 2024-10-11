@@ -165,6 +165,13 @@
           in parallel.
         </dd>
 
+        <dt>consistency of payload:</dt>
+        <dd>
+          A payload is consistent when all contained blocks have
+          the same owner, i.e., they share the same writing
+          client and transaction id.
+        </dd>
+
         <dt>integrity of data:</dt>
         <dd>
           Data integrity refers to the accuracy, consistency, and
