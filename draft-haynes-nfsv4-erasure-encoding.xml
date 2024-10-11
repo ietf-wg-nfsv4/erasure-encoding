@@ -61,14 +61,14 @@
       ironed out. For example, WRITE_BLOCK in <xref target='WRITE_BLOCK' />
       is presented as being WRITE (see Section 18.32 of <xref
       target='RFC8881' format='default' sectionFormat='of' />) plus
-      some semantical changes. In the first draft, we simply explain the
-      semantical changes. As these are accepted by the knowlegable reviewers,
+      some semantic changes. In the first draft, we simply explain the
+      semantics changes. As these are accepted by the knowledgeable reviewers,
       we will flesh out the WRITE_BLOCK section to include sub-sections more
       akin to 18.32.3 and 18.32.4 of <xref
       target='RFC8881' format='default' sectionFormat='of' />.
     </t>
     <t>
-      Execpt where called out, all the semantics of the Flexible File Layout
+      Except where called out, all the semantics of the Flexible File Layout
       Type Version 1 presented in <xref target='RFC8435'
       format='default' sectionFormat='of' /> still apply. This new
       version extends it and does not replace it.
@@ -181,7 +181,7 @@
         <dt>payload:</dt>
         <dd>
           The set of metadata header and transformed blocks
-          generate per data block by the erasue encoding
+          generate per data block by the erasure encoding
           type.  Note that the resulting blocks might
           be of type active, parity, spare, or repair.
         </dd>
@@ -796,7 +796,7 @@
 
       <t>
         Note that at this time, the
-        client could detect issues in the inetgrity of the data. The handling
+        client could detect issues in the integrity of the data. The handling
         and repair are out of the scope of this document and <bcp14>MUST</bcp14>
         be addressed in the document describing each erasure encoding type.
       </t>
@@ -864,7 +864,7 @@
       Each block has the concept of whether it is committed or not. This is
       crucial in detecting write holes. A write hole occurs either when two
       different clients write to the same block concurrently or when a
-      client overwrites exisiting data. In the first scenario, the order
+      client overwrites existing data. In the first scenario, the order
       of writes is not deterministic and can result in a mixture of blocks
       in the payload. In the last scenario, network partitions or client
       restarts can result in partial writes. In both cases, the blocks have
@@ -1044,7 +1044,7 @@
           What are our options here? We
           could say that the client with the lowest 32 bit value in the
           clientid is the one to act. While HS and Linux servers use the
-          upper 32 bits as a boot identifier, we can't guareentee all
+          upper 32 bits as a boot identifier, we can't guarantee all
           servers will do that. The clients could send a request to the
           mds to repair the write hole?
         </cref>
@@ -1110,7 +1110,7 @@
     <section anchor='reader_writer' numbered='true' removeInRFC='false' toc='default'>
       <name>Reader and Writer Racing</name>
       <t>
-        In addition to the above write hole scenerios, a further complication
+        In addition to the above write hole scenarios, a further complication
         is a racing reader and writer. If the client reads a block and determines
         that the payload is not consistent (i.e., not all of the payload blocks
         share the same client_id and change_id), then it can assume that it
@@ -1210,6 +1210,10 @@
         to that block location are not automatically committed. The
         client has to COMMIT_BLOCK the block in order to get it committed.
       </t>
+      <t>
+        The concept of automatically committed is dependent on the
+        wba_stable field of the WRITE_BLOCK4args.
+      </t>
     </section>
   </section>
 
@@ -1273,7 +1277,7 @@
         <t>
           Further, while it may appear that the combination of cba_offset
           and cba_count are redundant to cba_blocks, the purpose of
-          cba_blocks is to allow the data server to differeniate between
+          cba_blocks is to allow the data server to differentiate between
           potentially multiple uncommitted blocks.
         </t>
       </section>
@@ -1398,8 +1402,8 @@
         </t>
         <t>
           READ_BLOCK also only returns the committed block at the location.
-          I.e., if a client overwites a block at offset 10, then tries
-          to read the block without commiting it, then the original
+          I.e., if a client overwrites a block at offset 10, then tries
+          to read the block without committing it, then the original
           block is returned.
         </t>
         <t>
@@ -1537,7 +1541,7 @@
         <t>
           Further, while it may appear that the combination of rba_offset
           and rba_count are redundant to rba_blocks, the purpose of
-          rba_blocks is to allow the data server to differeniate between
+          rba_blocks is to allow the data server to differentiate between
           potentially multiple uncommitted blocks.
         </t>
 
@@ -1619,6 +1623,59 @@
           different block sizes depending on the
           block type. Further, wbr_count is a count of written blocks
           and not written bytes.
+        </t>
+        <t>
+          If wba_stable is FILE_SYNC4, the
+          server <bcp14>MUST</bcp14> commit the written header and block data plus all file system metadata to
+          stable storage before returning results.  This corresponds to the
+          NFSv2 protocol semantics.  Any other behavior constitutes a protocol
+          violation.  If wba_stable is DATA_SYNC4, then the server <bcp14>MUST</bcp14> commit all
+          of the header and block data  to stable storage and enough of the metadata to retrieve
+          the data before returning.  The server implementer is free to
+          implement DATA_SYNC4 in the same fashion as FILE_SYNC4, but with a
+          possible performance drop.  If wba_stable is UNSTABLE4, the server is
+          free to commit any part of the header and  block data and the metadata to stable
+          storage, including all or none, before returning a reply to the
+          client.  There is no guarantee whether or when any uncommitted data
+          will subsequently be committed to stable storage.  The only
+          guarantees made by the server are that it will not destroy any data
+          without changing the value of writeverf and that it will not commit
+          the data and metadata at a level less than that requested by the
+          client.
+        </t>
+        <t>
+          The committal of header and block data interacts with the bo_committed
+          for each of the written blocks. If the data is not committed
+          to stable storage then the bo_committed field <bcp14>MUST NOT</bcp14>
+          be set to true. Once the data is committed to stable storage, then
+          the data server can set the block's bo_committed if it is the
+          first write to that block or if the COMMIT_BLOCK is issued later
+          for that block.
+        </t>
+        <t>
+          There are subtle interactions with write holes caused by racing
+          clients. One client could win the race in each case, but because
+          it used a wba_stable of UNSTABLE4, the subsequent writes from
+          the second client with a wba_stable of FILE_SYNC4 can be awarded
+          the bo_committed being set to true for each of the blocks in
+          the payload.
+        </t>
+        <t>
+          Finally, the interaction of wba_stable can cause a client to
+          mistakenly believe that by the time it gets the response of
+          bo_committed of false, that the blocks are not committed. A
+          subsequent READ_BLOCK or READ_BLOCK_COMMIT might show that
+          the bo_committed is true without any interaction by the client
+          via COMMIT_BLOCK.
+
+          <cref anchor='AI26' source='TH'>
+            Automatic setting of bo_committed to true if it is the first
+            write should be a performance boost. But it can lead to
+            the client having incorrect information (as above) and
+            trying to COMMIT_BLOCK a payload that has lost the race.
+            But is that bad? If you have racing clients, there is
+            no guarantee at all as to the contents of the file.
+          </cref>
         </t>
       </section>
     </section>
