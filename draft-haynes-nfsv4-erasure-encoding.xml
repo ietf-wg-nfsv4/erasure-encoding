@@ -271,7 +271,7 @@
       <figure anchor='code_ffv2_encoding_type'>
         <sourcecode type='xdr'>
    /// enum ffv2_encoding_type {
-   ///     FFV2_ENCODING_TYPE_MIRRORED       = 0x1;
+   ///     FFV2_ENCODING_MIRRORED       = 0x1;
    /// };
         </sourcecode>
       </figure>
@@ -282,12 +282,12 @@
         Encoding Type Registry' (see <xref target='sec_iana_encoding' />).
         I.e., instead of defining a new Layout Type for each
         Erasure Encoding, we define a new Erasure Encoding Type.
-        Except for FFV2_ENCODING_TYPE_MIRRORED, each of the types
+        Except for FFV2_ENCODING_MIRRORED, each of the types
         is expected to employ the new operations in this document.
       </t>
 
       <t>
-        FFV2_ENCODING_TYPE_MIRRORED offers replication of data and
+        FFV2_ENCODING_MIRRORED offers replication of data and
         not integrity of data. As such, it does not need operations
         like WRITE_BLOCK (see <xref target='WRITE_BLOCK' />).
       </t>
@@ -377,7 +377,7 @@
         <sourcecode type='xdr'>
    /// union ffv2_encoding_type_data switch
    ///         (ffv2_encoding_type fetd_encoding) {
-   ///     case FFV2_ENCODING_TYPE_MIRRORED:
+   ///     case FFV2_ENCODING_MIRRORED:
    ///         void;
    /// };
         </sourcecode>
@@ -429,7 +429,7 @@
       <figure anchor='code_ffv2_layouthint4'>
         <sourcecode type='xdr'>
 /// union ffv2_mirrors_hint switch (ffv2_encoding_type ffmh_type) {
-///     case FFV2_ENCODING_TYPE_MIRRORED:
+///     case FFV2_ENCODING_MIRRORED:
 ///         void;
 /// };
 ///
@@ -460,7 +460,7 @@
       </t>
       <t>
         Assume there is an additional ffv2_encoding_type of
-        FFV2_ENCODING_TYPE_REED_SOLOMON and it needs 4 active blocks,
+        FFV2_ENCODING_REED_SOLOMON and it needs 4 active blocks,
         2 parity blocks, and 2
         spare blocks. The user wants to actively assimilate a regular
         file. As such, a layout might be as represented in <xref
@@ -481,7 +481,7 @@
          |         ffm_data_servers:                         |
          |             ffv2_data_server4[0]                  |
          |                 ffds_flags: 0                     |
-         |         ffm_encoding: FFV2_ENCODING_TYPE_MIRRORED |
+         |         ffm_encoding: FFV2_ENCODING_MIRRORED |
          +---------------------------------------------------+
          |     ffl_mirrors[1]:                               |
          |         ffm_data_servers:                         |
@@ -501,12 +501,12 @@
          |                 ffds_flags: FFV2_DS_FLAGS_SPARE   |
          |             ffv2_data_server4[7]                  |
          |                 ffds_flags: FFV2_DS_FLAGS_SPARE   |
-         |     ffm_encoding: FFV2_ENCODING_TYPE_REED_SOLOMON |
+         |     ffm_encoding: FFV2_ENCODING_REED_SOLOMON |
          +---------------------------------------------------+
         </artwork>
       </figure>
       <t>
-        When performing I/O via a FFV2_ENCODING_TYPE_MIRRORED encoding
+        When performing I/O via a FFV2_ENCODING_MIRRORED encoding
         type, the non-transformed data will be used, Whereas with
         other encoding types, a metadata header and transformed block will
         be sent. Further, when reading data from the instance files,
@@ -1889,7 +1889,7 @@ sh extract.sh &lt; spec.txt &gt; erasure_coding_prot.x
       <name>Flexible Files Layout Type Version 2 Erasure Encoding Type Registry</name>
       <t>
         This document introduces the 'Flexible Files Layout Type Version 2 Erasure Encoding Type Registry'. This
-        document defines the FFV2_ENCODING_TYPE_MIRRORED type for Client-Side Mirroring
+        document defines the FFV2_ENCODING_MIRRORED type for Client-Side Mirroring
         (see <xref target='erasure_encoding' />).
       </t>
 
@@ -1906,7 +1906,7 @@ sh extract.sh &lt; spec.txt &gt; erasure_coding_prot.x
         </thead>
         <tbody>
           <tr>
-            <td>FFV2_ENCODING_TYPE_MIRRORED</td> <td>1</td> <td>RFCTBD10</td> <td>L</td> <td>1</td>
+            <td>FFV2_ENCODING_MIRRORED</td> <td>1</td> <td>RFCTBD10</td> <td>L</td> <td>2</td>
           </tr>
         </tbody>
       </table>
