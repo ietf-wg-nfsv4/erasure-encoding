@@ -1205,11 +1205,18 @@
       <section anchor='NFS4ERR_ERASURE_ENCODING_NOT_SUPPORTED' numbered='true' removeInRFC='false' toc='exclude'>
         <name>Error 10098 - NFS4ERR_ERASURE_ENCODING_NOT_SUPPORTED</name>
         <t>
-          The client requested a ffv2_encoding_type which the server does not support. I.e.,
+          The client requested a ffv2_encoding_type which the metadata server does not support. I.e.,
           if the client sends a layout_hint requesting an erasure encoding type that the
           metadata server does not support, this error code can be returned. The client
           might have to send the layout_hint several times to determine the overlapping
           set of supported erasure encoding types.
+        </t>
+      </section>
+      <section anchor='NFS4ERR_ERASURE_ENCODING_BLOCK_MISMATCH' numbered='true' removeInRFC='false' toc='exclude'>
+        <name>Error 10099 - NFS4ERR_ERASURE_ENCODING_BLOCK_MISMATCH</name>
+        <t>
+          The client requested to the data server to update the header only 
+          and the data server can not find a matching block at that offset.
         </t>
       </section>
     </section>
@@ -1287,7 +1294,8 @@
       <t>
         The bo_committed is used by the data server to indicate whether
         the block I/O was committed or not. The first WRITE_BLOCK to
-        a location is automatically committed. Subsequent WRITE_BLOCK modifications
+        a location is automatically committed if the WRITE_BLOCK_FLAGS_COMMIT_IF_EMPTY
+        is set. Subsequent WRITE_BLOCK modifications
         to that block location are not automatically committed. The
         client has to COMMIT_BLOCK the block in order to get it committed.
       </t>
@@ -1637,12 +1645,20 @@
       <name>Operation 81: WRITE_BLOCK - Write Blocks to File</name>
       <section anchor='WRITE_BLOCK_args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
+
+        <figure anchor='code_wb_args_flags'>
+          <sourcecode type='xdr'>
+/// const WRITE_BLOCK_FLAGS_UPDATE_HEADER_ONLY   = 0x00000001;
+/// const WRITE_BLOCK_FLAGS_COMMIT_IF_EMPTY      = 0x00000002;
+          </sourcecode>
+        </figure>
+
         <figure anchor='code_write_block4'>
           <sourcecode type='xdr'>
 /// struct write_block4 {
 ///     uint32_t        wb_crc;
 ///     uint32_t        wb_effective_len;
-///     bool            wb_update_header_only;
+///     uint32_t        wb_flags;
 ///     opaque          wb_block&lt;&gt;;
 /// };
           </sourcecode>
@@ -1708,19 +1724,19 @@
         </t>
         <t>
           If wba_stable is FILE_SYNC4, the
-          server <bcp14>MUST</bcp14> commit the written header and block data plus all file system metadata to
+          data server <bcp14>MUST</bcp14> commit the written header and block data plus all file system metadata to
           stable storage before returning results.  This corresponds to the
           NFSv2 protocol semantics.  Any other behavior constitutes a protocol
-          violation.  If wba_stable is DATA_SYNC4, then the server <bcp14>MUST</bcp14> commit all
+          violation.  If wba_stable is DATA_SYNC4, then the data server <bcp14>MUST</bcp14> commit all
           of the header and block data  to stable storage and enough of the metadata to retrieve
-          the data before returning.  The server implementer is free to
+          the data before returning.  The data server implementer is free to
           implement DATA_SYNC4 in the same fashion as FILE_SYNC4, but with a
-          possible performance drop.  If wba_stable is UNSTABLE4, the server is
+          possible performance drop.  If wba_stable is UNSTABLE4, the data server is
           free to commit any part of the header and  block data and the metadata to stable
           storage, including all or none, before returning a reply to the
           client.  There is no guarantee whether or when any uncommitted data
           will subsequently be committed to stable storage.  The only
-          guarantees made by the server are that it will not destroy any data
+          guarantees made by the data server are that it will not destroy any data
           without changing the value of writeverf and that it will not commit
           the data and metadata at a level less than that requested by the
           client.
@@ -1730,10 +1746,17 @@
           for each of the written blocks. If the data is not committed
           to stable storage then the bo_committed field <bcp14>MUST NOT</bcp14>
           be set to true. Once the data is committed to stable storage, then
-          the data server can set the block's bo_committed if it is the
-          first write to that block or if the COMMIT_BLOCK is issued later
-          for that block.
+          the data server can set the block's bo_committed if one of these
+          conditions apply:
         </t>
+        <ul>
+          <li>
+            it is the first write to that block and the WRITE_BLOCK_FLAGS_COMMIT_IF_EMPTY flag is set
+          </li>
+          <li>
+            the COMMIT_BLOCK is issued later for that block.
+          </li>
+        </ul>
         <t>
           There are subtle interactions with write holes caused by racing
           clients. One client could win the race in each case, but because
@@ -1781,7 +1804,8 @@
             modified blocks.
           </t>
           <t>
-            The wb_update_header_only field can be used to save
+            The WRITE_BLOCK_FLAGS_UPDATE_HEADER_ONLY flag in wb_flags
+            can be used to save
             the transmission of the blocks. If it is set, then
             the wb_block is ignored. It <bcp14>MUST</bcp14> be
             empty. Note that the client <bcp14>MUST</bcp14> only
@@ -1791,10 +1815,11 @@
             (see <xref target='calculating_crc' />).
           </t>
           <t>
-            <cref anchor='AI27' source='TH'>
-              Does updating the header cause the commit state
-              to change? I.e., what happens with multiple writers?
-            </cref>
+            For the
+            purpose of computing the commited state of the block,
+            The data server <bcp14>MUST</bcp14> treat this as
+            an overwrite. Thus, in the response, bo_committed
+            <bcp14>MUST</bcp14> be false.
           </t>
         </section>
       </section>
