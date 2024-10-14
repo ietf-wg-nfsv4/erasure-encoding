@@ -1113,7 +1113,7 @@
           2 writers trying to write the same payload. An example of such a WRITE_BLOCK4resok
           in response to the example of <xref target='example_WRITE_BLOCK_args_2' /> is shown
           in <xref target='example_WRITE_BLOCK_res_3_c' />. Note only has client 6 tried to
-          update the block 1, but both clients 20 and 6 are attempting to update it.
+          update the block 1, but all of clients 6, 7, and 20  are attempting to update it.
         </t>
         <figure anchor='example_WRITE_BLOCK_res_3_c'>
           <artwork>
