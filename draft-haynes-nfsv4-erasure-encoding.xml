@@ -36,7 +36,7 @@
     <t>
       Parallel NFS (pNFS) allows a separation between the metadata (onto
       a metadata server) and data (onto a storage device) for a file.
-      The Flexible File Layout Type Version 2 is defined in this document
+      The Flexible File Version 2 Layout Type is defined in this document
       as an extension to pNFS that allows the use of storage devices that
       require only a limited degree of interaction with the metadata
       server and use already-existing protocols.  Data replication is
@@ -68,8 +68,8 @@
       target='RFC8881' format='default' sectionFormat='of' />.
     </t>
     <t>
-      Except where called out, all the semantics of the Flexible File Layout
-      Type Version 1 presented in <xref target='RFC8435'
+      Except where called out, all the semantics of the Flexible File Version 1 Layout
+      Type presented in <xref target='RFC8435'
       format='default' sectionFormat='of' /> still apply. This new
       version extends it and does not replace it.
     </t>
@@ -88,7 +88,7 @@
       different layout types for different storage systems and methods
       of arranging data on storage devices.  <xref target='RFC8435'
       format='default' sectionFormat='of' /> defined the Flexible
-      File Layout Type Version 1 used with file-based data servers that are
+      File Version 1 Layout Type used with file-based data servers that are
       accessed using the NFS protocols: NFSv3 <xref target='RFC1813'
       format='default' sectionFormat='of' />, NFSv4.0 <xref
       target='RFC7530' format='default' sectionFormat='of' />, NFSv4.1
@@ -218,7 +218,7 @@
   </section>
 
   <section numbered='true' removeInRFC='false' toc='default'>
-    <name>Flexible File Layout Type Version 2</name>
+    <name>Flexible File Version 2 Layout Type</name>
     <t>
       In order to introduce erasure encoding to pNFS, a new layout type
       of LAYOUT4_FLEX_FILES_V2 needs to be defined.  While we could
@@ -260,8 +260,8 @@
       value LAYOUT4_FLEX_FILES_V2.  <xref target='RFC8881' format='default'
       sectionFormat='of' /> specifies the loc_body structure as an XDR
       type 'opaque'.  The opaque layout is uninterpreted by the generic
-      pNFS client layers but is interpreted by the Flexible File Layout
-      Type Version 2 implementation.  This section defines the structure of this
+      pNFS client layers but is interpreted by the Flexible File Version 2 Layout
+      Type implementation.  This section defines the structure of this
       otherwise opaque value, ffv2_layout4.
     </t>
 
@@ -451,7 +451,7 @@
       <name>Mixing of Encoding Types</name>
       <t>
         Note that effectively, multiple encoding types can be present
-        in a Flexible Files Layout Type Version 2 layout.  The ffv2_layout4 has an array
+        in a Flexible Files Version 2 Layout Type layout.  The ffv2_layout4 has an array
         of ffv2_mirror4, each of which has a ffv2_encoding_type.
         The main reason to allow for this is to provide for either the
         assimilation of a non-erasure encoded file to an erasure
@@ -1798,7 +1798,7 @@
           <t>
             In any other approach, only 12kB of the total 24kB has to
             be written to storage. If that is attempted in the Flexible
-            Files Layout Type Version 2, then the payload will be deemed
+            Files Version 2 Layout Type, then the payload will be deemed
             as inconsistent. The reason for this is that the change_id
             for the unmodified blocks will not match those of the
             modified blocks.
@@ -1831,7 +1831,7 @@
     <t>
       This document contains the external data representation (XDR)
       <xref target='RFC4506' format='default' sectionFormat='of'/> description of
-      the Flexible Files Layout Type Version 2.  The XDR description is embedded in this
+      the Flexible Files Version 2 Layout Type.  The XDR description is embedded in this
       document in a way that makes it simple for the reader to extract
       into a ready-to-compile form.  The reader can feed this document
       into the following shell script to produce the machine readable
@@ -1945,15 +1945,15 @@ sh extract.sh &lt; spec.txt &gt; erasure_coding_prot.x
     </section>
 
     <section anchor='sec_iana_encoding' numbered='true' removeInRFC='false' toc='default'>
-      <name>Flexible Files Layout Type Version 2 Erasure Encoding Type Registry</name>
+      <name>Flexible Files Version 2 Layout Type Erasure Encoding Type Registry</name>
       <t>
-        This document introduces the 'Flexible Files Layout Type Version 2 Erasure Encoding Type Registry'. This
+        This document introduces the 'Flexible Files Version 2 Layout Type Erasure Encoding Type Registry'. This
         document defines the FFV2_ENCODING_MIRRORED type for Client-Side Mirroring
         (see <xref target='erasure_encoding' />).
       </t>
 
       <table anchor='erasure_encoding'>
-        <name>Flexible Files Layout Type Version 2 Erasure Encoding Type Assignments</name>
+        <name>Flexible Files Version 2 Layout Type Erasure Encoding Type Assignments</name>
         <thead>
           <tr>
             <th>Erasure Encoding Type Name</th>
@@ -2017,7 +2017,7 @@ sh extract.sh &lt; spec.txt &gt; erasure_coding_prot.x
   </t>
   <t>
     Christoph Helwig was instrumental in making sure Flexible Files
-    Layout Type Version 2
+    Version 2 Layout Type
     was applicable to more than one Erasure-Encoding Type.
   </t>
 </section>
