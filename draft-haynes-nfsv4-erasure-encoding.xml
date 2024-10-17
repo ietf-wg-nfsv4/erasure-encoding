@@ -481,7 +481,7 @@
          |         ffm_data_servers:                         |
          |             ffv2_data_server4[0]                  |
          |                 ffds_flags: 0                     |
-         |         ffm_encoding: FFV2_ENCODING_MIRRORED |
+         |         ffm_encoding: FFV2_ENCODING_MIRRORED      |
          +---------------------------------------------------+
          |     ffl_mirrors[1]:                               |
          |         ffm_data_servers:                         |
@@ -501,7 +501,7 @@
          |                 ffds_flags: FFV2_DS_FLAGS_SPARE   |
          |             ffv2_data_server4[7]                  |
          |                 ffds_flags: FFV2_DS_FLAGS_SPARE   |
-         |     ffm_encoding: FFV2_ENCODING_REED_SOLOMON |
+         |     ffm_encoding: FFV2_ENCODING_REED_SOLOMON      |
          +---------------------------------------------------+
         </artwork>
       </figure>
@@ -1520,9 +1520,9 @@
         +--------------------------------+
         | READ_BLOCK4args                |
         +--------------------------------+
-        | rbca_stateid: 0                |
-        | rbca_offset: 2                 |
-        | rbca_count: 4                  |
+        | rba_stateid: 0                 |
+        | rba_offset: 2                  |
+        | rba_count: 4                   |
         +----------+---------------------+
           </artwork>
         </figure>
