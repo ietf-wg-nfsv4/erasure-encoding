@@ -948,7 +948,7 @@
         +--------------------------------+
         | WRITE_BLOCK4resok              |
         +--------------------------------+
-        | wbr_count: 3                   |
+        | wbr_count: 2                   |
         | wbr_committed: FILE_SYNC4      |
         | wbr_writeverf: 0xf1234abc      |
         | wbr_owners[0]:                 |
@@ -1056,7 +1056,7 @@
         +--------------------------------+
         | WRITE_BLOCK4resok              |
         +--------------------------------+
-        | wbr_count: 3                   |
+        | wbr_count: 2                   |
         | wbr_committed: FILE_SYNC4      |
         | wbr_writeverf: 0xf1234abc      |
         | wbr_owners[0]:                 |
@@ -1084,7 +1084,7 @@
         +--------------------------------+
         | WRITE_BLOCK4resok              |
         +--------------------------------+
-        | wbr_count: 3                   |
+        | wbr_count: 2                   |
         | wbr_committed: FILE_SYNC4      |
         | wbr_writeverf: 0xf1234abc      |
         | wbr_owners[0]:                 |
@@ -1121,7 +1121,7 @@
         +--------------------------------+
         | WRITE_BLOCK4resok              |
         +--------------------------------+
-        | wbr_count: 3                   |
+        | wbr_count: 2                   |
         | wbr_committed: FILE_SYNC4      |
         | wbr_writeverf: 0xf1234abc      |
         | wbr_owners[0]:                 |
@@ -1145,7 +1145,7 @@
         |            bo_client_id: 10    |
         |            bo_committed: false |
         | wbr_owners[4]:                 |
-        |            bo_block_id: 3      |
+        |            bo_block_id: 2      |
         |            bo_change_id: 3     |
         |            bo_client_id: 6     |
         |            bo_committed: true  |
