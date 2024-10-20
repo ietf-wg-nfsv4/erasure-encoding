@@ -348,6 +348,21 @@
       </figure>
       <t>
         The ffv2_layout4 (in <xref target='code_ffv2_ds_flags4' />) flags detail the state of the data servers.
+        With Erasure Encoding algorithms, there are both Systematic and Non-Systematic
+        approaches. In the Systematic, the bits for integrity are placed amoungst the
+        resulting transformed block. Such an implementation would typically see
+        FFV2_DS_FLAGS_ACTIVE and FFV2_DS_FLAGS_SPARE data servers. The FFV2_DS_FLAGS_SPARE
+        ones allow the client to repair a payload with enaging the metadata server.
+        I.e., if one of the FFV2_DS_FLAGS_ACTIVE did not respond to a WRITE_BLOCK,
+        the client could fail the block to the FFV2_DS_FLAGS_SPARE data server.
+      </t>
+      <t>
+        With the Non-Systematic approach, the data and integrity live on different
+        data servers. Such an implementation would typically see FFV2_DS_FLAGS_ACTIVE
+        and FFV2_DS_FLAGS_PARITY data servers. If the implementation wanted to allow
+        for local repair, it would also use FFV2_DS_FLAGS_SPARE. Note that with
+        a Non-Systematic approach, it is possible to update parts of the blocks,
+        see <xref target='update_header' />.
       </t>
     </section>
 
