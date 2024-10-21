@@ -364,6 +364,10 @@
         a Non-Systematic approach, it is possible to update parts of the blocks,
         see <xref target='update_header' />.
       </t>
+      <t>
+        See  <xref target='Plank97' format='default' sectionFormat='of'/> for further
+        reference to storage layouts for encoding.
+      </t>
     </section>
 
     <section anchor='ffv2_data_server4' numbered='true' removeInRFC='false' toc='default'>
@@ -2020,6 +2024,14 @@ sh extract.sh &lt; spec.txt &gt; erasure_coding_prot.x
   <name>Informative References</name>
     <xi:include xmlns:xi='http://www.w3.org/2001/XInclude'
        href='https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.1813.xml'/>
+    <reference anchor='Plank97' target='http://web.eecs.utk.edu/~jplank/plank/papers/CS-96-332.html'>
+      <front>
+        <title>A Tutorial on Reed-Solomon Coding for Fault-Tolerance in RAID-like System</title>
+        <author fullname='James S. Plank' initials='J.' surname='Plank'>
+        </author>
+        <date month='September' year='1997'/>
+      </front>
+    </reference>
   </references>
 </references>
 
