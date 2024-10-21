@@ -4,7 +4,7 @@
 YEAR=`date +%Y`
 MONTH=`date +%B`
 DAY=`date +%d`
-VERS=02
+VERS=03
 
 BASEDOC=draft-haynes-nfsv4-erasure-encoding
 
