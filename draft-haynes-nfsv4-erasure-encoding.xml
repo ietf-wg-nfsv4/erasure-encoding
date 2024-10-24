@@ -699,17 +699,17 @@
         |            bo_block_id: 1     |
         |            bo_change_id: 3    |
         |            bo_client_id: 6    |
-        |            bo_committed: true |
+        |            bo_activated: true |
         | wbr_owners[1]:                |
         |            bo_block_id: 2     |
         |            bo_change_id: 3    |
         |            bo_client_id: 6    |
-        |            bo_committed: true |
+        |            bo_activated: true |
         | wbr_owners[2]:                |
         |            bo_block_id: 3     |
         |            bo_change_id: 3    |
         |            bo_client_id: 6    |
-        |            bo_committed: true |
+        |            bo_activated: true |
         +-------------------------------+
         </artwork>
       </figure>
@@ -835,7 +835,7 @@
         |                 bo_block_id: 1     |
         |                 bo_change_id: 7    |
         |                 bo_client_id: 6    |
-        |                 bo_committed: true |
+        |                 bo_activated: true |
         |            rb_block  :  ......     |
         +------------------------------------+
           </artwork>
@@ -873,13 +873,13 @@
     </section>
   </section>
 
-  <section anchor='blocks_commit' numbered='true' removeInRFC='false' toc='default'>
-    <name>Blocks and Committing</name>
+  <section anchor='blocks_activate' numbered='true' removeInRFC='false' toc='default'>
+    <name>Blocks and Activating</name>
     <t>
       Unlike the regular NFSv4.2 I/O operations, the base unit of I/O in this
       document is the block. The raw data stream is encoded/decoded into
       blocks as described in <xref target='sec_erasure_encoding' />.
-      Each block has the concept of whether it is committed or not. This is
+      Each block has the concept of whether it is activated or pending activation. This is
       crucial in detecting write holes. A write hole occurs either when two
       different clients write to the same block concurrently or when a
       client overwrites existing data. In the first scenario, the order
@@ -897,8 +897,8 @@
       the data servers might be able to leverage the native file system
       to achieve the semantics or it might completely implement a
       multi-file approach to stage WRITE_BLOCK results and then
-      shuffle blocks when the COMMIT_BLOCK or ROLLBACK_BLOCK operations
-      commit the data.
+      shuffle blocks when the ACTIVATE_BLOCK or ROLLBACK_BLOCK operations
+      activate the data.
     </t>
 
     <section anchor='client_died' numbered='true' removeInRFC='false' toc='default'>
@@ -910,7 +910,7 @@
         detect that the client had restarted when it had an outstanding
         LAYOUTIOMODE4_RW on the file. The metadata server can assign
         the file to a repair program, which would basically scan the entire
-        file with READ_BLOCK_COMMIT. When it determines that it does not
+        file with READ_BLOCK_STATUS. When it determines that it does not
         have enough payload blocks to rebuild the data block, it can
         determine that the I/O for that data block was not complete and
         throw away the blocks.
@@ -956,7 +956,7 @@
 
       <t>
         <xref target='example_WRITE_BLOCK_res_2_a' /> shows that the
-        first block was an overwrite and a commit has to be done in order
+        first block was an overwrite and an activation has to be done in order
         for the newly written block to be returned in a READ_BLOCK. Assume
         that the next four data servers had the same type of response.
       </t>
@@ -974,17 +974,17 @@
         |            bo_block_id: 1      |
         |            bo_change_id: 2     |
         |            bo_client_id: 6     |
-        |            bo_committed: true  |
+        |            bo_activated: true  |
         | wbr_owners[1]:                 |
         |            bo_block_id: 1      |
         |            bo_change_id: 3     |
         |            bo_client_id: 6     |
-        |            bo_committed: false |
+        |            bo_activated: false |
         | wbr_owners[2]:                 |
         |            bo_block_id: 2      |
         |            bo_change_id: 3     |
         |            bo_client_id: 6     |
-        |            bo_committed: true  |
+        |            bo_activated: true  |
         +--------------------------------+
         </artwork>
       </figure>
@@ -995,9 +995,9 @@
         to any data server marked as FFV2_DS_FLAGS_SPARE, it might decide
         to see if the data server did in fact do the transaction. It might
         also be the case that there are no data servers marked as
-        FFV2_DS_FLAGS_SPARE.  The client issues a READ_BLOCK_COMMIT
-        (see <xref target='example_READ_BLOCK_COMMIT_args_1' />)
-        and gets the results in <xref target='example_READ_BLOCK_COMMIT_res_2_b' />.
+        FFV2_DS_FLAGS_SPARE.  The client issues a READ_BLOCK_STATUS
+        (see <xref target='example_READ_BLOCK_STATUS_args_1' />)
+        and gets the results in <xref target='example_READ_BLOCK_STATUS_res_2_b' />.
         This indicates that data server 4 did not get the WRITE_BLOCK
         request.
       </t>
@@ -1009,31 +1009,31 @@
         the existing blocks to back out the change.
       </t>
 
-      <figure anchor='example_READ_BLOCK_COMMIT_args_1'>
+      <figure anchor='example_READ_BLOCK_STATUS_args_1'>
         <artwork>
                 Data Server 4
         +--------------------------------+
-        | READ_BLOCK_COMMIT4args         |
+        | READ_BLOCK_STATUS4args         |
         +--------------------------------+
-        | rbca_stateid: 0                |
-        | rbca_offset: 1                 |
-        | rbca_count: 3                  |
+        | rbsa_stateid: 0                |
+        | rbsa_offset: 1                 |
+        | rbsa_count: 3                  |
         +----------+---------------------+
         </artwork>
       </figure>
 
-      <figure anchor='example_READ_BLOCK_COMMIT_res_2_b'>
+      <figure anchor='example_READ_BLOCK_STATUS_res_2_b'>
         <artwork>
                 Data Server 4
         +--------------------------------+
-        | READ_BLOCK_COMMIT4resok        |
+        | READ_BLOCK_STATUS4resok        |
         +--------------------------------+
-        | rbcr_eof: true                 |
-        | rbcr_blocks[0]:                |
+        | rbsr_eof: true                 |
+        | rbsr_blocks[0]:                |
         |            bo_block_id: 1      |
         |            bo_change_id: 2     |
         |            bo_client_id: 6     |
-        |            bo_committed: true  |
+        |            bo_activated: true  |
         +--------------------------------+
         </artwork>
       </figure>
@@ -1082,17 +1082,17 @@
         |            bo_block_id: 1      |
         |            bo_change_id: 3     |
         |            bo_client_id: 10    |
-        |            bo_committed: true  |
+        |            bo_activated: true  |
         | wbr_owners[1]:                 |
         |            bo_block_id: 1      |
         |            bo_change_id: 3     |
         |            bo_client_id: 6     |
-        |            bo_committed: false |
+        |            bo_activated: false |
         | wbr_owners[2]:                 |
         |            bo_block_id: 2      |
         |            bo_change_id: 3     |
         |            bo_client_id: 6     |
-        |            bo_committed: true  |
+        |            bo_activated: true  |
         +--------------------------------+
         </artwork>
       </figure>
@@ -1110,17 +1110,17 @@
         |            bo_block_id: 1      |
         |            bo_change_id: 3     |
         |            bo_client_id: 6     |
-        |            bo_committed: true  |
+        |            bo_activated: true  |
         | wbr_owners[1]:                 |
         |            bo_block_id: 1      |
         |            bo_change_id: 3     |
         |            bo_client_id: 10    |
-        |            bo_committed: false |
+        |            bo_activated: false |
         | wbr_owners[2]:                 |
         |            bo_block_id: 2      |
         |            bo_change_id: 3     |
         |            bo_client_id: 6     |
-        |            bo_committed: true  |
+        |            bo_activated: true  |
         +--------------------------------+
         </artwork>
       </figure>
@@ -1128,7 +1128,7 @@
       <section anchor='multiple_writers' numbered='true' removeInRFC='false' toc='exclude'>
         <name>Multiple Writers</name>
         <t>
-          Note that nothing prevents uncommitted blocks from accumulating or from more than
+          Note that nothing prevents pending blocks from accumulating or from more than
           2 writers trying to write the same payload. An example of such a WRITE_BLOCK4resok
           in response to the example of <xref target='example_WRITE_BLOCK_args_2' /> is shown
           in <xref target='example_WRITE_BLOCK_res_3_c' />. Note only has client 6 tried to
@@ -1147,27 +1147,27 @@
         |            bo_block_id: 1      |
         |            bo_change_id: 3     |
         |            bo_client_id: 6     |
-        |            bo_committed: true  |
+        |            bo_activated: true  |
         | wbr_owners[1]:                 |
         |            bo_block_id: 1      |
         |            bo_change_id: 4     |
         |            bo_client_id: 6     |
-        |            bo_committed: false |
+        |            bo_activated: false |
         | wbr_owners[2]:                 |
         |            bo_block_id: 1      |
         |            bo_change_id: 20    |
         |            bo_client_id: 7     |
-        |            bo_committed: false |
+        |            bo_activated: false |
         | wbr_owners[3]:                 |
         |            bo_block_id: 1      |
         |            bo_change_id: 3     |
         |            bo_client_id: 10    |
-        |            bo_committed: false |
+        |            bo_activated: false |
         | wbr_owners[4]:                 |
         |            bo_block_id: 2      |
         |            bo_change_id: 3     |
         |            bo_client_id: 6     |
-        |            bo_committed: true  |
+        |            bo_activated: true  |
         +--------------------------------+
           </artwork>
         </figure>
@@ -1189,7 +1189,7 @@
         <cref anchor='AI24' source='TH'>
           And should it hang forever? Perhaps
           a new layout error that the client can send the MDS?
-          Or should it probe with READ_BLOCK_COMMIT to try to repair?
+          Or should it probe with READ_BLOCK_STATUS to try to repair?
         </cref>
         <cref anchor='AI25' source='TH'>
           Perhaps a LAYOUTERROR_BLOCK to send an encoding type specific location?
@@ -1265,7 +1265,7 @@
       <t>
         If the data server sets EXCHGID4_FLAG_USE_ERASURE_DS during the
         EXCHANGE_ID operation, then it <bcp14>MUST</bcp14> support:
-        COMMIT_BLOCK, READ_BLOCK_COMMIT, READ_BLOCK, ROLLBACK_BLOCK,
+        ACTIVATE_BLOCK, READ_BLOCK_STATUS, READ_BLOCK, ROLLBACK_BLOCK,
         and WRITE_BLOCK. Further, note that this support is
         orthoganol to the Erasure Encoding Type selected. The
         data server is unaware of which type is driving the I/O.
@@ -1283,7 +1283,7 @@
 ///     uint32_t    bo_block_id;
 ///     changeid4   bo_change_id;
 ///     clientid4   bo_client_id;
-///     bool        bo_committed;
+///     bool        bo_activated;
 /// };
         </sourcecode>
       </figure>
@@ -1311,15 +1311,15 @@
         a block corresponds.
       </t>
       <t>
-        The bo_committed is used by the data server to indicate whether
-        the block I/O was committed or not. The first WRITE_BLOCK to
-        a location is automatically committed if the WRITE_BLOCK_FLAGS_COMMIT_IF_EMPTY
+        The bo_activated is used by the data server to indicate whether
+        the block I/O was activated or pending activation. The first WRITE_BLOCK to
+        a location is automatically activated if the WRITE_BLOCK_FLAGS_ACTIVATE_IF_EMPTY
         is set. Subsequent WRITE_BLOCK modifications
-        to that block location are not automatically committed. The
-        client has to COMMIT_BLOCK the block in order to get it committed.
+        to that block location are not automatically activated. The
+        client has to ACTIVATE_BLOCK the block in order to get it activated.
       </t>
       <t>
-        The concept of automatically committed is dependent on the
+        The concept of automatically activating is dependent on the
         wba_stable field of the WRITE_BLOCK4args.
       </t>
     </section>
@@ -1327,37 +1327,37 @@
 
   <section anchor='ops' numbered='true' removeInRFC='false' toc='default'>
     <name>New NFSv4.2 Operations</name>
-    <section anchor='COMMIT_BLOCK' numbered='true' removeInRFC='false' toc='default'>
-      <name>Operation 77: COMMIT_BLOCK - Commit Cached Block Data</name>
-      <section anchor='COMMIT_BLOCK_args' numbered='true' removeInRFC='false' toc='exclude'>
+    <section anchor='ACTIVATE_BLOCK' numbered='true' removeInRFC='false' toc='default'>
+      <name>Operation 77: ACTIVATE_BLOCK - Activate Cached Block Data</name>
+      <section anchor='ACTIVATE_BLOCK_args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
-        <figure anchor='code_COMMIT_BLOCK4args'>
+        <figure anchor='code_ACTIVATE_BLOCK4args'>
           <sourcecode type='xdr'>
-/// struct COMMIT_BLOCK4args {
+/// struct ACTIVATE_BLOCK4args {
 ///     /* CURRENT_FH: file */
-///     offset4         cba_offset;
-///     count4          cba_count;
-///     block_owner4    cba_blocks&lt;&gt;;
+///     offset4         aba_offset;
+///     count4          aba_count;
+///     block_owner4    aba_blocks&lt;&gt;;
 /// };
           </sourcecode>
         </figure>
       </section>
 
-      <section anchor='COMMIT_BLOCK_res' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='ACTIVATE_BLOCK_res' numbered='true' removeInRFC='false' toc='exclude'>
         <name>RESULTS</name>
-        <figure anchor='code_COMMIT_BLOCK4resok'>
+        <figure anchor='code_ACTIVATE_BLOCK4resok'>
           <sourcecode type='xdr'>
-/// struct COMMIT_BLOCK4resok {
-///     verifier4       cbr_writeverf;
+/// struct ACTIVATE_BLOCK4resok {
+///     verifier4       abr_writeverf;
 /// };
           </sourcecode>
         </figure>
 
-        <figure anchor='code_COMMIT_BLOCK4res'>
+        <figure anchor='code_ACTIVATE_BLOCK4res'>
           <sourcecode type='xdr'>
-/// union COMMIT_BLOCK4res switch (nfsstat4 cbr_status) {
+/// union ACTIVATE_BLOCK4res switch (nfsstat4 abr_status) {
 ///     case NFS4_OK:
-///         COMMIT_BLOCK4resok   cbr_resok4;
+///         ACTIVATE_BLOCK4resok   abr_resok4;
 ///     default:
 ///         void;
 /// };
@@ -1365,64 +1365,64 @@
         </figure>
       </section>
 
-      <section anchor='COMMIT_BLOCK_desc' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='ACTIVATE_BLOCK_desc' numbered='true' removeInRFC='false' toc='exclude'>
         <name>DESCRIPTION</name>
         <t>
-          COMMIT_BLOCK is COMMIT (see Section 18.3 of <xref target='RFC8881'
+          ACTIVATE_BLOCK is COMMIT (see Section 18.3 of <xref target='RFC8881'
           format='default' sectionFormat='of' />) with additional semantics
-          over the block_owner the committing of blocks. As such, all of
+          over the block_owner activating the blocks. As such, all of
           the normal semantics of COMMIT directly apply.
         </t>
         <t>
-          The main difference between the two operations is that COMMIT_BLOCK
-          works on blocks and not a raw data stream. As such cba_offset
+          The main difference between the two operations is that ACTIVATE_BLOCK
+          works on blocks and not a raw data stream. As such aba_offset
           is the starting block offset in the file and not the byte
           offset in the file. Some erasure encoding types can have
           different block sizes depending on the
-          block type. Further, cba_count is a count of blocks to commit
-          and not bytes to commit.
+          block type. Further, aba_count is a count of blocks to activate
+          and not bytes to activate.
         </t>
         <t>
-          Further, while it may appear that the combination of cba_offset
-          and cba_count are redundant to cba_blocks, the purpose of
-          cba_blocks is to allow the data server to differentiate between
-          potentially multiple uncommitted blocks.
+          Further, while it may appear that the combination of aba_offset
+          and aba_count are redundant to aba_blocks, the purpose of
+          aba_blocks is to allow the data server to differentiate between
+          potentially multiple pending blocks.
         </t>
       </section>
     </section>
 
-    <section anchor='READ_BLOCK_COMMIT' numbered='true' removeInRFC='false' toc='default'>
-      <name>Operation 78: READ_BLOCK_COMMIT - Read Block Commit Status from File</name>
-      <section anchor='READ_BLOCK_COMMIT_args' numbered='true' removeInRFC='false' toc='exclude'>
+    <section anchor='READ_BLOCK_STATUS' numbered='true' removeInRFC='false' toc='default'>
+      <name>Operation 78: READ_BLOCK_STATUS - Read Block Commit Status from File</name>
+      <section anchor='READ_BLOCK_STATUS_args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
-        <figure anchor='code_READ_BLOCK_COMMIT4args'>
+        <figure anchor='code_READ_BLOCK_STATUS4args'>
           <sourcecode type='xdr'>
-/// struct READ_BLOCK_COMMIT4args {
+/// struct READ_BLOCK_STATUS4args {
 ///     /* CURRENT_FH: file */
-///     stateid4    rbca_stateid;
-///     offset4     rbca_offset;
-///     count4      rbca_count;
+///     stateid4    rbsa_stateid;
+///     offset4     rbsa_offset;
+///     count4      rbsa_count;
 /// };
           </sourcecode>
         </figure>
       </section>
 
-      <section anchor='READ_BLOCK_COMMIT_res' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='READ_BLOCK_STATUS_res' numbered='true' removeInRFC='false' toc='exclude'>
         <name>RESULTS</name>
-        <figure anchor='code_READ_BLOCK_COMMIT4resok'>
+        <figure anchor='code_READ_BLOCK_STATUS4resok'>
           <sourcecode type='xdr'>
-/// struct READ_BLOCK_COMMIT4resok {
-///     bool            rbcr_eof;
-///     block_owner4    rbcr_blocks&lt;&gt;;
+/// struct READ_BLOCK_STATUS4resok {
+///     bool            rbsr_eof;
+///     block_owner4    rbsr_blocks&lt;&gt;;
 /// };
           </sourcecode>
         </figure>
 
-        <figure anchor='code_READ_BLOCK_COMMIT4res'>
+        <figure anchor='code_READ_BLOCK_STATUS4res'>
           <sourcecode type='xdr'>
-/// union READ_BLOCK_COMMIT4res switch (nfsstat4 rbcr_status) {
+/// union READ_BLOCK_STATUS4res switch (nfsstat4 rbsr_status) {
 ///     case NFS4_OK:
-///         READ_BLOCK4resok     rbcr_resok4;
+///         READ_BLOCK4resok     rbsr_resok4;
 ///     default:
 ///         void;
 /// };
@@ -1430,11 +1430,11 @@
         </figure>
       </section>
 
-      <section anchor='READ_BLOCK_COMMIT_desc' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='READ_BLOCK_STATUS_desc' numbered='true' removeInRFC='false' toc='exclude'>
         <name>DESCRIPTION</name>
         <t>
-          READ_BLOCK_COMMIT differs from READ_BLOCK in that it only reads
-          committed and uncommitted headers in the desired data range.
+          READ_BLOCK_STATUS differs from READ_BLOCK in that it only reads
+          active and pending headers in the desired data range.
         </t>
       </section>
     </section>
@@ -1496,7 +1496,7 @@
         <t>
           READ_BLOCK is READ (see Section 18.22 of <xref target='RFC8881'
           format='default' sectionFormat='of' />) with additional semantics
-          over the block_owner and the committing of blocks. As such, all of
+          over the block_owner and the activation of blocks. As such, all of
           the normal semantics of READ directly apply.
         </t>
         <t>
@@ -1509,9 +1509,9 @@
           and not bytes to read.
         </t>
         <t>
-          READ_BLOCK also only returns the committed block at the location.
+          READ_BLOCK also only returns the activated block at the location.
           I.e., if a client overwrites a block at offset 10, then tries
-          to read the block without committing it, then the original
+          to read the block without activating it, then the original
           block is returned.
         </t>
         <t>
@@ -1560,7 +1560,7 @@
         |            bo_block_id: 2      |
         |            bo_change_id: 3     |
         |            bo_client_id: 6     |
-        |            bo_committed: true  |
+        |            bo_activated: true  |
         |     rb_seq_id: 1               |
         |     rb_block: ....             |
         | rbr_blocks[0]:                 |
@@ -1570,7 +1570,7 @@
         |            bo_block_id: 3      |
         |            bo_change_id: 0     |
         |            bo_client_id: 0     |
-        |            bo_committed: false |
+        |            bo_activated: false |
         |     rb_seq_id: 1               |
         |     rb_block: 0000...00000     |
         | rbr_blocks[0]:                 |
@@ -1580,7 +1580,7 @@
         |            bo_block_id: 4      |
         |            bo_change_id: 3     |
         |            bo_client_id: 6     |
-        |            bo_committed: true  |
+        |            bo_activated: true  |
         |     rb_seq_id: 1               |
         |     rb_block: ....             |
         +--------------------------------+
@@ -1650,11 +1650,11 @@
           Further, while it may appear that the combination of rba_offset
           and rba_count are redundant to rba_blocks, the purpose of
           rba_blocks is to allow the data server to differentiate between
-          potentially multiple uncommitted blocks.
+          potentially multiple pending blocks.
         </t>
 
         <t>
-          ROLLBACK_BLOCK uncommits prior WRITE_BLOCK transactions. In case of write
+          ROLLBACK_BLOCK deletes prior WRITE_BLOCK transactions. In case of write
           holes, it allows the client to undo transactions to repair the file.
         </t>
       </section>
@@ -1668,7 +1668,7 @@
         <figure anchor='code_wb_args_flags'>
           <sourcecode type='xdr'>
 /// const WRITE_BLOCK_FLAGS_UPDATE_HEADER_ONLY   = 0x00000001;
-/// const WRITE_BLOCK_FLAGS_COMMIT_IF_EMPTY      = 0x00000002;
+/// const WRITE_BLOCK_FLAGS_ACTIVATE_IF_EMPTY      = 0x00000002;
           </sourcecode>
         </figure>
 
@@ -1729,7 +1729,7 @@
         <t>
           WRITE_BLOCK is WRITE (see Section 18.32 of <xref target='RFC8881'
           format='default' sectionFormat='of' />) with additional semantics
-          over the block_owner and the committing of blocks. As such, all of
+          over the block_owner and the activation of blocks. As such, all of
           the normal semantics of WRITE directly apply.
         </t>
         <t>
@@ -1761,19 +1761,19 @@
           client.
         </t>
         <t>
-          The committal of header and block data interacts with the bo_committed
+          The activation of header and block data interacts with the bo_activated
           for each of the written blocks. If the data is not committed
-          to stable storage then the bo_committed field <bcp14>MUST NOT</bcp14>
+          to stable storage then the bo_activated field <bcp14>MUST NOT</bcp14>
           be set to true. Once the data is committed to stable storage, then
-          the data server can set the block's bo_committed if one of these
+          the data server can set the block's bo_activated if one of these
           conditions apply:
         </t>
         <ul>
           <li>
-            it is the first write to that block and the WRITE_BLOCK_FLAGS_COMMIT_IF_EMPTY flag is set
+            it is the first write to that block and the WRITE_BLOCK_FLAGS_ACTIVATE_IF_EMPTY flag is set
           </li>
           <li>
-            the COMMIT_BLOCK is issued later for that block.
+            the ACTIVATE_BLOCK is issued later for that block.
           </li>
         </ul>
         <t>
@@ -1781,22 +1781,22 @@
           clients. One client could win the race in each case, but because
           it used a wba_stable of UNSTABLE4, the subsequent writes from
           the second client with a wba_stable of FILE_SYNC4 can be awarded
-          the bo_committed being set to true for each of the blocks in
+          the bo_activated being set to true for each of the blocks in
           the payload.
         </t>
         <t>
           Finally, the interaction of wba_stable can cause a client to
           mistakenly believe that by the time it gets the response of
-          bo_committed of false, that the blocks are not committed. A
-          subsequent READ_BLOCK or READ_BLOCK_COMMIT might show that
-          the bo_committed is true without any interaction by the client
-          via COMMIT_BLOCK.
+          bo_activated of false, that the blocks are not activated. A
+          subsequent READ_BLOCK or READ_BLOCK_STATUS might show that
+          the bo_activated is true without any interaction by the client
+          via ACTIVATE_BLOCK.
 
           <cref anchor='AI26' source='TH'>
-            Automatic setting of bo_committed to true if it is the first
+            Automatic setting of bo_activated to true if it is the first
             write should be a performance boost. But it can lead to
             the client having incorrect information (as above) and
-            trying to COMMIT_BLOCK a payload that has lost the race.
+            trying to ACTIVATE_BLOCK a payload that has lost the race.
             But is that bad? If you have racing clients, there is
             no guarantee at all as to the contents of the file.
           </cref>
@@ -1835,9 +1835,9 @@
           </t>
           <t>
             For the
-            purpose of computing the commited state of the block,
+            purpose of computing the activation state of the block,
             The data server <bcp14>MUST</bcp14> treat this as
-            an overwrite. Thus, in the response, bo_committed
+            an overwrite. Thus, in the response, bo_activated
             <bcp14>MUST</bcp14> be false.
           </t>
         </section>
