@@ -1683,6 +1683,26 @@
           </sourcecode>
         </figure>
 
+        <figure anchor='code_guard_block_owner4'>
+          <sourcecode type='xdr'>
+/// struct guard_block_owner4 {
+///     changeid4   gbo_change_id;
+///     clientid4   gbo_client_id;
+/// };
+          </sourcecode>
+        </figure>
+
+        <figure anchor='code_write_block_guard4'>
+          <sourcecode type='xdr'>
+/// union write_block_guard4 (bool wbg_check) {
+///     case TRUE:
+///         guard_block_owner4   wbg_block_owner;
+///     case FALSE:
+///         void;
+/// };
+          </sourcecode>
+        </figure>
+
         <figure anchor='code_WRITE_BLOCK4args'>
           <sourcecode type='xdr'>
 /// struct WRITE_BLOCK4args {
@@ -1692,6 +1712,7 @@
 ///     stable_how4        wba_stable;
 ///     block_owner4       wba_owner;
 ///     uint32_t           wba_seq_id;
+///     write_block_guard4 wba_guard;
 ///     write_block4       wba_data&lt;&gt;;
 /// };
           </sourcecode>
@@ -1801,6 +1822,51 @@
             no guarantee at all as to the contents of the file.
           </cref>
         </t>
+
+        <section anchor='guarded_write' numbered='true' removeInRFC='false' toc='exclude'>
+          <name>Guarding the Write</name>
+          <t>
+            A guarded WRITE_BLOCK4 is when the writing of a block
+            <bcp14>MUST</bcp14> fail if wba_guard.wbg_check is set
+            and the target block does not have both the same change_id
+            as the gbo_change_id and the same client_id as the
+            gbo_client_id. This is useful in read-update-write
+            scenarios. The client reads a block, updates it, and
+            is prepared to write it back. It guards the write such
+            that if another writer has modified the block, the
+            data server will reject the modification.
+          </t>
+          <t>
+            Note that as the guard_block_owner4 (see <xref target='code_guard_block_owner4' />
+            does not have a block_id and the WRITE_BLOCK4 applies
+            to all blocks in the range of wba_offset to the length
+            of wba_data, then each of the target blocks
+            <bcp14>MUST</bcp14> have the same change_id and
+            client_id. The client <bcp14>SHOULD</bcp14> present
+            the smallest set of blocks as possible to meet this
+            requirement.
+          </t>
+
+          <t>
+            <cref anchor='AI27' source='TH'>
+              And the complexity goes up here. Does the DS reject only
+              based on active blocks? Or can inactive ones also cause
+              rejection?
+            </cref>
+          </t>
+
+          <t>
+            <cref anchor='AI28' source='TH'>
+              Is the DS supposed to vet all blocks first or proceed to
+              the first error? Or do all blocks and return an array
+              of errors? (This last one is a no-go.) Also, if we do
+              the vet first, what happens if a WRITE_BLOCK4 comes in
+              after the vetting? Are we to lock the file during this
+              process. Even if we do that, we still have the issue
+              of multiple DSes.
+            </cref>
+          </t>
+        </section>
 
         <section anchor='update_header' numbered='true' removeInRFC='false' toc='exclude'>
           <name>Updating the Header Only</name>
