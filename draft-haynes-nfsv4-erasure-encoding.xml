@@ -58,12 +58,10 @@
   <note removeInRFC='true'>
     <t>
       This draft starts sparse and will be filled in as details are
-      ironed out. For example, WRITE_BLOCK4 in <xref target='WRITE_BLOCK4' />
-      is presented as being WRITE4 (see Section 18.32 of <xref
-      target='RFC8881' format='default' sectionFormat='of' />) plus
-      some semantic changes. In the first draft, we simply explain the
+      ironed out.
+      In the first draft, we simply explain the
       semantics changes. As these are accepted by the knowledgeable reviewers,
-      we will flesh out the WRITE_BLOCK4 section to include sub-sections more
+      we will flesh out the operation description sections to include sub-sections more
       akin to 18.32.3 and 18.32.4 of <xref
       target='RFC8881' format='default' sectionFormat='of' />.
     </t>
@@ -111,12 +109,15 @@
       to be detected and the choice of what constitutes the good copy
       is difficult.  This document updates the Flexible File Layout Type
       to version 2 by providing data integrity for erasure encoding.
-      It introduces new variants of COMMIT4 (see Section 18.3 of <xref
-      target='RFC8881' format='default' sectionFormat='of' />) , READ4
-      (see Section 18.22 of <xref target='RFC8881' format='default'
-      sectionFormat='of' />) , and WRITE4 (see Section 18.32 of <xref
-      target='RFC8881' format='default' sectionFormat='of' />) to allow
-      for the transmission of integrity checking.
+      It introduces a new operation RESERVE4 that allow the client to reserve
+      ranges of the data file by creating a temporary file to store
+      modifications. When the client is ready, it will use RESERVE_SWAP4
+      to atomically exchange the blocks in the temporary file with
+      those in the data file. Finally, it will use RESERVE_RELEASE4
+      to start the deletion of old blocks. Both RESERVE_RECOVER4
+      and RESERVE_INFO4 can be used by the client or metadata server
+      to recover after a client restart or a client which has
+      permanently gone away.
     </t>
 
     <t>
@@ -165,25 +166,10 @@
           in parallel.
         </dd>
 
-        <dt>consistency of payload:</dt>
-        <dd>
-          A payload is consistent when all contained blocks have
-          the same owner, i.e., they share the same writing
-          client and transaction id.
-        </dd>
-
         <dt>integrity of data:</dt>
         <dd>
           Data integrity refers to the accuracy, consistency, and
           reliability of data throughout its life cycle.
-        </dd>
-
-        <dt>payload:</dt>
-        <dd>
-          The set of metadata header and transformed blocks
-          generate per data block by the erasure encoding
-          type.  Note that the resulting blocks might
-          be of type active, parity, spare, or repair.
         </dd>
 
         <dt>replication of data:</dt>
@@ -349,10 +335,10 @@
       <t>
         The ffv2_layout4 (in <xref target='code_ffv2_ds_flags4' />) flags detail the state of the data servers.
         With Erasure Encoding algorithms, there are both Systematic and Non-Systematic
-        approaches. In the Systematic, the bits for integrity are placed amoungst the
+        approaches. In the Systematic, the bits for integrity are placed adjacent the
         resulting transformed block. Such an implementation would typically see
         FFV2_DS_FLAGS_ACTIVE and FFV2_DS_FLAGS_SPARE data servers. The FFV2_DS_FLAGS_SPARE
-        ones allow the client to repair a payload with enaging the metadata server.
+        ones allow the client to repair a payload with engaging the metadata server.
         I.e., if one of the FFV2_DS_FLAGS_ACTIVE did not respond to a WRITE_BLOCK4,
         the client could fail the block to the FFV2_DS_FLAGS_SPARE data server.
       </t>
@@ -1234,7 +1220,7 @@
       <section anchor='NFS4ERR_ERASURE_ENCODING_BLOCK_MISMATCH' numbered='true' removeInRFC='false' toc='exclude'>
         <name>Error 10099 - NFS4ERR_ERASURE_ENCODING_BLOCK_MISMATCH</name>
         <t>
-          The client requested to the data server to update the header only 
+          The client requested to the data server to update the header only
           and the data server can not find a matching block at that offset.
         </t>
       </section>
@@ -1267,7 +1253,7 @@
         EXCHANGE_ID operation, then it <bcp14>MUST</bcp14> support:
         ACTIVATE_BLOCK4, READ_BLOCK_STATUS4, READ_BLOCK4, ROLLBACK_BLOCK4,
         and WRITE_BLOCK4. Further, note that this support is
-        orthoganol to the Erasure Encoding Type selected. The
+        orthogonal to the Erasure Encoding Type selected. The
         data server is unaware of which type is driving the I/O.
         It is also unaware of the payload layout or what type
         of block it is serving.
