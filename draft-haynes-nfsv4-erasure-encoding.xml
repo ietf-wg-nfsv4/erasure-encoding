@@ -109,13 +109,13 @@
       to be detected and the choice of what constitutes the good copy
       is difficult.  This document updates the Flexible File Layout Type
       to version 2 by providing data integrity for erasure encoding.
-      It introduces a new operation RESERVE4 that allow the client to reserve
+      It introduces a new operation RESERVE that allow the client to reserve
       ranges of the data file by creating a temporary file to store
-      modifications. When the client is ready, it will use RESERVE_SWAP4
+      modifications. When the client is ready, it will use RESERVE_SWAP
       to atomically exchange the blocks in the temporary file with
-      those in the data file. Finally, it will use RESERVE_RELEASE4
-      to start the deletion of old blocks. Both RESERVE_RECOVER4
-      and RESERVE_INFO4 can be used by the client or metadata server
+      those in the data file. Finally, it will use RESERVE_RELEASE
+      to start the deletion of old blocks. Both RESERVE_RECOVER
+      and RESERVE_INFO can be used by the client or metadata server
       to recover after a client restart or a client which has
       permanently gone away.
     </t>
@@ -275,7 +275,7 @@
       <t>
         FFV2_ENCODING_MIRRORED offers replication of data and
         not integrity of data. As such, it does not need operations
-        like RESERVE4 (see <xref target='RESERVE4' />).
+        like RESERVE (see <xref target='RESERVE' />).
       </t>
     </section>
 
@@ -336,12 +336,12 @@
         used by the metadata server to inform the client that the indicated
         data server is a replacement data server as far as existing data is
         concerned. The client <bcp14>MUST</bcp14> repair the file by using
-        RESERVE4 on the entire length of the file and both decoding the existing
+        RESERVE on the entire length of the file and both decoding the existing
         data from the file and recoding the new data on the indicated data
         server. Note that whilst all data servers <bcp14>MUST</bcp14> be reserved,
-        only the data server(s) to be repaired <bcp14>MUST</bcp14> have the RESERVE_SWAP4
+        only the data server(s) to be repaired <bcp14>MUST</bcp14> have the RESERVE_SWAP
         operation applied. The remaining data servers can have their temporary
-        files dropped via RESERVE_RELEASE4.
+        files dropped via RESERVE_RELEASE.
       </t>
       <t>
         See  <xref target='Plank97' format='default' sectionFormat='of'/> for further
@@ -399,7 +399,7 @@
         The ffv2_key4 (in <xref target='code_ffv2_key4' />) is a secret key known
         only to the metadata server, data server, and client. In the event of
         either a data server restart or a dead client, it can be used to
-        restablish a connection via RESERVE_RECOVER4.
+        restablish a connection via RESERVE_RECOVER.
       </t>
     </section>
 
@@ -477,10 +477,10 @@
         The user wants to actively assimilate a regular
         file. As such, a layout might be as represented in <xref
         target='mixed_layout' />.  As this is an assimilation, most of
-        the data reads will be satisfied by READ4 (see Section 18.22 of
+        the data reads will be satisfied by READ (see Section 18.22 of
         <xref target='RFC8881' format='default' sectionFormat='of' />)
         calls to index 0. However, as this is also an active file,
-        there could also be READ4 calls to the other indexes.
+        there could also be READ calls to the other indexes.
       </t>
 
       <figure anchor='mixed_layout'>
@@ -523,9 +523,9 @@
         be sent. Further, when reading data from the instance files,
         the client <bcp14>MUST</bcp14> be prepared to have one of the
         encoding types supply data and the other type not to supply
-        data. I.e., the READ4 call to the data servers in mirror 1
+        data. I.e., the READ call to the data servers in mirror 1
         might return eof set to true, which indicates that there is
-        no data, where the READ4 call to the data server in mirror 0 might
+        no data, where the READ call to the data server in mirror 0 might
         return eof to be false, which indicates that there is data. The
         client <bcp14>MUST</bcp14> determine that there is in fact data.
       </t>
@@ -534,11 +534,11 @@
         integrity. As the client is helping to translated the file to
         the new encoding scheme, it is actively modifying the file. As
         such, it might be sequentially reading the file in order to
-        translate. The READ4 calls to mirror 0  would be returning data
-        and the READ4 calls to mirror 1 would not be returning data. As
-        the client overwrites the file, the WRITE4 calls would have data
+        translate. The READ calls to mirror 0  would be returning data
+        and the READ calls to mirror 1 would not be returning data. As
+        the client overwrites the file, the WRITE calls would have data
         sent to all of the data servers. Finally, if the client reads
-        back a section which had been modified earlier, the READ4 calls
+        back a section which had been modified earlier, the READ calls
         to all data servers would return data.
       </t>
     </section>
@@ -614,7 +614,7 @@
         file will be encoded into N different payloads to be
         sent to the data servers as shown in <xref target='encoding_transformation' />.
         Whilst they are shown as data blocks and blocks, as far
-        as WRITE4 is concerned, these are byte streams.
+        as WRITE is concerned, these are byte streams.
       </t>
     </section>
 
@@ -639,7 +639,7 @@
         </artwork>
       </figure>
       <t>
-        When reading blocks via a READ4 operation, the client will decode
+        When reading blocks via a READ operation, the client will decode
         theminto data blocks as shown in
         <xref target='decoding_transformation' />.
       </t>
@@ -794,14 +794,14 @@
 
       <t>
         The fattr4_reserved_state attribute describes a state
-        machine for the temporary file created by RESERVE4
+        machine for the temporary file created by RESERVE
         on the data server. The meaning of each state is given:
       </t>
 
       <dl newline='false' spacing='normal'>
         <dt>NFS4_RESERVED_INITIALIZED:</dt>
         <dd>
-          The temporary file has been created by RESERVE4
+          The temporary file has been created by RESERVE
           and data may or may not have been written to it.
         </dd>
         <dt>NFS4_RESERVED_WRITTEN:</dt>
@@ -815,7 +815,7 @@
         <dd>
           The client has swapped byte ranges of the
           active and temporary files. This state
-          is automatically set when the RESERVE_SWAP4
+          is automatically set when the RESERVE_SWAP
           operation is processed. The swapping of
           the contents and the setting of this
           state <bcp14>MUST</bcp14> be atomic.
@@ -823,7 +823,7 @@
         <dt>NFS4_RESERVED_RELEASED:</dt>
         <dd>
           The client has released the reservation
-          via RESERVE_RELEASE4. If the contents of
+          via RESERVE_RELEASE. If the contents of
           the temporary file are empty, this can
           indicate a race for the reservation
           and the data server <bcp14>SHOULD</bcp14>
@@ -842,7 +842,7 @@
 
       <t>
         The data server <bcp14>MUST</bcp14> only allow
-        WRITE4 operations if the reserved state is
+        WRITE operations if the reserved state is
         NFS4_RESERVED_INITIALIZED. In any other state,
         it <bcp14>MUST</bcp14> return a NFS4ERR_IO.
       </t>
@@ -885,7 +885,7 @@
 
   <section anchor='ops' numbered='true' removeInRFC='false' toc='default'>
     <name>New NFSv4.2 Operations</name>
-    <section anchor='RESERVE4' numbered='true' removeInRFC='false' toc='default'>
+    <section anchor='RESERVE' numbered='true' removeInRFC='false' toc='default'>
       <name>Operation 77: ACTIVATE_BLOCK4 - Activate Cached Block Data</name>
       <section anchor='ACTIVATE_BLOCK4_args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
@@ -926,10 +926,10 @@
       <section anchor='ACTIVATE_BLOCK4_desc' numbered='true' removeInRFC='false' toc='exclude'>
         <name>DESCRIPTION</name>
         <t>
-          ACTIVATE_BLOCK4 is COMMIT4 (see Section 18.3 of <xref target='RFC8881'
+          ACTIVATE_BLOCK4 is COMMIT (see Section 18.3 of <xref target='RFC8881'
           format='default' sectionFormat='of' />) with additional semantics
           over the block_owner activating the blocks. As such, all of
-          the normal semantics of COMMIT4 directly apply.
+          the normal semantics of COMMIT directly apply.
         </t>
         <t>
           The main difference between the two operations is that ACTIVATE_BLOCK4
@@ -1052,10 +1052,10 @@
       <section anchor='READ_BLOCK_desc' numbered='true' removeInRFC='false' toc='exclude'>
         <name>DESCRIPTION</name>
         <t>
-          READ_BLOCK is READ4 (see Section 18.22 of <xref target='RFC8881'
+          READ_BLOCK is READ (see Section 18.22 of <xref target='RFC8881'
           format='default' sectionFormat='of' />) with additional semantics
           over the block_owner and the activation of blocks. As such, all of
-          the normal semantics of READ4 directly apply.
+          the normal semantics of READ directly apply.
         </t>
         <t>
           The main difference between the two operations is that READ_BLOCK
@@ -1189,10 +1189,10 @@
       <section anchor='ROLLBACK_BLOCK4_desc' numbered='true' removeInRFC='false' toc='exclude'>
         <name>DESCRIPTION</name>
         <t>
-          ROLLBACK_BLOCK4 is a new form like COMMIT4 (see Section 18.3 of <xref target='RFC8881'
+          ROLLBACK_BLOCK4 is a new form like COMMIT (see Section 18.3 of <xref target='RFC8881'
           format='default' sectionFormat='of' />) with additional semantics
           over the block_owner the rolling back the writing of blocks. As such, all of
-          the normal semantics of COMMIT4 directly apply.
+          the normal semantics of COMMIT directly apply.
         </t>
 
         <t>
@@ -1306,10 +1306,10 @@
       <section anchor='WRITE_BLOCK4_desc' numbered='true' removeInRFC='false' toc='exclude'>
         <name>DESCRIPTION</name>
         <t>
-          WRITE_BLOCK4 is WRITE4 (see Section 18.32 of <xref target='RFC8881'
+          WRITE_BLOCK4 is WRITE (see Section 18.32 of <xref target='RFC8881'
           format='default' sectionFormat='of' />) with additional semantics
           over the block_owner and the activation of blocks. As such, all of
-          the normal semantics of WRITE4 directly apply.
+          the normal semantics of WRITE directly apply.
         </t>
         <t>
           The main difference between the two operations is that WRITE_BLOCK4
