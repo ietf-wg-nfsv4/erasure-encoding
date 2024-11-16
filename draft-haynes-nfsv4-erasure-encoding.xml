@@ -376,11 +376,11 @@
       </t>
     </section>
 
-    <section anchor='ffv2_encoding_type_data' numbered='true' removeInRFC='false' toc='default'>
-      <name>ffv2_encoding_type_data</name>
-      <figure anchor='code_ffv2_encoding_type_data'>
+    <section anchor='ffv2_encoding_type_data4' numbered='true' removeInRFC='false' toc='default'>
+      <name>ffv2_encoding_type_data4</name>
+      <figure anchor='code_ffv2_encoding_type_data4'>
         <sourcecode type='xdr'>
-   /// union ffv2_encoding_type_data switch
+   /// union ffv2_encoding_type_data4 switch
    ///         (ffv2_encoding_type fetd_encoding) {
    ///     case FFV2_ENCODING_MIRRORED:
    ///         void;
@@ -388,7 +388,7 @@
         </sourcecode>
       </figure>
       <t>
-        The ffv2_encoding_type_data (in <xref target='code_ffv2_encoding_type_data' />) describes
+        The ffv2_encoding_type_data4 (in <xref target='code_ffv2_encoding_type_data' />) describes
         erasure encoding type specific fields. I.e., this is how the encoding type can
         communicate the need for counts of active, spare, parity, and repair types
         of blocks.
@@ -415,7 +415,7 @@
       <figure anchor='code_ffv2_mirror4'>
         <sourcecode type='xdr'>
    /// struct ffv2_mirror4 {
-   ///     ffv2_encoding_type_data ffm_encoding_type_data;
+   ///     ffv2_encoding_type_data4 ffm_encoding_type_data;
    ///     ffv2_key4                ffm_key;
    ///     ffv2_data_server4        ffm_data_servers&lt;&gt;;
    /// };
