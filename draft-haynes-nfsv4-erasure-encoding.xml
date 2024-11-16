@@ -973,7 +973,7 @@
     <name>New Infrastructure</name>
 
     <section anchor='errors' numbered='true' removeInRFC='false' toc='default'>
-      <name>Errors</name>
+      <name>New NFSv4.2 Errors</name>
       <section anchor='NFS4ERR_ERASURE_ENCODING_NOT_SUPPORTED' numbered='true' removeInRFC='false' toc='exclude'>
         <name>Error 10097 - NFS4ERR_ERASURE_ENCODING_NOT_SUPPORTED</name>
         <t>
