@@ -395,13 +395,29 @@
       </t>
     </section>
 
+    <section anchor='ffv2_key4' numbered='true' removeInRFC='false' toc='default'>
+      <name>ffv2_key4</name>
+      <figure anchor='code_ffv2_key4'>
+        <sourcecode type='xdr'>
+   /// typedef opaque ffv2_key4&lt;&gt;;
+        </sourcecode>
+      </figure>
+      <t>
+        The ffv2_key4 (in <xref target='code_ffv2_key4' />) is a secret key known
+        only to the metadata server, data server, and client. In the event of
+        either a data server restart or a dead client, it can be used to
+        restablish a connection via RESERVE_RECOVER4.
+      </t>
+    </section>
+
     <section anchor='ffv2_mirror4' numbered='true' removeInRFC='false' toc='default'>
       <name>ffv2_mirror4</name>
       <figure anchor='code_ffv2_mirror4'>
         <sourcecode type='xdr'>
    /// struct ffv2_mirror4 {
-   ///     ffv2_data_server4       ffm_data_servers&lt;&gt;;
    ///     ffv2_encoding_type_data ffm_encoding_type_data;
+   ///     ffv2_key4                ffm_key;
+   ///     ffv2_data_server4        ffm_data_servers&lt;&gt;;
    /// };
         </sourcecode>
       </figure>
