@@ -275,7 +275,7 @@
       <t>
         FFV2_ENCODING_MIRRORED offers replication of data and
         not integrity of data. As such, it does not need operations
-        like WRITE_BLOCK4 (see <xref target='WRITE_BLOCK4' />).
+        like RESERVE4 (see <xref target='RESERVE4' />).
       </t>
     </section>
 
