@@ -381,7 +381,7 @@
         </sourcecode>
       </figure>
       <t>
-        The ffv2_encoding_type_data4 (in <xref target='code_ffv2_encoding_type4_data' />) describes
+        The ffv2_encoding_type_data4 (in <xref target='code_ffv2_encoding_type_data4' />) describes
         erasure encoding type specific fields. I.e., this is how the encoding type can
         communicate the need for counts of active, spare, parity, and repair types
         of blocks.
@@ -1274,7 +1274,7 @@
 
   <section anchor='ops' numbered='true' removeInRFC='false' toc='default'>
     <name>New NFSv4.2 Operations</name>
-    <section anchor='ACTIVATE_BLOCK4' numbered='true' removeInRFC='false' toc='default'>
+    <section anchor='RESERVE4' numbered='true' removeInRFC='false' toc='default'>
       <name>Operation 77: ACTIVATE_BLOCK4 - Activate Cached Block Data</name>
       <section anchor='ACTIVATE_BLOCK4_args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
