@@ -326,29 +326,22 @@
       <figure anchor='code_ffv2_ds_flags4'>
         <sourcecode type='xdr'>
    /// const FFV2_DS_FLAGS_ACTIVE        = 0x00000001;
-   /// const FFV2_DS_FLAGS_SPARE         = 0x00000002;
-   /// const FFV2_DS_FLAGS_PARITY        = 0x00000004;
-   /// const FFV2_DS_FLAGS_REPAIR        = 0x00000008;
+   /// const FFV2_DS_FLAGS_REPAIR        = 0x00000002;
    /// typedef uint32_t            ffv2_ds_flags4;
         </sourcecode>
       </figure>
       <t>
-        The ffv2_layout4 (in <xref target='code_ffv2_ds_flags4' />) flags detail the state of the data servers.
-        With Erasure Encoding algorithms, there are both Systematic and Non-Systematic
-        approaches. In the Systematic, the bits for integrity are placed adjacent the
-        resulting transformed block. Such an implementation would typically see
-        FFV2_DS_FLAGS_ACTIVE and FFV2_DS_FLAGS_SPARE data servers. The FFV2_DS_FLAGS_SPARE
-        ones allow the client to repair a payload with engaging the metadata server.
-        I.e., if one of the FFV2_DS_FLAGS_ACTIVE did not respond to a WRITE_BLOCK4,
-        the client could fail the block to the FFV2_DS_FLAGS_SPARE data server.
-      </t>
-      <t>
-        With the Non-Systematic approach, the data and integrity live on different
-        data servers. Such an implementation would typically see FFV2_DS_FLAGS_ACTIVE
-        and FFV2_DS_FLAGS_PARITY data servers. If the implementation wanted to allow
-        for local repair, it would also use FFV2_DS_FLAGS_SPARE. Note that with
-        a Non-Systematic approach, it is possible to update parts of the blocks,
-        see <xref target='update_header' />.
+        The ffv2_ds_flags4 (in <xref target='code_ffv2_ds_flags4' />) flags details
+        the state of the data servers. The FFV2_DS_FLAGS_REPAIR flag can be
+        used by the metadata server to inform the client that the indicated
+        data server is a replacement data server as far as existing data is
+        concerned. The client <bcp14>MUST</bcp14> repair the file by using
+        RESERVE4 on the entire length of the file and both decoding the existing
+        data from the file and recoding the new data on the indicated data
+        server. Note that whilst all data servers <bcp14>MUST</bcp14> be reserved,
+        only the data server(s) to be repaired <bcp14>MUST</bcp14> have the RESERVE_SWAP4
+        operation applied. The remaining data servers can have their temporary
+        files dropped via RESERVE_RELEASE4.
       </t>
       <t>
         See  <xref target='Plank97' format='default' sectionFormat='of'/> for further
