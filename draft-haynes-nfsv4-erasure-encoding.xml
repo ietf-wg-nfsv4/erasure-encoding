@@ -666,10 +666,6 @@
       </figure>
 
       <t>
-        <cref anchor='AI13' source='DF'>pay attention to the 128 bits alignment for wb_block_val</cref>
-      </t>
-
-      <t>
         This describes a 3 block write of data from an offset of 1 block in the file.
         As each block shares the wba_owner, it is only
         presented once. I.e., the data server will be able to construct the
@@ -1180,15 +1176,6 @@
         <bcp14>SHOULD</bcp14> retry the READ_BLOCK4 operation until payload
         consistency is achieved. It may determine to send a LAYOUTERROR4
         to the metadata server with an error of NFS4ERR_ERASURE_ENCODING_NOT_CONSISTENT.
-
-        <cref anchor='AI24' source='TH'>
-          And should it hang forever? Perhaps
-          a new layout error that the client can send the MDS?
-          Or should it probe with READ_BLOCK_STATUS4 to try to repair?
-        </cref>
-        <cref anchor='AI25' source='TH'>
-          Perhaps a LAYOUTERROR_BLOCK4 to send an encoding type specific location?
-        </cref>
       </t>
     </section>
   </section>
@@ -1807,15 +1794,6 @@
           subsequent READ_BLOCK4 or READ_BLOCK_STATUS4 might show that
           the bo_activated is true without any interaction by the client
           via ACTIVATE_BLOCK4.
-
-          <cref anchor='AI26' source='TH'>
-            Automatic setting of bo_activated to true if it is the first
-            write should be a performance boost. But it can lead to
-            the client having incorrect information (as above) and
-            trying to ACTIVATE_BLOCK4 a payload that has lost the race.
-            But is that bad? If you have racing clients, there is
-            no guarantee at all as to the contents of the file.
-          </cref>
         </t>
 
         <section anchor='guarded_write' numbered='true' removeInRFC='false' toc='exclude'>
@@ -1840,26 +1818,6 @@
             client_id. The client <bcp14>SHOULD</bcp14> present
             the smallest set of blocks as possible to meet this
             requirement.
-          </t>
-
-          <t>
-            <cref anchor='AI27' source='TH'>
-              And the complexity goes up here. Does the DS reject only
-              based on active blocks? Or can inactive ones also cause
-              rejection?
-            </cref>
-          </t>
-
-          <t>
-            <cref anchor='AI28' source='TH'>
-              Is the DS supposed to vet all blocks first or proceed to
-              the first error? Or do all blocks and return an array
-              of errors? (This last one is a no-go.) Also, if we do
-              the vet first, what happens if a WRITE_BLOCK4 comes in
-              after the vetting? Are we to lock the file during this
-              process. Even if we do that, we still have the issue
-              of multiple DSes.
-            </cref>
           </t>
         </section>
 
