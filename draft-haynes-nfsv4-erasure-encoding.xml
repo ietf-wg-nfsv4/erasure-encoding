@@ -62,13 +62,11 @@
       In the first draft, we simply explain the
       semantics changes. As these are accepted by the knowledgeable reviewers,
       we will flesh out the operation description sections to include sub-sections more
-      akin to 18.32.3 and 18.32.4 of <xref
-      target='RFC8881' format='default' sectionFormat='of' />.
+      akin to 18.32.3 and 18.32.4 of <xref target='RFC8881' />.
     </t>
     <t>
       Except where called out, all the semantics of the Flexible File Version 1 Layout
-      Type presented in <xref target='RFC8435'
-      format='default' sectionFormat='of' /> still apply. This new
+      Type presented in <xref target='RFC8435' /> still apply. This new
       version extends it and does not replace it.
     </t>
   </note>
@@ -80,23 +78,20 @@
     <name>Introduction</name>
     <t>
       In Parallel NFS (pNFS) (see Section 12 of
-      <xref target='RFC8881' format='default' sectionFormat='of' />),
+      <xref target='RFC8881' />),
       the metadata server returns layout type
       structures that describe where file data is located.  There are
       different layout types for different storage systems and methods
       of arranging data on storage devices.  <xref target='RFC8435'
-      format='default' sectionFormat='of' /> defined the Flexible
+      /> defined the Flexible
       File Version 1 Layout Type used with file-based data servers that are
-      accessed using the NFS protocols: NFSv3 <xref target='RFC1813'
-      format='default' sectionFormat='of' />, NFSv4.0 <xref
-      target='RFC7530' format='default' sectionFormat='of' />, NFSv4.1
-      <xref target='RFC8881' format='default' sectionFormat='of' />, and
-      NFSv4.2 <xref target='RFC7862' format='default' sectionFormat='of' />.
+      accessed using the NFS protocols: NFSv3 <xref target='RFC1813' />,
+      NFSv4.0 <xref target='RFC7530' />, NFSv4.1 <xref target='RFC8881' />, and
+      NFSv4.2 <xref target='RFC7862' />.
     </t>
 
     <t>
-      The Client Side Mirroring (see Section 8 of <xref target='RFC8435'
-      format='default' sectionFormat='of'/>), introduced with the first
+      The Client Side Mirroring (see Section 8 of <xref target='RFC8435' />), introduced with the first
       version of the Flexible File Layout Type, provides for replication
       of data but does not provide for integrity of data. In the event
       of an error, an user would be able to repair the file by silvering
@@ -126,8 +121,7 @@
       extension of NFSv4.2 <xref target='RFC7862' format='default'
       sectionFormat='of'/>. They are built on top of the external data
       representation (XDR) <xref target='RFC4506' format='default'
-      sectionFormat='of'/> generated from <xref target='RFC7863'
-      format='default' sectionFormat='of'/>.
+      sectionFormat='of'/> generated from <xref target='RFC7863' />.
     </t>
 
     <section anchor='sec_defs' numbered='true' removeInRFC='false' toc='default'>
@@ -213,8 +207,7 @@
         '<bcp14>RECOMMENDED</bcp14>', '<bcp14>NOT RECOMMENDED</bcp14>',
         '<bcp14>MAY</bcp14>', and '<bcp14>OPTIONAL</bcp14>' in this
         document are to be interpreted as described in BCP 14 <xref
-        target='RFC2119' format='default' sectionFormat='of'/> <xref
-        target='RFC8174' format='default' sectionFormat='of'/> when,
+        target='RFC2119' /> <xref target='RFC8174' /> when,
         and only when, they appear in all capitals, as shown here.
       </t>
     </section>
@@ -229,9 +222,8 @@
       use cases where multiple erasure encoding types exist in the same layout.
     </t>
     <t>
-      The original layouttype4 introduced in <xref target='RFC8881'
-      format='default' sectionFormat='of' /> is modified to as in <xref
-      target='code_layout4' />.
+      The original layouttype4 introduced in <xref target='RFC8881' />
+      is modified to as in <xref target='code_layout4' />.
     </t>
 
     <figure anchor='code_layout4'>
@@ -308,8 +300,7 @@
         </sourcecode>
       </figure>
       <t>
-        ff_flags4 is defined as in Section 5.1 of <xref target='RFC8435'
-        format='default' sectionFormat='of'/> and is shown
+        ff_flags4 is defined as in Section 5.1 of <xref target='RFC8435' /> and is shown
         in <xref target='code_ff_flags4' /> for reference.
       </t>
     </section>
@@ -327,8 +318,7 @@
       <t>
         The ffv2_file_info4 is a new structure to help with
         the stateid issue discussed in Section 5.1
-        of <xref target='RFC8435'
-        format='default' sectionFormat='of'/>. I.e., in
+        of <xref target='RFC8435' />. I.e., in
         version 1 of the Flexible File Layout Type, there
         was the singleton ffds_stateid combined with the
         ffds_fh_vers array. I.e., each NFSv4 version has
@@ -360,7 +350,7 @@
         files dropped via RESERVE_RELEASE.
       </t>
       <t>
-        See  <xref target='Plank97' format='default' sectionFormat='of'/> for further
+        See  <xref target='Plank97' /> for further
         reference to storage layouts for encoding.
       </t>
     </section>
@@ -471,7 +461,7 @@
       </figure>
       <t>
         The ffv2_layouthint4 (in <xref target='code_ffv2_layouthint4' />) describes
-        the layout_hint (see Section 5.12.4 of <xref target='RFC8881' format='default' sectionFormat='of' />)
+        the layout_hint (see Section 5.12.4 of <xref target='RFC8881' />)
         that the client can provide to the metadata server.
       </t>
     </section>
@@ -494,7 +484,7 @@
         file. As such, a layout might be as represented in <xref
         target='mixed_layout' />.  As this is an assimilation, most of
         the data reads will be satisfied by READ (see Section 18.22 of
-        <xref target='RFC8881' format='default' sectionFormat='of' />)
+        <xref target='RFC8881' />)
         calls to index 0. However, as this is also an active file,
         there could also be READ calls to the other indexes.
       </t>
@@ -746,13 +736,12 @@
 
     <t>
       When a data server connects to a metadata server it
-      can via EXCHANGE_ID (see Section 18.35 of <xref target='RFC8881'
-      format='default' sectionFormat='of' />) state its pNFS role.
+      can via EXCHANGE_ID (see Section 18.35 of <xref target='RFC8881' />) state its pNFS role.
       The data server can use EXCHGID4_FLAG_USE_ERASURE_DS
       (see <xref target='code_EXCHGID4_FLAG_USE_ERASURE_DS' />)
       to indicate that it supports the new NFSv4.2 operations
       introduced in this document.  Section 13.1 <xref target='RFC8881'
-      format='default' sectionFormat='of' /> describes the
+      /> describes the
       interaction of the various pNFS roles masked by EXCHGID4_FLAG_MASK_PNFS.
       However, that does not mask out EXCHGID4_FLAG_USE_ERASURE_DS.
       I.e., EXCHGID4_FLAG_USE_ERASURE_DS can be used in combination
@@ -857,8 +846,8 @@
         The data server <bcp14>MAY</bcp14> associate directory
         name entries in some hidden part of the namespace, but it
         <bcp14>MUST</bcp14> reject any REMOVE operation (see Section 18.25
-        of <xref target='RFC8881' format='default' sectionFormat='of'
-        />) which would cause the reservation file to be deleted whilst
+        of <xref target='RFC8881' />) which would cause the reservation
+        file to be deleted whilst
         there was an active reservation on the file. In such scenarios,
         the data server <bcp14>MUST</bcp14> reply with NFS4ERR_DELAY.
       </t>
@@ -956,22 +945,22 @@
           a RESERVE operation.
         </t>
         <t>
-          RESERVE creates a new reservation file on the server and populates
-          the current filehandle for it. As the reservation file is not
-          visible in the server namespace, the client <bcp14>MUST</bcp14>
-          issue a GETATTR(fh) (see Section 18.7 of <xref target='RFC8881'
-          format='default' sectionFormat='of' />) to get the filehandle.
-          The reservation file <bcp14>MUST</bcp14> have the exact same
-          authorization as the file (see Section 2.8.1 of <xref target='RFC8881'
-          format='default' sectionFormat='of' />), which means the attributes
-          mode, owner, owner_group, acl, dacl, and sacl <bcp14>MUST</bcp14>
-          track those of the file. I.e., they <bcp14>MUST NOT</bcp14> be
-          modified by SETATTR on the reservation file and if they are
-          modified on the file, they <bcp14>MUST</bcp14> be modified
-          equivalently on the reservation file. Finally, the values of
-          time_access, time_backup, time_create, time_metadata, time_modify, and
-          change <bcp14>MUST</bcp14> initially be those of the file, but
-          they <bcp14>MUST</bcp14> be tracked separately from the file.
+          RESERVE creates a new reservation file on the server and
+          populates the current filehandle for it. As the reservation
+          file is not visible in the server namespace, the client
+          <bcp14>MUST</bcp14> issue a GETATTR(fh) (see Section
+          18.7 of <xref target='RFC8881' />) to get the filehandle.
+          The reservation file <bcp14>MUST</bcp14> have the exact
+          same authorization as the file (see Section 2.8.1 of <xref target='RFC8881' />),
+          which means the attributes mode, owner,
+          owner_group, acl, dacl, and sacl <bcp14>MUST</bcp14> track those
+          of the file. I.e., they <bcp14>MUST NOT</bcp14> be modified by
+          SETATTR on the reservation file and if they are modified on
+          the file, they <bcp14>MUST</bcp14> be modified equivalently
+          on the reservation file. Finally, the values of time_access,
+          time_backup, time_create, time_metadata, time_modify, and change
+          <bcp14>MUST</bcp14> initially be those of the file, but they
+          <bcp14>MUST</bcp14> be tracked separately from the file.
         </t>
         <t>
           RESERVE <bcp14>MUST</bcp14> check for write access just like
@@ -999,9 +988,9 @@
         <t>
           As such the ra_stateid follows the rules for a WRITE request
           (see Section 18.32.3 of of <xref target='RFC8881'
-          format='default' sectionFormat='of' />) for non-pNFS servers and
+          />) for non-pNFS servers and
           the rules for Loosely Coupled I/O for pNFS (see Section 2.3.1
-          of <xref target='RFC8435' format='default' sectionFormat='of'/>).
+          of <xref target='RFC8435' />).
           I.e., an anonymous stateid is presented.
         </t>
         <t>
@@ -1018,7 +1007,7 @@
     <name>Extraction of XDR</name>
     <t>
       This document contains the external data representation (XDR)
-      <xref target='RFC4506' format='default' sectionFormat='of'/> description of
+      <xref target='RFC4506' /> description of
       the Flexible Files Version 2 Layout Type.  The XDR description is embedded in this
       document in a way that makes it simple for the reader to extract
       into a ready-to-compile form.  The reader can feed this document
@@ -1044,16 +1033,16 @@ sh extract.sh &lt; spec.txt &gt; erasure_coding_prot.x
     <t>
       Note that the XDR code contained in this document depends on types
       from the NFSv4.2 nfs4_prot.x file (generated from
-      <xref target='RFC7863' format='default' sectionFormat='of'/>)
+      <xref target='RFC7863' />)
       and the Flexible Files Layout Type flexfiles.x file (generated from
-      <xref target='RFC8435' format='default' sectionFormat='of'/>).
+      <xref target='RFC8435' />).
       This includes both nfs types that end with a 4, such as offset4,
       length4, etc., as well as more generic types such as uint32_t and
       uint64_t.
     </t>
     <t>
       While the XDR can be appended to that from
-      <xref target='RFC7863' format='default' sectionFormat='of'/>,
+      <xref target='RFC7863' />,
       the various code snippets belong in their respective areas of
       that XDR.
     </t>
@@ -1063,9 +1052,8 @@ sh extract.sh &lt; spec.txt &gt; erasure_coding_prot.x
     <name>Security Considerations</name>
     <t>
       This document has the same security considerations as both Flex Files
-      Layout Type version 1 (see Section 15 of <xref target='RFC8435'
-      format='default' sectionFormat='of' />) and NFSv4.2 (see Section 17 of <xref
-      target='RFC7862' format='default' sectionFormat='of' />).
+      Layout Type version 1 (see Section 15 of <xref target='RFC8435' />)
+      and NFSv4.2 (see Section 17 of <xref target='RFC7862' />).
     </t>
   </section>
 
@@ -1075,7 +1063,7 @@ sh extract.sh &lt; spec.txt &gt; erasure_coding_prot.x
     <section anchor='sec_iana_layouts' numbered='true' removeInRFC='false' toc='default'>
       <name>pNFS Layout Types Registry</name>
       <t>
-        <xref target='RFC8881' format='default' sectionFormat='of' />
+        <xref target='RFC8881' />
         introduced the 'pNFS Layout Types Registry'; new layout type
         numbers in this registry need to be assigned by IANA.  This document
         defines the protocol associated with an existing layout type number:
@@ -1104,7 +1092,7 @@ sh extract.sh &lt; spec.txt &gt; erasure_coding_prot.x
     <section anchor='sec_iana_recallable' numbered='true' removeInRFC='false' toc='default'>
       <name>NFSv4 Recallable Object Types Registry</name>
       <t>
-        <xref target='RFC8881' format='default' sectionFormat='of' /> also
+        <xref target='RFC8881' /> also
         introduced the 'NFSv4 Recallable Object Types Registry'.  This document
         defines new recallable objects for RCA4_TYPE_MASK_FFV2_LAYOUT_MIN and
         RCA4_TYPE_MASK_FFV2_LAYOUT_MAX (see <xref target='recalllist' />).
