@@ -830,6 +830,20 @@
               NFS4ERR_WRONG_CRED, NFS4ERR_WRONG_TYPE
             </td>
           </tr>
+          <tr>
+            <td>RESERVE_RELEASE</td>
+            <td>
+              NFS4ERR_ACCESS, NFS4ERR_ADMIN_REVOKED, NFS4ERR_BADXDR,
+              NFS4ERR_DELAY, NFS4ERR_FHEXPIRED, NFS4ERR_GRACE,
+              NFS4ERR_INVAL, NFS4ERR_IO, NFS4ERR_MOVED,
+              NFS4ERR_NOENT, NFS4ERR_NOFILEHANDLE, NFS4ERR_NOTSUPP,
+              NFS4ERR_OP_NOT_IN_SESSION, NFS4ERR_PERM,
+              NFS4ERR_REP_TOO_BIG, NFS4ERR_REP_TOO_BIG_TO_CACHE,
+              NFS4ERR_REQ_TOO_BIG, NFS4ERR_RETRY_UNCACHED_REP,
+              NFS4ERR_STALE, NFS4ERR_SYMLINK, NFS4ERR_TOO_MANY_OPS,
+              NFS4ERR_WRONG_CRED, NFS4ERR_WRONG_TYPE
+            </td>
+          </tr>
         </tbody>
       </table>
     </section>
@@ -1134,6 +1148,10 @@
             ra_offset exceeds NFS4_UINT64_MAX.
           </li>
         </ul>
+        <t>
+          The state of fattr4_reserved_state for the reservation file <bcp14>MUST</bcp14>
+          be persisted to NFS4_RESERVED_INITIALIZED.
+        </t>
       </section>
     </section>
 
@@ -1204,7 +1222,7 @@
     </section>
 
     <section anchor='RESERVE_RECOVER' numbered='true' removeInRFC='false' toc='default'>
-      <name>Operation 78: RESERVE_RECOVER - Get information on a byte range for writing</name>
+      <name>Operation 79: RESERVE_RECOVER - Get information on a byte range for writing</name>
       <section anchor='RESERVE_RECOVER4_args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
         <figure anchor='code_RESERVE_RECOVER4args'>
@@ -1263,6 +1281,71 @@
           rra_key does not match that peristed, then the server <bcp14>MUST</bcp14> send back the error
           NFS4ERR_PERM. The client can use GETATTR to determine if this was due
           to normal file system semantics or a mismatched ffv2_key4.
+        </t>
+      </section>
+    </section>
+
+    <section anchor='RESERVE_RELEASE' numbered='true' removeInRFC='false' toc='default'>
+      <name>Operation 80: RESERVE_RELEASE - Release reservation on a byte range for writing</name>
+      <section anchor='RESERVE_RELEASE4_args' numbered='true' removeInRFC='false' toc='exclude'>
+        <name>ARGUMENTS</name>
+        <figure anchor='code_RESERVE_RELEASE4args'>
+          <sourcecode type='xdr'>
+/// struct RESERVE_RELEASE4args {
+///     /* CURRENT_FH: file */
+///     stateid4        rra_stateid;
+///     uint32_t        rra_reservation_id;
+///     ffv2_key4       rra_key;
+/// };
+          </sourcecode>
+        </figure>
+      </section>
+
+      <section anchor='RESERVE_RELEASE4_res' numbered='true' removeInRFC='false' toc='exclude'>
+        <name>RESULTS</name>
+
+        <figure anchor='code_RESERVE_RELEASE4resok'>
+          <sourcecode type='xdr'>
+/// struct RESERVE_RELEASE4resok {
+/// };
+          </sourcecode>
+        </figure>
+
+        <figure anchor='code_RESERVE_RELEASE4res'>
+          <sourcecode type='xdr'>
+/// union RESERVE_RELEASE4res switch (nfsstat4 rrr_status) {
+///     case NFS4_OK:
+///         RESERVE_RELEASE4resok         rrr_resok4;
+///     default:
+///         void;
+/// };
+          </sourcecode>
+        </figure>
+      </section>
+
+      <section anchor='RESERVE_RELEASE4_desc' numbered='true' removeInRFC='false' toc='exclude'>
+        <name>DESCRIPTION</name>
+        <t>
+          RESERVE_RELEASE is a new operation to release a reservation on a file. The
+          user has to have access to the underlying file in order to release
+          the reservation. For the given reservation identified by rra_reservation_id
+          (See <xref target='code_RESERVE_RELEASE4args' />), the rra_key <bcp14>MUST</bcp14>
+          match that which was persisted in the original RESERVE operation to create the
+          reservation. 
+          As shown in <xref target='code_RESERVE_RELEASE4args' />, a stateid
+          that follows the rules of <xref target='RESERVE4_desc' /> <bcp14>MUST</bcp14>
+          be presented.
+        </t>
+        <t>
+          If there is no matching reservation for the rra_reservation_id, then
+          the server <bcp14>MUST</bcp14> send back the error NFS4ERR_NOENT. If the
+          rra_key does not match that peristed, then the server <bcp14>MUST</bcp14> send back the error
+          NFS4ERR_PERM. The client can use GETATTR to determine if this was due
+          to normal file system semantics or a mismatched ffv2_key4.
+        </t>
+        <t>
+          The state of fattr4_reserved_state for the reservation file <bcp14>MUST</bcp14>
+          be persisted to NFS4_RESERVED_RELEASED.
         </t>
       </section>
     </section>
