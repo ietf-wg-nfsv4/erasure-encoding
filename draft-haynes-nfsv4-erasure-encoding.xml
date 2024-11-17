@@ -998,7 +998,7 @@
 ///     ffv2_key4       ra_key;
 ///     clientid4       ra_client_id;
 ///     offset4         ra_offset;
-///     count4          ra_count;
+///     length4         ra_length;
 /// };
           </sourcecode>
         </figure>
@@ -1042,15 +1042,20 @@
         <name>DESCRIPTION</name>
         <t>
           RESERVE is a new operation to reserve for writing a section of a file
-          given from the offset of ra_offset to a range of ra_offset + ra_count
+          given from the offset of ra_offset to a range of ra_offset + ra_length
           bytes. If the server already has a reservation that overlaps the
           requested range, then the server <bcp14>MUST</bcp14> return an error
           of NFS4ERR_RESERVATION_CONFLICT and fill in the RESERVE4resconflict
           (see <xref target='code_RESERVE4resconflict' />)
           with at least one of the conflicting reservations. I.e., rrc_offset
           would be an earlier ra_offset and rrc_count would be an earlier
-          ra_count supplied by another client (or even the same client) during
+          ra_length supplied by another client (or even the same client) during
           a RESERVE operation.
+        </t>
+        <t>
+          <cref anchor='AI31' source='TH'>
+            Or like LOCK, we can use NFS4ERR_DENIED here.
+          </cref>
         </t>
         <t>
           RESERVE creates a new reservation file on the server and
@@ -1114,6 +1119,21 @@
           by normal means. A REMOVE on the file <bcp14>MUST</bcp14>
           result in an error of NFS4ERR_RESERVATION_FILE.
         </t>
+        <t>
+          Note that the entire file can be reserved with ra_offset being 0
+          and ra_length being NFS4_UINT64_MAX. This also allows for
+          appending data to an existing file. The server <bcp14>MUST</bcp14> return
+          NFS4ERR_INVAL under the following combinations of ra_length and ra_offset:
+        </t>
+   
+        <ul>
+          <li>ra_length is equal to zero.</li>
+   
+          <li>
+            ra_length is not equal to NFS4_UINT64_MAX, and the sum of ra_length and
+            ra_offset exceeds NFS4_UINT64_MAX.
+          </li>
+        </ul>
       </section>
     </section>
 
