@@ -1107,6 +1107,13 @@
           recovered and then the client can use RESERVE_RECOVER
           to get the reservation filehandle.
         </t>
+        <t>
+          A file with a reservation is consisdered opened, even
+          if it is not reclaimed during grace recovery. I.e.,
+          the reservation prevents the file from being deleted
+          by normal means. A REMOVE on the file <bcp14>MUST</bcp14>
+          result in an error of NFS4ERR_RESERVATION_FILE.
+        </t>
       </section>
     </section>
 
