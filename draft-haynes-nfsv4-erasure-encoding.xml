@@ -686,30 +686,99 @@
           server.
         </t>
       </section>
-      <section anchor='NFS4ERR_RESERVATION_HELD' numbered='true' removeInRFC='false' toc='exclude'>
-        <name>Error 10099 - NFS4ERR_RESERVATION_HELD</name>
+      <section anchor='NFS4ERR_RESERVATION_FILE' numbered='true' removeInRFC='false' toc='exclude'>
+        <name>Error 10099 - NFS4ERR_RESERVATION_FILE</name>
         <t>
-          The client wrote to either a reservation on the data server in the
-          data file or outside of the reservation on the data server in the
-          reservation file.
+          The client is attempting an operation which does
+          not apply to a reservation file.
+        </t>
+      </section>
+      <section anchor='NFS4ERR_RESERVATION_HELD' numbered='true' removeInRFC='false' toc='exclude'>
+        <name>Error 10100 - NFS4ERR_RESERVATION_HELD</name>
+        <t>
+          The client wrote to a reservation on the data server in the
+          data file. Or the client is attempting an operation which does
+          not apply to a reservation file.
+        </t>
+      </section>
+      <section anchor='NFS4ERR_RESERVATION_OUT_OF_RANGE' numbered='true' removeInRFC='false' toc='exclude'>
+        <name>Error 10101 - NFS4ERR_RESERVATION_OUT_OF_RANGE</name>
+        <t>
+          The client performed I/O to outside of the reserved range for the reservation file.
+          Note that even if the client holds two different reservations on a file, they
+          have exclusive ranges and different reservation files. The client 
+          <bcp14>MUST</bcp14> keep consistent the mapping of block to reservation file.
         </t>
       </section>
     </section>
-    <section anchor='errors_ops' numbered='true' removeInRFC='false' toc='default'>
+    <section anchor='ops_to_errors' numbered='true' removeInRFC='false' toc='default'>
       <name>Operations and Their Valid Errors</name>
 
       <t>
-        The operations and their valid errors are presented in <xref target='tbl_error_ops' />.
+        The operations and their valid errors are presented in <xref target='tbl_ops_to_errors' />.
         All error codes not defined in this document are defined in Section 15
-        of <xref target='RFC8881' />.
+        of <xref target='RFC8881' /> and Section 15 of <xref target='RFC7862' />.
       </t>
 
-      <table anchor='tbl_error_ops'>
+      <table anchor='tbl_ops_to_errors'>
         <name>Operations and Their Valid Errors</name>
         <thead>
           <tr>
             <th>Operation</th>
             <th>Errors</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>NFS4ERR_ERASURE_ENCODING_NOT_SUPPORTED</td>
+            <td>
+              LAYOUTGET
+            </td>
+          </tr>
+          <tr>
+            <td>NFS4ERR_RESERVATION_CONFLICT</td>
+            <td>
+              RESERVE
+            </td>
+          </tr>
+          <tr>
+            <td>NFS4ERR_RESERVATION_FILE</td>
+            <td>
+              CLOSE, LOCK, LOCKT, LOCKU, LOOKUP, LOOKUPP, OPEN, OPENATTR, READLINK,
+              REMOVE, RENAME, SETATTR, VERIFY
+            </td>
+          </tr>
+          <tr>
+            <td>NFS4ERR_RESERVATION_HELD</td>
+            <td>
+              COMMIT, READ, WRITE
+            </td>
+          </tr>
+          <tr>
+            <td>NFS4ERR_RESERVATION_OUT_OF_RANGE</td>
+            <td>
+              COMMIT, READ, WRITE
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section anchor='errors_to_ops' numbered='true' removeInRFC='false' toc='default'>
+      <name>Errors and the Operations That Use Them</name>
+
+      <t>
+        The operations and their valid errors are presented in <xref target='tbl_error_to_ops' />.
+        All operations not defined in this document are defined in Section 18
+        of <xref target='RFC8881' /> and Section 15 of <xref target='RFC7862' />.
+      </t>
+
+      <table anchor='tbl_error_to_ops'>
+        <name>Errors and the Operations That Use Them</name>
+        <thead>
+          <tr>
+            <th>Error</th>
+            <th>Operations</th>
           </tr>
         </thead>
         <tbody>
