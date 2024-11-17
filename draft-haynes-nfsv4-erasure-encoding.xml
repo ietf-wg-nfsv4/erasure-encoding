@@ -333,8 +333,7 @@
         was the singleton ffds_stateid combined with the
         ffds_fh_vers array. I.e., each NFSv4 version has
         its own stateid. In <xref target='code_ffv2_file_info4' />,
-        each NFSv4 file handle has a one-to-one
-        correspondence to a stateid.
+        each NFSv4 filehandle has a one-to-one correspondence to a stateid.
       </t>
     </section>
 
@@ -958,10 +957,28 @@
         </t>
         <t>
           RESERVE creates a new reservation file on the server and populates
-          the current file handle for it. As the reservation file is not
+          the current filehandle for it. As the reservation file is not
           visible in the server namespace, the client <bcp14>MUST</bcp14>
           issue a GETATTR(fh) (see Section 18.7 of <xref target='RFC8881'
-          format='default' sectionFormat='of' />) to get the file handle.
+          format='default' sectionFormat='of' />) to get the filehandle.
+          The reservation file <bcp14>MUST</bcp14> have the exact same
+          authorization as the file (see Section 2.8.1 of <xref target='RFC8881'
+          format='default' sectionFormat='of' />), which means the attributes
+          mode, owner, owner_group, acl, dacl, and sacl <bcp14>MUST</bcp14>
+          track those of the file. I.e., they <bcp14>MUST NOT</bcp14> be
+          modified by SETATTR on the reservation file and if they are
+          modified on the file, they <bcp14>MUST</bcp14> be modified
+          equivalently on the reservation file. Finally, the values of
+          time_access, time_backup, time_create, time_metadata, time_modify, and
+          change <bcp14>MUST</bcp14> initially be those of the file, but
+          they <bcp14>MUST</bcp14> be tracked separately from the file.
+        </t>
+        <t>
+          RESERVE <bcp14>MUST</bcp14> check for write access just like
+          the WRITE operation. I.e., if the owner does not have write
+          permissions, if it is a read-only filesystem, etc, the
+          appropriate error <bcp14>MUST</bcp14> be returned to the
+          RESERVE operation.
         </t>
         <t>
           The server <bcp14>MUST</bcp14> persist the ra_key and the ra_client_id
@@ -979,9 +996,22 @@
           not aware of the parallel aspect, it is the metadata server
           and client which are aware of that relationship.
         </t>
+        <t>
+          As such the ra_stateid follows the rules for a WRITE request
+          (see Section 18.32.3 of of <xref target='RFC8881'
+          format='default' sectionFormat='of' />) for non-pNFS servers and
+          the rules for Loosely Coupled I/O for pNFS (see Section 2.3.1
+          of <xref target='RFC8435' format='default' sectionFormat='of'/>).
+          I.e., an anonymous stateid is presented.
+        </t>
+        <t>
+          The reservation file <bcp14>MUST NOT</bcp14> be recovered
+          during grace recovery. The file <bcp14>MUST</bcp14> be
+          recovered and then the client can use RESERVE_RECOVER
+          to get the reservation filehandle.
+        </t>
       </section>
     </section>
-
  </section>
 
   <section anchor='xdr_desc' numbered='true' removeInRFC='false' toc='default'>
