@@ -706,7 +706,7 @@
         <t>
           The client performed I/O to outside of the reserved range for the reservation file.
           Note that even if the client holds two different reservations on a file, they
-          have exclusive ranges and different reservation files. The client 
+          have exclusive ranges and different reservation files. The client
           <bcp14>MUST</bcp14> keep consistent the mapping of block to reservation file.
         </t>
       </section>
@@ -1057,7 +1057,9 @@
         <figure anchor='code_RESERVE4resok'>
           <sourcecode type='xdr'>
 /// struct RESERVE4resok {
-///     uint32_t       rr_reservation_id;
+///     uint32_t        rr_reservation_id;
+///     offset4         rr_offset;
+///     length4         rr_length;
 /// };
           </sourcecode>
         </figure>
@@ -1104,6 +1106,20 @@
           <cref anchor='AI31' source='TH'>
             Or like LOCK, we can use NFS4ERR_DENIED here.
           </cref>
+        </t>
+        <t>
+          Upon success, the rr_reservation_id (See <xref target='code_RESERVE4resok' />)
+          identifier is an unique reference to the reservation and it <bcp14>MUST</bcp14>
+          persist across server restarts. As the ra_offset might not be aligned
+          on a data block of the server, rr_offset is the start of the data
+          block such that rr_offset &lt;= ra_offset. Further, since the
+          ra_length might also not be aligned at the end of a data block,
+          rr_length &gt;= ra_length. The client <bcp14>MUST</bcp14>
+          detect the difference and make sure to copy these excess data
+          from the data file to the reservation file. I.e., if the
+          client only acts on the range of ra_offset to ra_length,
+          then it might inadvertantly overwrite the excess data
+          with garbage.
         </t>
         <t>
           RESERVE creates a new reservation file on the server and
@@ -1173,10 +1189,10 @@
           appending data to an existing file. The server <bcp14>MUST</bcp14> return
           NFS4ERR_INVAL under the following combinations of ra_length and ra_offset:
         </t>
-   
+
         <ul>
           <li>ra_length is equal to zero.</li>
-   
+
           <li>
             ra_length is not equal to NFS4_UINT64_MAX, and the sum of ra_length and
             ra_offset exceeds NFS4_UINT64_MAX.
@@ -1345,7 +1361,7 @@
           the reservation. For the given reservation identified by rra_reservation_id
           (See <xref target='code_RESERVE_RELEASE4args' />), the rra_key <bcp14>MUST</bcp14>
           match that which was persisted in the original RESERVE operation to create the
-          reservation. 
+          reservation.
           As shown in <xref target='code_RESERVE_RELEASE4args' />, a stateid
           that follows the rules of <xref target='RESERVE4_desc' /> <bcp14>MUST</bcp14>
           be presented.
@@ -1404,7 +1420,7 @@
           the reservation. For the given reservation identified by rra_reservation_id
           (See <xref target='code_CB_RESERVE_REPAIR4args' />), the crra_key <bcp14>MUST</bcp14>
           match that which was persisted in the original RESERVE operation to create the
-          reservation. 
+          reservation.
           As shown in <xref target='code_CB_RESERVE_REPAIR4args' />, a stateid
           that follows the rules of <xref target='RESERVE4_desc' /> <bcp14>MUST</bcp14>
           be presented.
