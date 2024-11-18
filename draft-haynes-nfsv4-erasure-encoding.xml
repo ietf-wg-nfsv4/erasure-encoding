@@ -711,13 +711,14 @@
         </t>
       </section>
     </section>
+
     <section anchor='ops_to_errors' numbered='true' removeInRFC='false' toc='default'>
       <name>Operations and Their Valid Errors</name>
 
       <t>
         The operations and their valid errors are presented in <xref target='tbl_ops_to_errors' />.
         All error codes not defined in this document are defined in Section 15
-        of <xref target='RFC8881' /> and Section 15 of <xref target='RFC7862' />.
+        of <xref target='RFC8881' /> and Section 11 of <xref target='RFC7862' />.
       </t>
 
       <table anchor='tbl_ops_to_errors'>
@@ -726,59 +727,6 @@
           <tr>
             <th>Operation</th>
             <th>Errors</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>NFS4ERR_ERASURE_ENCODING_NOT_SUPPORTED</td>
-            <td>
-              LAYOUTGET
-            </td>
-          </tr>
-          <tr>
-            <td>NFS4ERR_RESERVATION_CONFLICT</td>
-            <td>
-              RESERVE
-            </td>
-          </tr>
-          <tr>
-            <td>NFS4ERR_RESERVATION_FILE</td>
-            <td>
-              CLOSE, LOCK, LOCKT, LOCKU, LOOKUP, LOOKUPP, OPEN, OPENATTR, READLINK,
-              REMOVE, RENAME, SETATTR, VERIFY
-            </td>
-          </tr>
-          <tr>
-            <td>NFS4ERR_RESERVATION_HELD</td>
-            <td>
-              COMMIT, READ, WRITE
-            </td>
-          </tr>
-          <tr>
-            <td>NFS4ERR_RESERVATION_OUT_OF_RANGE</td>
-            <td>
-              COMMIT, READ, WRITE
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-
-    <section anchor='errors_to_ops' numbered='true' removeInRFC='false' toc='default'>
-      <name>Errors and the Operations That Use Them</name>
-
-      <t>
-        The operations and their valid errors are presented in <xref target='tbl_error_to_ops' />.
-        All operations not defined in this document are defined in Section 18
-        of <xref target='RFC8881' /> and Section 15 of <xref target='RFC7862' />.
-      </t>
-
-      <table anchor='tbl_error_to_ops'>
-        <name>Errors and the Operations That Use Them</name>
-        <thead>
-          <tr>
-            <th>Error</th>
-            <th>Operations</th>
           </tr>
         </thead>
         <tbody>
@@ -842,6 +790,92 @@
               NFS4ERR_REQ_TOO_BIG, NFS4ERR_RETRY_UNCACHED_REP,
               NFS4ERR_STALE, NFS4ERR_SYMLINK, NFS4ERR_TOO_MANY_OPS,
               NFS4ERR_WRONG_CRED, NFS4ERR_WRONG_TYPE
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section anchor='cb_ops_to_errors' numbered='true' removeInRFC='false' toc='default'>
+      <name>Callback Operations and Their Valid Errors</name>
+
+      <t>
+        The callback operations and their valid errors are presented in <xref target='tbl_cb_ops_to_errors' />.
+        All error codes not defined in this document are defined in Section 15
+        of <xref target='RFC8881' /> and Section 11 of <xref target='RFC7862' />.
+      </t>
+
+      <table anchor='tbl_cb_ops_to_errors'>
+        <name>Callback Operations and Their Valid Errors</name>
+        <thead>
+          <tr>
+            <th>Callback Operation</th>
+            <th>Errors</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>CB_RESERVE_REPAIR</td>
+            <td>
+              NFS4ERR_BADXDR,
+              NFS4ERR_BAD_STATEID, NFS4ERR_DEADSESSION, NFS4ERR_DELAY,
+              NFS4ERR_ERASURE_ENCODING_NOT_SUPPORTED,
+              NFS4ERR_INVAL, NFS4ERR_IO, NFS4ERR_ISDIR, NFS4ERR_LOCKED,
+              NFS4ERR_NOTSUPP, NFS4ERR_OLD_STATEID,
+              NFS4ERR_SERVERFAULT, NFS4ERR_STALE,
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section anchor='errors_to_ops' numbered='true' removeInRFC='false' toc='default'>
+      <name>Errors and the Operations That Use Them</name>
+
+      <t>
+        The operations and their valid errors are presented in <xref target='tbl_error_to_ops' />.
+        All operations not defined in this document are defined in Section 18
+        of <xref target='RFC8881' /> and Section 15 of <xref target='RFC7862' />.
+      </t>
+
+      <table anchor='tbl_error_to_ops'>
+        <name>Errors and the Operations That Use Them</name>
+        <thead>
+          <tr>
+            <th>Error</th>
+            <th>Operations</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>NFS4ERR_ERASURE_ENCODING_NOT_SUPPORTED</td>
+            <td>
+              CB_RESERVE_REPAIR, LAYOUTGET
+            </td>
+          </tr>
+          <tr>
+            <td>NFS4ERR_RESERVATION_CONFLICT</td>
+            <td>
+              RESERVE
+            </td>
+          </tr>
+          <tr>
+            <td>NFS4ERR_RESERVATION_FILE</td>
+            <td>
+              CLOSE, LOCK, LOCKT, LOCKU, LOOKUP, LOOKUPP, OPEN, OPENATTR, READLINK,
+              REMOVE, RENAME, SETATTR, VERIFY
+            </td>
+          </tr>
+          <tr>
+            <td>NFS4ERR_RESERVATION_HELD</td>
+            <td>
+              COMMIT, READ, WRITE
+            </td>
+          </tr>
+          <tr>
+            <td>NFS4ERR_RESERVATION_OUT_OF_RANGE</td>
+            <td>
+              COMMIT, READ, WRITE
             </td>
           </tr>
         </tbody>
@@ -1241,20 +1275,10 @@
       <section anchor='RESERVE_RECOVER4_res' numbered='true' removeInRFC='false' toc='exclude'>
         <name>RESULTS</name>
 
-        <figure anchor='code_RESERVE_RECOVER4resok'>
-          <sourcecode type='xdr'>
-/// struct RESERVE_RECOVER4resok {
-/// };
-          </sourcecode>
-        </figure>
-
         <figure anchor='code_RESERVE_RECOVER4res'>
           <sourcecode type='xdr'>
-/// union RESERVE_RECOVER4res switch (nfsstat4 rrr_status) {
-///     case NFS4_OK:
-///         RESERVE_RECOVER4resok         rrr_resok4;
-///     default:
-///         void;
+/// struct RESERVE_RECOVER4res {
+///     nfsstat4 rrr_status;
 /// };
           </sourcecode>
         </figure>
@@ -1304,20 +1328,10 @@
       <section anchor='RESERVE_RELEASE4_res' numbered='true' removeInRFC='false' toc='exclude'>
         <name>RESULTS</name>
 
-        <figure anchor='code_RESERVE_RELEASE4resok'>
-          <sourcecode type='xdr'>
-/// struct RESERVE_RELEASE4resok {
-/// };
-          </sourcecode>
-        </figure>
-
         <figure anchor='code_RESERVE_RELEASE4res'>
           <sourcecode type='xdr'>
-/// union RESERVE_RELEASE4res switch (nfsstat4 rrr_status) {
-///     case NFS4_OK:
-///         RESERVE_RELEASE4resok         rrr_resok4;
-///     default:
-///         void;
+/// struct RESERVE_RELEASE4res {
+///     nfsstat4 rrr_status;
 /// };
           </sourcecode>
         </figure>
@@ -1349,7 +1363,63 @@
         </t>
       </section>
     </section>
- </section>
+  </section>
+
+  <section anchor='cb_ops' numbered='true' removeInRFC='false' toc='default'>
+    <name>New NFSv4.2 Callback Operations</name>
+    <section anchor='CB_RESERVE_REPAIR' numbered='true' removeInRFC='false' toc='default'>
+      <name>Operation 16: CB_RESERVE_REPAIR - Repair a reservation of a byte range for writing</name>
+      <section anchor='CB_RESERVE_REPAIR4_args' numbered='true' removeInRFC='false' toc='exclude'>
+        <name>ARGUMENTS</name>
+        <figure anchor='code_CB_RESERVE_REPAIR4args'>
+          <sourcecode type='xdr'>
+/// struct CB_RESERVE_REPAIR4args {
+///     /* CURRENT_FH: file */
+///     stateid4             crra_stateid;
+///     uint32_t             crra_reservation_id;
+///     ffv2_key4            crra_key;
+///     ffv2_encoding_type4  crra_type;
+/// };
+          </sourcecode>
+        </figure>
+      </section>
+
+      <section anchor='CB_RESERVE_REPAIR4_res' numbered='true' removeInRFC='false' toc='exclude'>
+        <name>RESULTS</name>
+
+        <figure anchor='code_CB_RESERVE_REPAIR4res'>
+          <sourcecode type='xdr'>
+/// struct CB_RESERVE_REPAIR4res {
+///     nfsstat4 crrr_status;
+/// };
+          </sourcecode>
+        </figure>
+      </section>
+
+      <section anchor='CB_RESERVE_REPAIR4_desc' numbered='true' removeInRFC='false' toc='exclude'>
+        <name>DESCRIPTION</name>
+        <t>
+          CB_RESERVE_REPAIR is a new callback operation to request that the client repair a reservation
+          on a file. The user has to have access to the underlying file in order to release
+          the reservation. For the given reservation identified by rra_reservation_id
+          (See <xref target='code_CB_RESERVE_REPAIR4args' />), the crra_key <bcp14>MUST</bcp14>
+          match that which was persisted in the original RESERVE operation to create the
+          reservation. 
+          As shown in <xref target='code_CB_RESERVE_REPAIR4args' />, a stateid
+          that follows the rules of <xref target='RESERVE4_desc' /> <bcp14>MUST</bcp14>
+          be presented.
+        </t>
+        <t>
+          If the client does not support the RESERVE family of operations, it
+          <bcp14>MUST</bcp14> return an error of NFS4ERR_NOTSUPP. Note that
+          this is most likely going to occur as in this case it will not
+          support CB_RESERVE_REPAIR. If the client does not support the
+          crra_type for the erasure encoding type, then it <bcp14>MUST</bcp14>
+          return an error of NFS4ERR_ERASURE_ENCODING_NOT_SUPPORTED.
+        </t>
+      </section>
+    </section>
+  </section>
 
   <section anchor='xdr_desc' numbered='true' removeInRFC='false' toc='default'>
     <name>Extraction of XDR</name>
