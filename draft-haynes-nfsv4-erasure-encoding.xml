@@ -921,7 +921,7 @@
         <sourcecode type='xdr'>
 /// enum nfs_reserved_state4 {
 ///     NFS4_RESERVED_INITIALIZED = 0,
-///     NFS4_RESERVED_WRITTEN = 1,
+///     NFS4_RESERVED_STAGED = 1,
 ///     NFS4_RESERVED_SWAPPED = 2,
 ///     NFS4_RESERVED_RELEASED = 3,
 ///     NFS4_RESERVED_DELETING = 4,
@@ -956,7 +956,7 @@
           The reservation file has been created by RESERVE
           and data may or may not have been written to it.
         </dd>
-        <dt>NFS4_RESERVED_WRITTEN:</dt>
+        <dt>NFS4_RESERVED_STAGED:</dt>
         <dd>
           The client is done writing data to the reserved
           range in the reservation file and is staging all
