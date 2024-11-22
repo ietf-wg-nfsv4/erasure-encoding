@@ -483,6 +483,13 @@
       </t>
     </section>
 
+    <section anchor='READ_CHUNK' numbered='true' removeInRFC='false' toc='default'>
+      <name>Placeholder</name>
+      <section anchor='code_READ_CHUNKresok' numbered='true' removeInRFC='false' toc='default'>
+        <name>Placeholder</name>
+      </section>
+    </section>
+
     <section anchor='sec_mix_types' numbered='true' removeInRFC='false' toc='default'>
       <name>Mixing of Encoding Types</name>
       <t>
@@ -618,20 +625,28 @@
 
       <figure anchor='encoding_transformation'>
         <artwork>
-                      +-------------+
-                      | data blocks |
-                      +-------+-----+
-                              |
-                              |
-       +----------------------+-----------------------+
-       |      Erasure Encoding (Transform Forward)    |
-       +----+-----------------+-------------------+---+
-            |                 |                 |
-            |                 |                 |
-        +---+----+         +---+----+       +---+----+
-        | chunks |   ...   | chunks |  ...  | chunks |
-        +--------+         +--------+       +--------+
-      Data Server 1       Data Server N   Data Server 6
+                  +-------------+
+                  | data block  |
+                  +-------+-----+
+                          |
+                          |
+   +----------------------+---------------------------------+
+   |             Erasure Encoding (Transform Forward)       |
+   +----+----------------------+----------------------+-----+
+        |                      |                      |
+        |                      |                      |
+    +---+------------+     +---+------------+     +---+------------+
+    | HEADER         | ... | HEADER         | ... | HEADER         |
+    +----------------+     +----------------+     +----------------+
+    | change_id: 3:6 | ... | change_id: 3:6 | ... | change_id: 3:6 |
+    | slot_id  : 0   | ... | slot_id  : N-1 | ... | slot_id  : 5   |
+    | crc32    :     | ... | crc32    :     | ... | crc32    :     |
+    +----------------+     +----------------+     +----------------+
+    | CHUNK          | ... | CHUNK          | ... | CHUNK          |
+    +----------------+     +----------------+     +----------------+
+    | data: ....     | ... | data: ....     | ... | data: ....     |
+    +----------------+     +----------------+     +----------------+
+      Data Server 1          Data Server N          Data Server 6
         </artwork>
       </figure>
 
@@ -648,25 +663,33 @@
       <name>Decoding a Data Block</name>
       <figure anchor='decoding_transformation'>
         <artwork>
-      Data Server 1       Data Server N   Data Server 6
-        +--------+         +--------+       +--------+
-        | chunks |   ...   | chunks |  ...  | chunks |
-        +---+----+         +---+----+       +---+----+
-            |                 |                 |
-            |                 |                 |
-       +----+-----------------+-------------------+---+
-       |      Erasure Decoding (Transform Reverse)    |
-       +----------------------+-----------------------+
-                              |
-                              |
-                      +-------+-----+
-                      | data chunks |
-                      +-------------+
+      Data Server 1          Data Server N          Data Server 6
+    +----------------+     +----------------+     +----------------+
+    | HEADER         | ... | HEADER         | ... | HEADER         |
+    +----------------+     +----------------+     +----------------+
+    | change_id: 3:6 | ... | change_id: 3:6 | ... | change_id: 3:6 |
+    | slot_id  : 0   | ... | slot_id  : N-1 | ... | slot_id  : 5   |
+    | crc32    :     | ... | crc32    :     | ... | crc32    :     |
+    +----------------+     +----------------+     +----------------+
+    | CHUNK          | ... | CHUNK          | ... | CHUNK          |
+    +----------------+     +----------------+     +----------------+
+    | data: ....     | ... | data: ....     | ... | data: ....     |
+    +---+------------+     +---+------------+     +---+------------+
+        |                      |                      |
+        |                      |                      |
+   +----+----------------------+----------------------+-----+
+   |             Erasure Decoding (Transform Reverse)       |
+   +----------------------+---------------------------------+
+                          |
+                          |
+                  +-------+-----+
+                  | data block  |
+                  +-------------+
         </artwork>
       </figure>
       <t>
         When reading chunks via a READ operation, the client will decode
-        theminto data blocks as shown in
+        them into data blocks as shown in
         <xref target='decoding_transformation' />.
       </t>
 
