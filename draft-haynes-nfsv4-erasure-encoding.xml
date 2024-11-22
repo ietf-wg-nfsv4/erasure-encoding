@@ -127,11 +127,11 @@
     <section anchor='sec_defs' numbered='true' removeInRFC='false' toc='default'>
       <name>Definitions</name>
       <dl newline='false' spacing='normal'>
-        <dt>block:</dt>
+        <dt>chunk:</dt>
         <dd>
-          One of the resulting blocks to be exchanged with a data
+          One of the resulting chunks to be exchanged with a data
           server after a transformation has been applied to
-          a data block. Note that the resulting block
+          a data block. Note that the resulting chunk
           may be a different size than the data block.
         </dd>
 
@@ -155,7 +155,7 @@
         <dd>
           A data protection scheme where a block of data is replicated
           into fragments and additional redundant fragments are added
-          to achieve parity. The new blocks are stored in different
+          to achieve parity. The new chunks are stored in different
           locations.
         </dd>
 
@@ -192,8 +192,8 @@
         <dt>write hole:</dt>
         <dd>
           A write hole is a data corruption scenario where either
-          two clients are trying to write to the same block or
-          one client is overwriting an existing block of data.
+          two clients are trying to write to the same chunk or
+          one client is overwriting an existing chunk of data.
         </dd>
       </dl>
     </section>
@@ -342,11 +342,11 @@
         The ffv2_ds_flags4 (in <xref target='code_ffv2_ds_flags4' />) flags details
         the state of the data servers. With Erasure Encoding algorithms, there are both Systematic and Non-Systematic
         approaches. In the Systematic, the bits for integrity are placed amoungst the
-        resulting transformed block. Such an implementation would typically see
+        resulting transformed chunk. Such an implementation would typically see
         FFV2_DS_FLAGS_ACTIVE and FFV2_DS_FLAGS_SPARE data servers. The FFV2_DS_FLAGS_SPARE
         ones allow the client to repair a payload without enaging the metadata server.
         I.e., if one of the FFV2_DS_FLAGS_ACTIVE did not respond to a WRITE_BLOCK,
-        the client could fail the block to the FFV2_DS_FLAGS_SPARE data server.
+        the client could fail the chunk to the FFV2_DS_FLAGS_SPARE data server.
       </t>
       <t>
         With the Non-Systematic approach, the data and integrity live on different
@@ -407,7 +407,7 @@
         The ffv2_encoding_type_data4 (in <xref target='code_ffv2_encoding_type_data4' />) describes
         erasure encoding type specific fields. I.e., this is how the encoding type can
         communicate the need for counts of active, spare, parity, and repair types
-        of blocks.
+        of chunks.
       </t>
     </section>
 
@@ -496,7 +496,7 @@
       </t>
       <t>
         Assume there is an additional ffv2_encoding_type4 of
-        FFV2_ENCODING_REED_SOLOMON and it needs 8 active blocks.
+        FFV2_ENCODING_REED_SOLOMON and it needs 8 active chunks.
         The user wants to actively assimilate a regular
         file. As such, a layout might be as represented in <xref
         target='mixed_layout' />.  As this is an assimilation, most of
@@ -573,12 +573,12 @@
   <section anchor='sec_erasure_encoding' numbered='true' removeInRFC='false' toc='default'>
     <name>Erasure Encoding</name>
     <t>
-      Erasure Encoding takes an data block and transforms it to a payload to
+      Erasure Encoding takes a data block and transforms it to a payload to
       send to the data servers (see <xref target='encoding_transformation' />). It
       generates a metadata header and transformed block per data server. The header is metadata
       information for the transformed block. From now on, the metadata is
       simply referred to as the header and the transformed block as the
-      block. The payload of a data block is the set of generated headers and blocks
+      chunk. The payload of a data block is the set of generated headers and chunks
       for that data block.
     </t>
 
@@ -587,30 +587,30 @@
       the current write transaction. The client_id is an unique identifier
       assigned by the metadata server to describe which client is making
       the current write transaction. The seq_id describes the index across payload.
-      The eff_len is the length of the data within the block. Finally, the crc32 is
+      The eff_len is the length of the data within the chunk. Finally, the crc32 is
       the 32 bit crc calculation of the header (with the crc32
-      field being 0) and the block. By combining the two
+      field being 0) and the chunk. By combining the two
       parts of the payload, integrity is ensured for both the
       parts.
     </t>
 
     <t>
       While the data block might have a length of 4kB, that does not
-      necessarily mean that the length of the block
+      necessarily mean that the length of the chunk
       is 4kB. That length is determined by the erasure encoding type
       algorithm. For example, Reed Solomon might have 4kB
-      blocks with the data integrity being compromised by
-      parity blocks. Another example would be the Mojette Transformation,
-      which might have 1kB block lengths.
+      chunks with the data integrity being compromised by
+      parity chunks. Another example would be the Mojette Transformation,
+      which might have 1kB chunk lengths.
     </t>
     <t>
       The payload contains redundancy which will allow
       the erasure encoding type algorithm to repair
-      blocks in the payload as it is transformed back to a data block (see
+      chunks in the payload as it is transformed back to a data block (see
       <xref target='decoding_transformation' />).
       A payload is consistent when all of the contained headers
       share the same change_id and client_id. It has integrity
-      when it is consistent and the blocks all pass the crc32 checks.
+      when it is consistent and the combinations of headers and chunks all pass the crc32 checks.
     </t>
 
     <section anchor='sec_encoding_transformation' numbered='true' removeInRFC='false' toc='default'>
@@ -629,7 +629,7 @@
             |                 |                 |
             |                 |                 |
         +---+----+         +---+----+       +---+----+
-        | blocks |   ...   | blocks |  ...  | blocks |
+        | chunks |   ...   | chunks |  ...  | chunks |
         +--------+         +--------+       +--------+
       Data Server 1       Data Server N   Data Server 6
         </artwork>
@@ -639,7 +639,7 @@
         Each data block of the file resident in the client's cache of the
         file will be encoded into N different payloads to be
         sent to the data servers as shown in <xref target='encoding_transformation' />.
-        Whilst they are shown as data blocks and blocks, as far
+        Whilst they are shown as data blocks and chunks, as far
         as WRITE is concerned, these are byte streams.
       </t>
     </section>
@@ -650,7 +650,7 @@
         <artwork>
       Data Server 1       Data Server N   Data Server 6
         +--------+         +--------+       +--------+
-        | blocks |   ...   | blocks |  ...  | blocks |
+        | chunks |   ...   | chunks |  ...  | chunks |
         +---+----+         +---+----+       +---+----+
             |                 |                 |
             |                 |                 |
@@ -660,12 +660,12 @@
                               |
                               |
                       +-------+-----+
-                      | data blocks |
+                      | data chunks |
                       +-------------+
         </artwork>
       </figure>
       <t>
-        When reading blocks via a READ operation, the client will decode
+        When reading chunks via a READ operation, the client will decode
         theminto data blocks as shown in
         <xref target='decoding_transformation' />.
       </t>
@@ -727,7 +727,7 @@
           The client performed I/O to outside of the reserved range for the reservation file.
           Note that even if the client holds two different reservations on a file, they
           have exclusive ranges and different reservation files. The client
-          <bcp14>MUST</bcp14> keep consistent the mapping of block to reservation file.
+          <bcp14>MUST</bcp14> keep consistent the mapping of chunk to reservation file.
         </t>
       </section>
     </section>
@@ -961,7 +961,7 @@
         via the EXCHGID4_FLAG_USE_ERASURE_DS flag (see <xref
         target='EXCHGID4_FLAG_USE_ERASURE_DS'/>).  By querying it,
         the client can determine the data block size it is to use when
-        encoding the data blocks to blocks.
+        encoding the data blocks to chunks.
       </t>
 
       <t>
@@ -1046,7 +1046,7 @@
         <bcp14>MUST</bcp14> be supported if the metadata server supports
         the Flexible File Version 2 Layout Type. By querying it, the
         client can determine the data block size it is to use
-        when encoding the data blocks to blocks.
+        when encoding the data blocks to chunks.
       </t>
     </section>
 
