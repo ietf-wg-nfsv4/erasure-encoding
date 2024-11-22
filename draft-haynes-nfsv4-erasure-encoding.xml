@@ -515,6 +515,7 @@
       </t>
 
       <figure anchor='mixed_layout'>
+        <name>Example of Mixed Encoding Types in a Layout</name>
         <artwork>
          +---------------------------------------------------+
          | ffv2_layout4:                                     |
@@ -624,6 +625,7 @@
       <name>Encoding a Data Block</name>
 
       <figure anchor='encoding_transformation'>
+        <name>Encoding a Data Block</name>
         <artwork>
                   +-------------+
                   | data block  |
@@ -662,6 +664,7 @@
     <section anchor='sec_decoding_transformation' numbered='true' removeInRFC='false' toc='default'>
       <name>Decoding a Data Block</name>
       <figure anchor='decoding_transformation'>
+        <name>Decoding a Data Block</name>
         <artwork>
       Data Server 1          Data Server N          Data Server 6
     +----------------+     +----------------+     +----------------+
