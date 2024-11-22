@@ -503,7 +503,8 @@
         the data reads will be satisfied by READ (see Section 18.22 of
         <xref target='RFC8881' />)
         calls to index 0. However, as this is also an active file,
-        there could also be READ calls to the other indexes.
+        there could also be READ_CHUNK (see <xref target='READ_CHUNK' />)
+        calls to the other indexes.
       </t>
 
       <figure anchor='mixed_layout'>
@@ -528,13 +529,13 @@
          |             ffv2_data_server4[3]                  |
          |                 ffds_flags: FFV2_DS_FLAGS_ACTIVE  |
          |             ffv2_data_server4[4]                  |
-         |                 ffds_flags: FFV2_DS_FLAGS_ACTIVE  |
+         |                 ffds_flags: FFV2_DS_FLAGS_PARITY  |
          |             ffv2_data_server4[5]                  |
-         |                 ffds_flags: FFV2_DS_FLAGS_ACTIVE  |
+         |                 ffds_flags: FFV2_DS_FLAGS_PARITY  |
          |             ffv2_data_server4[6]                  |
-         |                 ffds_flags: FFV2_DS_FLAGS_ACTIVE  |
+         |                 ffds_flags: FFV2_DS_FLAGS_SPARE   |
          |             ffv2_data_server4[7]                  |
-         |                 ffds_flags: FFV2_DS_FLAGS_ACTIVE  |
+         |                 ffds_flags: FFV2_DS_FLAGS_SPARE   |
          |     ffm_encoding: FFV2_ENCODING_REED_SOLOMON      |
          +---------------------------------------------------+
         </artwork>
@@ -546,8 +547,10 @@
         be sent. Further, when reading data from the instance files,
         the client <bcp14>MUST</bcp14> be prepared to have one of the
         encoding types supply data and the other type not to supply
-        data. I.e., the READ call to the data servers in mirror 1
-        might return eof set to true, which indicates that there is
+        data. I.e., the READ_CHUNK call to the data servers in mirror 1
+        might return rlr_eof set to true
+        (see <xref target='code_READ_CHUNKresok' />),
+        which indicates that there is
         no data, where the READ call to the data server in mirror 0 might
         return eof to be false, which indicates that there is data. The
         client <bcp14>MUST</bcp14> determine that there is in fact data.
@@ -558,11 +561,11 @@
         the new encoding scheme, it is actively modifying the file. As
         such, it might be sequentially reading the file in order to
         translate. The READ calls to mirror 0  would be returning data
-        and the READ calls to mirror 1 would not be returning data. As
-        the client overwrites the file, the WRITE calls would have data
+        and the READ_CHUNK calls to mirror 1 would not be returning data. As
+        the client overwrites the file, the WRITE call and WRITE_SWAP_CHUNK call would have data
         sent to all of the data servers. Finally, if the client reads
-        back a section which had been modified earlier, the READ calls
-        to all data servers would return data.
+        back a section which had been modified earlier, both
+        the READ and READ_CHUNK calls would return data.
       </t>
     </section>
   </section>
