@@ -2184,7 +2184,11 @@ sh extract.sh &lt; spec.txt &gt; erasure_coding_prot.x
   <t>
     Christoph Helwig was instrumental in making sure Flexible File
     Version 2 Layout Type
-    was applicable to more than one Erasure-Encoding Type.
+    was applicable to more than one Erasure Encoding Type.
+  </t>
+  <t>
+    Robin Battey reviewed the Erasure Encoding approach
+    and provided expert feedback.
   </t>
 </section>
 
