@@ -713,10 +713,44 @@
 
   <section anchor='errors' numbered='true' removeInRFC='false' toc='default'>
     <name>New NFSv4.2 Error Values</name>
+    <figure anchor='code_errors'>
+      <name>Errors XDR</name>
+      <sourcecode type='xdr'>
+///
+/// /* Erasure Encoding errors start here */
+///
+/// NFS4ERR_XATTR2BIG      = 10096,/* xattr value is too big  */
+/// NFS4ERR_ENCODING_NOT_SUPPORTED
+///    = 10097,/* Encoding Type unsupported  */
+/// NFS4ERR_PAYLOAD_NOT_CONSISTENT= 10098/* payload inconsitent  */
+///
+      </sourcecode>
+    </figure>
+
+    <t>
+      The new error codes are shown in <xref target='code_errors' />.
+    </t>
+
     <section anchor='errors_defs' numbered='true' removeInRFC='false' toc='default'>
       <name>Error Definitions</name>
-      <section anchor='NFS4ERR_ERASURE_ENCODING_NOT_SUPPORTED' numbered='true' removeInRFC='false' toc='exclude'>
-        <name>Error 10097 - NFS4ERR_ERASURE_ENCODING_NOT_SUPPORTED</name>
+
+      <table anchor='tbl_error_defs'>
+        <name>Protocol Error Definitions</name>
+        <thead>
+          <tr>
+            <th>Error</th>
+            <th>Number</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr> <td>NFS4ERR_ENCODING_NOT_SUPPORTED</td> <td>10097</td> <td><xref target='NFS4ERR_ENCODING_NOT_SUPPORTED' /></td> </tr>
+          <tr> <td>NFS4ERR_PAYLOAD_NOT_CONSISTENT</td> <td>10098</td> <td><xref target='NFS4ERR_PAYLOAD_NOT_CONSISTENT' /></td> </tr>
+        </tbody>
+      </table>
+
+      <section anchor='NFS4ERR_ENCODING_NOT_SUPPORTED' numbered='true' removeInRFC='false' toc='exclude'>
+        <name>NFS4ERR_ENCODING_NOT_SUPPORTED (Error Code 10097)</name>
         <t>
           The client requested a ffv2_encoding_type4 which the metadata server does not support. I.e.,
           if the client sends a layout_hint requesting an erasure encoding type that the
@@ -725,35 +759,14 @@
           set of supported erasure encoding types.
         </t>
       </section>
-      <section anchor='NFS4ERR_RESERVATION_CONFLICT' numbered='true' removeInRFC='false' toc='exclude'>
-        <name>Error 10098 - NFS4ERR_RESERVATION_CONFLICT</name>
+      <section anchor='NFS4ERR_PAYLOAD_NOT_CONSISTENT' numbered='true' removeInRFC='false' toc='exclude'>
+        <name>NFS4ERR_PAYLOAD_NOT_CONSISTENT (Error Code 10098)</name>
         <t>
-          The client requested a reservation which is already reserved on the data
-          server.
-        </t>
-      </section>
-      <section anchor='NFS4ERR_RESERVATION_FILE' numbered='true' removeInRFC='false' toc='exclude'>
-        <name>Error 10099 - NFS4ERR_RESERVATION_FILE</name>
-        <t>
-          The client is attempting an operation which does
-          not apply to a reservation file.
-        </t>
-      </section>
-      <section anchor='NFS4ERR_RESERVATION_HELD' numbered='true' removeInRFC='false' toc='exclude'>
-        <name>Error 10100 - NFS4ERR_RESERVATION_HELD</name>
-        <t>
-          The client wrote to a reservation on the data server in the
-          data file. Or the client is attempting an operation which does
-          not apply to a reservation file.
-        </t>
-      </section>
-      <section anchor='NFS4ERR_RESERVATION_OUT_OF_RANGE' numbered='true' removeInRFC='false' toc='exclude'>
-        <name>Error 10101 - NFS4ERR_RESERVATION_OUT_OF_RANGE</name>
-        <t>
-          The client performed I/O to outside of the reserved range for the reservation file.
-          Note that even if the client holds two different reservations on a file, they
-          have exclusive ranges and different reservation files. The client
-          <bcp14>MUST</bcp14> keep consistent the mapping of chunk to reservation file.
+          The client encountered a payload in which the blocks were inconsistent and
+          stays inconsistent. As the client can not tell if another client is
+          actively writing, it informs the metadata server of this error via
+          LAYOUTERROR4.  The metadata server can then arrange for
+          repair of the file.
         </t>
       </section>
     </section>
@@ -865,7 +878,7 @@
             <td>
               NFS4ERR_BADXDR,
               NFS4ERR_BAD_STATEID, NFS4ERR_DEADSESSION, NFS4ERR_DELAY,
-              NFS4ERR_ERASURE_ENCODING_NOT_SUPPORTED,
+              NFS4ERR_ENCODING_NOT_SUPPORTED,
               NFS4ERR_INVAL, NFS4ERR_IO, NFS4ERR_ISDIR, NFS4ERR_LOCKED,
               NFS4ERR_NOTSUPP, NFS4ERR_OLD_STATEID,
               NFS4ERR_SERVERFAULT, NFS4ERR_STALE,
@@ -894,7 +907,7 @@
         </thead>
         <tbody>
           <tr>
-            <td>NFS4ERR_ERASURE_ENCODING_NOT_SUPPORTED</td>
+            <td>NFS4ERR_ENCODING_NOT_SUPPORTED</td>
             <td>
               CB_RESERVE_REPAIR, LAYOUTGET
             </td>
@@ -1477,7 +1490,7 @@
           this is most likely going to occur as in this case it will not
           support CB_RESERVE_REPAIR. If the client does not support the
           crra_type for the erasure encoding type, then it <bcp14>MUST</bcp14>
-          return an error of NFS4ERR_ERASURE_ENCODING_NOT_SUPPORTED.
+          return an error of NFS4ERR_ENCODING_NOT_SUPPORTED.
         </t>
       </section>
     </section>
