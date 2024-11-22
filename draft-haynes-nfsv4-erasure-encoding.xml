@@ -974,107 +974,13 @@
 
   <section anchor='attrs' numbered='true' removeInRFC='false' toc='default'>
     <name>New NFSv4.2 Attributes</name>
-    <section anchor='fattr4_reserved_state' numbered='true' removeInRFC='false' toc='default'>
-      <name>Attribute 88: fattr4_reserved_state</name>
-      <figure anchor='code_fattr4_reserved_state'>
-        <sourcecode type='xdr'>
-/// enum nfs_reserved_state4 {
-///     NFS4_RESERVED_INITIALIZED = 0,
-///     NFS4_RESERVED_STAGED = 1,
-///     NFS4_RESERVED_SWAPPED = 2,
-///     NFS4_RESERVED_RELEASED = 3,
-///     NFS4_RESERVED_DELETING = 4,
-/// };
-///
-/// typedef nfs_reserved_state4        fattr4_reserved_state;
-///
-/// const FATTR4_RESERVED_STATE        = 88;
-///
-        </sourcecode>
-      </figure>
-      <t>
-        The new attribute fattr4_reserved_state (see
-        <xref target='code_fattr4_reserved_state'/>) is an
-        <bcp14>OPTIONAL</bcp14> to NFSv4.2 attribute which
-        <bcp14>MUST</bcp14> be supported if the data server advertises
-        via the EXCHGID4_FLAG_USE_ERASURE_DS flag (see <xref
-        target='EXCHGID4_FLAG_USE_ERASURE_DS'/>).  By querying it,
-        the client can determine the data block size it is to use when
-        encoding the data blocks to chunks.
-      </t>
-
-      <t>
-        The fattr4_reserved_state attribute describes a state
-        machine for the reservation file created by RESERVE
-        on the data server. The meaning of each state is given:
-      </t>
-
-      <dl newline='false' spacing='normal'>
-        <dt>NFS4_RESERVED_INITIALIZED:</dt>
-        <dd>
-          The reservation file has been created by RESERVE
-          and data may or may not have been written to it.
-        </dd>
-        <dt>NFS4_RESERVED_STAGED:</dt>
-        <dd>
-          The client is done writing data to the reserved
-          range in the reservation file and is staging all
-          of the data servers to swap the byte range
-          of the active and reservation file.
-        </dd>
-        <dt>NFS4_RESERVED_SWAPPED:</dt>
-        <dd>
-          The client has swapped byte ranges of the
-          active and reservation files. This state
-          is automatically set when the RESERVE_SWAP
-          operation is processed. The swapping of
-          the contents and the setting of this
-          state <bcp14>MUST</bcp14> be atomic.
-        </dd>
-        <dt>NFS4_RESERVED_RELEASED:</dt>
-        <dd>
-          The client has released the reservation
-          via RESERVE_RELEASE. If the contents of
-          the reservation file are empty, this can
-          indicate a race for the reservation
-          and the data server <bcp14>SHOULD</bcp14>
-          allow for another client to reserve
-          the reservation file.
-        </dd>
-        <dt>NFS4_RESERVED_DELETING:</dt>
-        <dd>
-          At any time the state is NFS4_RESERVED_RELEASED,
-          the data server can delete the reservation file
-          to recover space. The client can also
-          set this state to inform the data server
-          to proceed with deleting the reservation file.
-        </dd>
-      </dl>
-
-      <t>
-        The data server <bcp14>MUST</bcp14> only allow
-        WRITE operations if the reserved state is
-        NFS4_RESERVED_INITIALIZED. In any other state,
-        it <bcp14>MUST</bcp14> return a NFS4ERR_RESERVATION_HELD.
-      </t>
-      <t>
-        The data server <bcp14>MAY</bcp14> associate directory
-        name entries in some hidden part of the namespace, but it
-        <bcp14>MUST</bcp14> reject any REMOVE operation (see Section 18.25
-        of <xref target='RFC8881' />) which would cause the reservation
-        file to be deleted whilst
-        there was an active reservation on the file. In such scenarios,
-        the data server <bcp14>MUST</bcp14> reply with NFS4ERR_DELAY.
-      </t>
-    </section>
-
     <section anchor='fattr4_encoding_block_size' numbered='true' removeInRFC='false' toc='default'>
-      <name>Attribute 89: fattr4_encoding_block_size</name>
+      <name>Attribute 88: fattr4_encoding_block_size</name>
       <figure anchor='code_fattr4_encoding_block_size'>
         <sourcecode type='xdr'>
 /// typedef size_t                    fattr4_encoding_block_size;
 ///
-/// const FATTR4_ENCODING_BLOCK_SIZE  = 89;
+/// const FATTR4_ENCODING_BLOCK_SIZE  = 88;
 ///
         </sourcecode>
       </figure>
