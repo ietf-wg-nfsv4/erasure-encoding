@@ -998,37 +998,37 @@
   <section anchor='ops' numbered='true' removeInRFC='false' toc='default'>
     <name>New NFSv4.2 Operations</name>
 
-    <section anchor='ACTIVATE_CHUNK' numbered='true' removeInRFC='false' toc='default'>
-      <name>Operation 77: ACTIVATE_CHUNK - Activate Cached Block Data</name>
-      <section anchor='ACTIVATE_CHUNK_args' numbered='true' removeInRFC='false' toc='exclude'>
+    <section anchor='COMMIT_CHUNK' numbered='true' removeInRFC='false' toc='default'>
+      <name>Operation 77: COMMIT_CHUNK - Activate Cached Block Data</name>
+      <section anchor='COMMIT_CHUNK_args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
-        <figure anchor='code_ACTIVATE_CHUNKargs'>
+        <figure anchor='code_COMMIT_CHUNKargs'>
           <sourcecode type='xdr'>
-/// struct ACTIVATE_CHUNKargs {
+/// struct COMMIT_CHUNKargs {
 ///     /* CURRENT_FH: file */
-///     offset4         aba_offset;
-///     count4          aba_count;
-///     chunk_owner4    aba_blocks&lt;&gt;;
+///     offset4         cca_offset;
+///     count4          cca_count;
+///     chunk_owner4    cca_blocks&lt;&gt;;
 /// };
           </sourcecode>
         </figure>
       </section>
 
-      <section anchor='ACTIVATE_CHUNK_res' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='COMMIT_CHUNK_res' numbered='true' removeInRFC='false' toc='exclude'>
         <name>RESULTS</name>
-        <figure anchor='code_ACTIVATE_CHUNKresok'>
+        <figure anchor='code_COMMIT_CHUNKresok'>
           <sourcecode type='xdr'>
-/// struct ACTIVATE_CHUNKresok {
-///     verifier4       abr_writeverf;
+/// struct COMMIT_CHUNKresok {
+///     verifier4       ccr_writeverf;
 /// };
           </sourcecode>
         </figure>
 
-        <figure anchor='code_ACTIVATE_CHUNKres'>
+        <figure anchor='code_COMMIT_CHUNKres'>
           <sourcecode type='xdr'>
-/// union ACTIVATE_CHUNKres switch (nfsstat4 abr_status) {
+/// union COMMIT_CHUNKres switch (nfsstat4 ccr_status) {
 ///     case NFS4_OK:
-///         ACTIVATE_CHUNKresok   abr_resok4;
+///         COMMIT_CHUNKresok   ccr_resok4;
 ///     default:
 ///         void;
 /// };
@@ -1036,27 +1036,27 @@
         </figure>
       </section>
 
-      <section anchor='ACTIVATE_CHUNK_desc' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='COMMIT_CHUNK_desc' numbered='true' removeInRFC='false' toc='exclude'>
         <name>DESCRIPTION</name>
         <t>
-          ACTIVATE_CHUNK is COMMIT (see Section 18.3 of <xref target='RFC8881'
+          COMMIT_CHUNK is COMMIT (see Section 18.3 of <xref target='RFC8881'
           format='default' sectionFormat='of' />) with additional semantics
           over the chunk_owner activating the blocks. As such, all of
           the normal semantics of COMMIT directly apply.
         </t>
         <t>
-          The main difference between the two operations is that ACTIVATE_CHUNK
-          works on blocks and not a raw data stream. As such aba_offset
+          The main difference between the two operations is that COMMIT_CHUNK
+          works on blocks and not a raw data stream. As such cca_offset
           is the starting block offset in the file and not the byte
           offset in the file. Some erasure encoding types can have
           different block sizes depending on the
-          block type. Further, aba_count is a count of blocks to activate
+          block type. Further, cca_count is a count of blocks to activate
           and not bytes to activate.
         </t>
         <t>
-          Further, while it may appear that the combination of aba_offset
-          and aba_count are redundant to aba_blocks, the purpose of
-          aba_blocks is to allow the data server to differentiate between
+          Further, while it may appear that the combination of cca_offset
+          and cca_count are redundant to cca_blocks, the purpose of
+          cca_blocks is to allow the data server to differentiate between
           potentially multiple pending blocks.
         </t>
       </section>
@@ -1465,7 +1465,7 @@
             it is the first write to that block and the WRITE_CHUNK_FLAGS_ACTIVATE_IF_EMPTY flag is set
           </li>
           <li>
-            the ACTIVATE_CHUNK is issued later for that block.
+            the COMMIT_CHUNK is issued later for that block.
           </li>
         </ul>
         <t>
@@ -1482,13 +1482,13 @@
           co_activated of false, that the blocks are not activated. A
           subsequent READ_CHUNK or READ_CHUNK_STATUS4 might show that
           the co_activated is true without any interaction by the client
-          via ACTIVATE_CHUNK.
+          via COMMIT_CHUNK.
 
           <cref anchor='AI26' source='TH'>
             Automatic setting of co_activated to true if it is the first
             write should be a performance boost. But it can lead to
             the client having incorrect information (as above) and
-            trying to ACTIVATE_CHUNK a payload that has lost the race.
+            trying to COMMIT_CHUNK a payload that has lost the race.
             But is that bad? If you have racing clients, there is
             no guarantee at all as to the contents of the file.
           </cref>
