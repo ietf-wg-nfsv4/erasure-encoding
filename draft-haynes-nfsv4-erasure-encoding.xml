@@ -1062,38 +1062,38 @@
       </section>
     </section>
 
-    <section anchor='READ_CHUNK_STATUS4' numbered='true' removeInRFC='false' toc='default'>
-      <name>Operation 78: READ_CHUNK_STATUS4 - Read Block Commit Status from File</name>
-      <section anchor='READ_CHUNK_STATUS4_args' numbered='true' removeInRFC='false' toc='exclude'>
+    <section anchor='READ_CHUNK_HEADER' numbered='true' removeInRFC='false' toc='default'>
+      <name>Operation 78: READ_CHUNK_HEADER - Read Chunk Header from File</name>
+      <section anchor='READ_CHUNK_HEADER4_args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
-        <figure anchor='code_READ_CHUNK_STATUS4args'>
+        <figure anchor='code_READ_CHUNK_HEADER4args'>
           <sourcecode type='xdr'>
-/// struct READ_CHUNK_STATUS4args {
+/// struct READ_CHUNK_HEADER4args {
 ///     /* CURRENT_FH: file */
-///     stateid4    rbsa_stateid;
-///     offset4     rbsa_offset;
-///     count4      rbsa_count;
+///     stateid4    rcha_stateid;
+///     offset4     rcha_offset;
+///     count4      rcha_count;
 /// };
           </sourcecode>
         </figure>
       </section>
 
-      <section anchor='READ_CHUNK_STATUS4_res' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='READ_CHUNK_HEADER4_res' numbered='true' removeInRFC='false' toc='exclude'>
         <name>RESULTS</name>
-        <figure anchor='code_READ_CHUNK_STATUS4resok'>
+        <figure anchor='code_READ_CHUNK_HEADER4resok'>
           <sourcecode type='xdr'>
-/// struct READ_CHUNK_STATUS4resok {
-///     bool            rbsr_eof;
-///     chunk_owner4    rbsr_blocks&lt;&gt;;
+/// struct READ_CHUNK_HEADER4resok {
+///     bool            rchr_eof;
+///     chunk_owner4    rchr_blocks&lt;&gt;;
 /// };
           </sourcecode>
         </figure>
 
-        <figure anchor='code_READ_CHUNK_STATUS4res'>
+        <figure anchor='code_READ_CHUNK_HEADER4res'>
           <sourcecode type='xdr'>
-/// union READ_CHUNK_STATUS4res switch (nfsstat4 rbsr_status) {
+/// union READ_CHUNK_HEADER4res switch (nfsstat4 rchr_status) {
 ///     case NFS4_OK:
-///         READ_CHUNKresok     rbsr_resok4;
+///         READ_CHUNKresok     rchr_resok4;
 ///     default:
 ///         void;
 /// };
@@ -1101,11 +1101,11 @@
         </figure>
       </section>
 
-      <section anchor='READ_CHUNK_STATUS4_desc' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='READ_CHUNK_HEADER4_desc' numbered='true' removeInRFC='false' toc='exclude'>
         <name>DESCRIPTION</name>
         <t>
-          READ_CHUNK_STATUS4 differs from READ_CHUNK in that it only reads
-          active and pending headers in the desired data range.
+          READ_CHUNK_HEADER differs from READ_CHUNK in that it only reads
+          chunk headers in the desired data range.
         </t>
       </section>
     </section>
@@ -1480,7 +1480,7 @@
           Finally, the interaction of wba_stable can cause a client to
           mistakenly believe that by the time it gets the response of
           co_activated of false, that the blocks are not activated. A
-          subsequent READ_CHUNK or READ_CHUNK_STATUS4 might show that
+          subsequent READ_CHUNK or READ_CHUNK_HEADER might show that
           the co_activated is true without any interaction by the client
           via COMMIT_CHUNK.
 
