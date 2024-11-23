@@ -1118,9 +1118,9 @@
           <sourcecode type='xdr'>
 /// struct READ_CHUNK4args {
 ///     /* CURRENT_FH: file */
-///     stateid4    rba_stateid;
-///     offset4     rba_offset;
-///     count4      rba_count;
+///     stateid4    rca_stateid;
+///     offset4     rca_offset;
+///     count4      rca_count;
 /// };
           </sourcecode>
         </figure>
@@ -1132,11 +1132,11 @@
         <figure anchor='code_read_block4'>
           <sourcecode type='xdr'>
 /// struct read_block4 {
-///     uint32_t        rb_crc;
-///     uint32_t        rb_effective_len;
-///     chunk_owner4    rb_owner;
-///     uint32_t        rb_seq_id;
-///     opaque          rb_block&lt;&gt;;
+///     uint32_t        rc_crc;
+///     uint32_t        rc_effective_len;
+///     chunk_owner4    rc_owner;
+///     uint32_t        rc_seq_id;
+///     opaque          rc_block&lt;&gt;;
 /// };
           </sourcecode>
         </figure>
@@ -1144,17 +1144,17 @@
         <figure anchor='code_READ_CHUNK4resok'>
           <sourcecode type='xdr'>
 /// struct READ_CHUNK4resok {
-///     bool        rbr_eof;
-///     read_block4 rbr_blocks&lt;&gt;;
+///     bool        rcr_eof;
+///     read_block4 rcr_blocks&lt;&gt;;
 /// };
           </sourcecode>
         </figure>
 
         <figure anchor='code_READ_CHUNK4res'>
           <sourcecode type='xdr'>
-/// union READ_CHUNK4res switch (nfsstat4 rbr_status) {
+/// union READ_CHUNK4res switch (nfsstat4 rcr_status) {
 ///     case NFS4_OK:
-///          READ_CHUNK4resok     rbr_resok4;
+///          READ_CHUNK4resok     rcr_resok4;
 ///     default:
 ///          void;
 /// };
@@ -1172,24 +1172,18 @@
         </t>
         <t>
           The main difference between the two operations is that READ_CHUNK
-          works on blocks and not a raw data stream. As such rba_offset
+          works on blocks and not a raw data stream. As such rca_offset
           is the starting block offset in the file and not the byte
           offset in the file. Some erasure encoding types can have
           different block sizes depending on the
-          block type. Further, rba_count is a count of blocks to read
+          block type. Further, rca_count is a count of blocks to read
           and not bytes to read.
-        </t>
-        <t>
-          READ_CHUNK also only returns the activated block at the location.
-          I.e., if a client overwrites a block at offset 10, then tries
-          to read the block without activating it, then the original
-          block is returned.
         </t>
         <t>
           When reading a set of blocks across the data servers, it can be
           the case that some data servers do not have any data at that
-          location. In that case, the server either returns rbr_eof
-          if the rba_offset exceeds the number of blocks that
+          location. In that case, the server either returns rcr_eof
+          if the rca_offset exceeds the number of blocks that
           the data server is aware or it returns an empty block
           for that block.
         </t>
@@ -1201,7 +1195,7 @@
           The client would read this as there is valid data for blocks 2 and
           4, there is a hole at block 3, and there is no data for block 5.
           Note that the data server <bcp14>MUST</bcp14> calculate a valid
-          rb_crc for block 3 based on the generated fields.
+          rc_crc for block 3 based on the generated fields.
         </t>
 
         <figure anchor='example_READ_CHUNK4args_1'>
@@ -1210,9 +1204,9 @@
         +--------------------------------+
         | READ_CHUNK4args                |
         +--------------------------------+
-        | rba_stateid: 0                 |
-        | rba_offset: 2                  |
-        | rba_count: 4                   |
+        | rca_stateid: 0                 |
+        | rca_offset: 2                  |
+        | rca_count: 4                   |
         +----------+---------------------+
           </artwork>
         </figure>
@@ -1223,37 +1217,37 @@
         +--------------------------------+
         | READ_CHUNK4resok               |
         +--------------------------------+
-        | rbr_eof: true                  |
-        | rbr_blocks[0]:                 |
-        |     rb_crc: 0x3faddace         |
-        |     rb_effective_len: 4kB      |
-        |     rb_owner:                  |
+        | rcr_eof: true                  |
+        | rcr_blocks[0]:                 |
+        |     rc_crc: 0x3faddace         |
+        |     rc_effective_len: 4kB      |
+        |     rc_owner:                  |
         |            co_block_id: 2      |
         |            co_change_id: 3     |
         |            co_client_id: 6     |
         |            co_activated: true  |
-        |     rb_seq_id: 1               |
-        |     rb_block: ....             |
-        | rbr_blocks[0]:                 |
-        |     rb_crc: 0xdeade4e5         |
-        |     rb_effective_len: 4kB      |
-        |     rb_owner:                  |
+        |     rc_seq_id: 1               |
+        |     rc_block: ....             |
+        | rcr_blocks[0]:                 |
+        |     rc_crc: 0xdeade4e5         |
+        |     rc_effective_len: 4kB      |
+        |     rc_owner:                  |
         |            co_block_id: 3      |
         |            co_change_id: 0     |
         |            co_client_id: 0     |
         |            co_activated: false |
-        |     rb_seq_id: 1               |
-        |     rb_block: 0000...00000     |
-        | rbr_blocks[0]:                 |
-        |     rb_crc: 0x7778abcd         |
-        |     rb_effective_len: 2kB      |
-        |     rb_owner:                  |
+        |     rc_seq_id: 1               |
+        |     rc_block: 0000...00000     |
+        | rcr_blocks[0]:                 |
+        |     rc_crc: 0x7778abcd         |
+        |     rc_effective_len: 2kB      |
+        |     rc_owner:                  |
         |            co_block_id: 4      |
         |            co_change_id: 3     |
         |            co_client_id: 6     |
         |            co_activated: true  |
-        |     rb_seq_id: 1               |
-        |     rb_block: ....             |
+        |     rc_seq_id: 1               |
+        |     rc_block: ....             |
         +--------------------------------+
         </artwork>
       </figure>
@@ -1269,9 +1263,9 @@
           <sourcecode type='xdr'>
 /// struct ROLLBACK_CHUNK4args {
 ///     /* CURRENT_FH: file */
-///     offset4         rba_offset;
-///     count4          rba_count;
-///     chunk_owner4    rba_blocks&lt;&gt;;
+///     offset4         rca_offset;
+///     count4          rca_count;
+///     chunk_owner4    rca_blocks&lt;&gt;;
 /// };
           </sourcecode>
         </figure>
@@ -1282,16 +1276,16 @@
         <figure anchor='code_ROLLBACK_CHUNK4resok'>
           <sourcecode type='xdr'>
 /// struct ROLLBACK_CHUNK4resok {
-///     verifier4       rbr_writeverf;
+///     verifier4       rcr_writeverf;
 /// };
           </sourcecode>
         </figure>
 
         <figure anchor='code_ROLLBACK_CHUNK4res'>
           <sourcecode type='xdr'>
-/// union ROLLBACK_CHUNK4res switch (nfsstat4 rbr_status) {
+/// union ROLLBACK_CHUNK4res switch (nfsstat4 rcr_status) {
 ///     case NFS4_OK:
-///         ROLLBACK_CHUNK4resok   rbr_resok4;
+///         ROLLBACK_CHUNK4resok   rcr_resok4;
 ///     default:
 ///         void;
 /// };
@@ -1310,17 +1304,17 @@
 
         <t>
           The main difference between the two operations is that ROLLBACK_CHUNK
-          works on blocks and not a raw data stream. As such rba_offset
+          works on blocks and not a raw data stream. As such rca_offset
           is the starting block offset in the file and not the byte
           offset in the file. Some erasure encoding types can have
           different block sizes depending on the
-          block type. Further, rba_count is a count of blocks to rollback
+          block type. Further, rca_count is a count of blocks to rollback
           and not bytes to rollback.
         </t>
         <t>
-          Further, while it may appear that the combination of rba_offset
-          and rba_count are redundant to rba_blocks, the purpose of
-          rba_blocks is to allow the data server to differentiate between
+          Further, while it may appear that the combination of rca_offset
+          and rca_count are redundant to rca_blocks, the purpose of
+          rca_blocks is to allow the data server to differentiate between
           potentially multiple pending blocks.
         </t>
 
