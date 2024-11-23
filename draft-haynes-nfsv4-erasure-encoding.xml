@@ -550,7 +550,7 @@
         encoding types supply data and the other type not to supply
         data. I.e., the READ_CHUNK call to the data servers in mirror 1
         might return rlr_eof set to true
-        (see <xref target='code_READ_CHUNKresok' />),
+        (see <xref target='code_READ_CHUNK4resok' />),
         which indicates that there is
         no data, where the READ call to the data server in mirror 0 might
         return eof to be false, which indicates that there is data. The
@@ -1000,11 +1000,11 @@
 
     <section anchor='COMMIT_CHUNK' numbered='true' removeInRFC='false' toc='default'>
       <name>Operation 77: COMMIT_CHUNK - Activate Cached Block Data</name>
-      <section anchor='COMMIT_CHUNK_args' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='COMMIT_CHUNK4args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
-        <figure anchor='code_COMMIT_CHUNKargs'>
+        <figure anchor='code_COMMIT_CHUNK4args'>
           <sourcecode type='xdr'>
-/// struct COMMIT_CHUNKargs {
+/// struct COMMIT_CHUNK4args {
 ///     /* CURRENT_FH: file */
 ///     offset4         cca_offset;
 ///     count4          cca_count;
@@ -1014,21 +1014,21 @@
         </figure>
       </section>
 
-      <section anchor='COMMIT_CHUNK_res' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='COMMIT_CHUNK4res' numbered='true' removeInRFC='false' toc='exclude'>
         <name>RESULTS</name>
-        <figure anchor='code_COMMIT_CHUNKresok'>
+        <figure anchor='code_COMMIT_CHUNK4resok'>
           <sourcecode type='xdr'>
-/// struct COMMIT_CHUNKresok {
+/// struct COMMIT_CHUNK4resok {
 ///     verifier4       ccr_writeverf;
 /// };
           </sourcecode>
         </figure>
 
-        <figure anchor='code_COMMIT_CHUNKres'>
+        <figure anchor='code_COMMIT_CHUNK4res'>
           <sourcecode type='xdr'>
-/// union COMMIT_CHUNKres switch (nfsstat4 ccr_status) {
+/// union COMMIT_CHUNK4res switch (nfsstat4 ccr_status) {
 ///     case NFS4_OK:
-///         COMMIT_CHUNKresok   ccr_resok4;
+///         COMMIT_CHUNK4resok   ccr_resok4;
 ///     default:
 ///         void;
 /// };
@@ -1064,7 +1064,7 @@
 
     <section anchor='READ_CHUNK_HEADER' numbered='true' removeInRFC='false' toc='default'>
       <name>Operation 78: READ_CHUNK_HEADER - Read Chunk Header from File</name>
-      <section anchor='READ_CHUNK_HEADER4_args' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='READ_CHUNK_HEADER4args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
         <figure anchor='code_READ_CHUNK_HEADER4args'>
           <sourcecode type='xdr'>
@@ -1078,7 +1078,7 @@
         </figure>
       </section>
 
-      <section anchor='READ_CHUNK_HEADER4_res' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='READ_CHUNK_HEADER4res' numbered='true' removeInRFC='false' toc='exclude'>
         <name>RESULTS</name>
         <figure anchor='code_READ_CHUNK_HEADER4resok'>
           <sourcecode type='xdr'>
@@ -1093,7 +1093,7 @@
           <sourcecode type='xdr'>
 /// union READ_CHUNK_HEADER4res switch (nfsstat4 rchr_status) {
 ///     case NFS4_OK:
-///         READ_CHUNKresok     rchr_resok4;
+///         READ_CHUNK4resok     rchr_resok4;
 ///     default:
 ///         void;
 /// };
@@ -1112,11 +1112,11 @@
 
     <section anchor='READ_CHUNK' numbered='true' removeInRFC='false' toc='default'>
       <name>Operation 79: READ_CHUNK - Read Blocks from File</name>
-      <section anchor='READ_CHUNK_args' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='READ_CHUNK4args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
-        <figure anchor='code_READ_CHUNKargs'>
+        <figure anchor='code_READ_CHUNK4args'>
           <sourcecode type='xdr'>
-/// struct READ_CHUNKargs {
+/// struct READ_CHUNK4args {
 ///     /* CURRENT_FH: file */
 ///     stateid4    rba_stateid;
 ///     offset4     rba_offset;
@@ -1126,7 +1126,7 @@
         </figure>
       </section>
 
-      <section anchor='READ_CHUNK_res' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='READ_CHUNK4res' numbered='true' removeInRFC='false' toc='exclude'>
         <name>RESULTS</name>
 
         <figure anchor='code_read_block4'>
@@ -1141,20 +1141,20 @@
           </sourcecode>
         </figure>
 
-        <figure anchor='code_READ_CHUNKresok'>
+        <figure anchor='code_READ_CHUNK4resok'>
           <sourcecode type='xdr'>
-/// struct READ_CHUNKresok {
+/// struct READ_CHUNK4resok {
 ///     bool        rbr_eof;
 ///     read_block4 rbr_blocks&lt;&gt;;
 /// };
           </sourcecode>
         </figure>
 
-        <figure anchor='code_READ_CHUNKres'>
+        <figure anchor='code_READ_CHUNK4res'>
           <sourcecode type='xdr'>
-/// union READ_CHUNKres switch (nfsstat4 rbr_status) {
+/// union READ_CHUNK4res switch (nfsstat4 rbr_status) {
 ///     case NFS4_OK:
-///          READ_CHUNKresok     rbr_resok4;
+///          READ_CHUNK4resok     rbr_resok4;
 ///     default:
 ///          void;
 /// };
@@ -1195,20 +1195,20 @@
         </t>
 
         <t>
-          For example, in <xref target='example_READ_CHUNK_args_1' />, the
+          For example, in <xref target='example_READ_CHUNK4args_1' />, the
           client asks for 4 blocks starting with the 3rd block in the file.
-          The second data server responds as in <xref target='example_READ_CHUNK_res_1' />.
+          The second data server responds as in <xref target='example_READ_CHUNK4res_1' />.
           The client would read this as there is valid data for blocks 2 and
           4, there is a hole at block 3, and there is no data for block 5.
           Note that the data server <bcp14>MUST</bcp14> calculate a valid
           rb_crc for block 3 based on the generated fields.
         </t>
 
-        <figure anchor='example_READ_CHUNK_args_1'>
+        <figure anchor='example_READ_CHUNK4args_1'>
           <artwork>
                 Data Server 2
         +--------------------------------+
-        | READ_CHUNKargs                |
+        | READ_CHUNK4args                |
         +--------------------------------+
         | rba_stateid: 0                 |
         | rba_offset: 2                  |
@@ -1217,11 +1217,11 @@
           </artwork>
         </figure>
 
-      <figure anchor='example_READ_CHUNK_res_1'>
+      <figure anchor='example_READ_CHUNK4res_1'>
         <artwork>
                 Data Server 2
         +--------------------------------+
-        | READ_CHUNKresok               |
+        | READ_CHUNK4resok               |
         +--------------------------------+
         | rbr_eof: true                  |
         | rbr_blocks[0]:                 |
@@ -1263,11 +1263,11 @@
 
     <section anchor='ROLLBACK_CHUNK' numbered='true' removeInRFC='false' toc='default'>
       <name>Operation 80: ROLLBACK_CHUNK - Rollback Cached Block Data</name>
-      <section anchor='ROLLBACK_CHUNK_args' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='ROLLBACK_CHUNK4args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
-        <figure anchor='code_ROLLBACK_CHUNKargs'>
+        <figure anchor='code_ROLLBACK_CHUNK4args'>
           <sourcecode type='xdr'>
-/// struct ROLLBACK_CHUNKargs {
+/// struct ROLLBACK_CHUNK4args {
 ///     /* CURRENT_FH: file */
 ///     offset4         rba_offset;
 ///     count4          rba_count;
@@ -1277,21 +1277,21 @@
         </figure>
       </section>
 
-      <section anchor='ROLLBACK_CHUNK_res' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='ROLLBACK_CHUNK4res' numbered='true' removeInRFC='false' toc='exclude'>
         <name>RESULTS</name>
-        <figure anchor='code_ROLLBACK_CHUNKresok'>
+        <figure anchor='code_ROLLBACK_CHUNK4resok'>
           <sourcecode type='xdr'>
-/// struct ROLLBACK_CHUNKresok {
+/// struct ROLLBACK_CHUNK4resok {
 ///     verifier4       rbr_writeverf;
 /// };
           </sourcecode>
         </figure>
 
-        <figure anchor='code_ROLLBACK_CHUNKres'>
+        <figure anchor='code_ROLLBACK_CHUNK4res'>
           <sourcecode type='xdr'>
-/// union ROLLBACK_CHUNKres switch (nfsstat4 rbr_status) {
+/// union ROLLBACK_CHUNK4res switch (nfsstat4 rbr_status) {
 ///     case NFS4_OK:
-///         ROLLBACK_CHUNKresok   rbr_resok4;
+///         ROLLBACK_CHUNK4resok   rbr_resok4;
 ///     default:
 ///         void;
 /// };
@@ -1333,7 +1333,7 @@
 
     <section anchor='WRITE_CHUNK' numbered='true' removeInRFC='false' toc='default'>
       <name>Operation 81: WRITE_CHUNK - Write Blocks to File</name>
-      <section anchor='WRITE_CHUNK_args' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='WRITE_CHUNK4args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
 
         <figure anchor='code_wb_args_flags'>
@@ -1374,9 +1374,9 @@
           </sourcecode>
         </figure>
 
-        <figure anchor='code_WRITE_CHUNKargs'>
+        <figure anchor='code_WRITE_CHUNK4args'>
           <sourcecode type='xdr'>
-/// struct WRITE_CHUNKargs {
+/// struct WRITE_CHUNK4args {
 ///     /* CURRENT_FH: file */
 ///     stateid4           wba_stateid;
 ///     offset4            wba_offset;
@@ -1390,12 +1390,12 @@
         </figure>
       </section>
 
-      <section anchor='WRITE_CHUNK_res' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='WRITE_CHUNK4res' numbered='true' removeInRFC='false' toc='exclude'>
         <name>RESULTS</name>
 
-        <figure anchor='code_WRITE_CHUNKresok'>
+        <figure anchor='code_WRITE_CHUNK4resok'>
           <sourcecode type='xdr'>
-/// struct WRITE_CHUNKresok {
+/// struct WRITE_CHUNK4resok {
 ///     count4          wbr_count;
 ///     stable_how4     wbr_committed;
 ///     verifier4       wbr_writeverf;
@@ -1404,11 +1404,11 @@
           </sourcecode>
         </figure>
 
-        <figure anchor='code_WRITE_CHUNKres'>
+        <figure anchor='code_WRITE_CHUNK4res'>
           <sourcecode type='xdr'>
-/// union WRITE_CHUNKres switch (nfsstat4 wbr_status) {
+/// union WRITE_CHUNK4res switch (nfsstat4 wbr_status) {
 ///     case NFS4_OK:
-///         WRITE_CHUNKresok    wbr_resok4;
+///         WRITE_CHUNK4resok    wbr_resok4;
 ///     default:
 ///         void;
 /// };
@@ -1583,7 +1583,7 @@
 
     <section anchor='RESERVE' numbered='true' removeInRFC='false' toc='default'>
       <name>Operation 77: RESERVE - Reserve a byte range for writing</name>
-      <section anchor='RESERVE4_args' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='RESERVE4args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
         <figure anchor='code_RESERVE4args'>
           <sourcecode type='xdr'>
@@ -1599,7 +1599,7 @@
         </figure>
       </section>
 
-      <section anchor='RESERVE4_res' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='RESERVE4res' numbered='true' removeInRFC='false' toc='exclude'>
         <name>RESULTS</name>
         <figure anchor='code_RESERVE4resok'>
           <sourcecode type='xdr'>
@@ -1746,7 +1746,7 @@
           </li>
         </ul>
         <t>
-          The state of fattr4_reserved_state for the reservation file <bcp14>MUST</bcp14>
+          The state of fattr4reserved_state for the reservation file <bcp14>MUST</bcp14>
           be persisted to NFS4_RESERVED_INITIALIZED.
         </t>
       </section>
@@ -1754,7 +1754,7 @@
 
     <section anchor='RESERVE_INFO' numbered='true' removeInRFC='false' toc='default'>
       <name>Operation 78: RESERVE_INFO - Get information on a byte range for writing</name>
-      <section anchor='RESERVE_INFO4_args' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='RESERVE_INFO4args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
         <figure anchor='code_RESERVE_INFO4args'>
           <sourcecode type='xdr'>
@@ -1766,7 +1766,7 @@
         </figure>
       </section>
 
-      <section anchor='RESERVE_INFO4_res' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='RESERVE_INFO4res' numbered='true' removeInRFC='false' toc='exclude'>
         <name>RESULTS</name>
         <figure anchor='code_reserve_info4'>
           <sourcecode type='xdr'>
@@ -1820,7 +1820,7 @@
 
     <section anchor='RESERVE_RECOVER' numbered='true' removeInRFC='false' toc='default'>
       <name>Operation 79: RESERVE_RECOVER - Get information on a byte range for writing</name>
-      <section anchor='RESERVE_RECOVER4_args' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='RESERVE_RECOVER4args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
         <figure anchor='code_RESERVE_RECOVER4args'>
           <sourcecode type='xdr'>
@@ -1835,7 +1835,7 @@
         </figure>
       </section>
 
-      <section anchor='RESERVE_RECOVER4_res' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='RESERVE_RECOVER4res' numbered='true' removeInRFC='false' toc='exclude'>
         <name>RESULTS</name>
 
         <figure anchor='code_RESERVE_RECOVER4res'>
@@ -1874,7 +1874,7 @@
 
     <section anchor='RESERVE_RELEASE' numbered='true' removeInRFC='false' toc='default'>
       <name>Operation 80: RESERVE_RELEASE - Release reservation on a byte range for writing</name>
-      <section anchor='RESERVE_RELEASE4_args' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='RESERVE_RELEASE4args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
         <figure anchor='code_RESERVE_RELEASE4args'>
           <sourcecode type='xdr'>
@@ -1888,7 +1888,7 @@
         </figure>
       </section>
 
-      <section anchor='RESERVE_RELEASE4_res' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='RESERVE_RELEASE4res' numbered='true' removeInRFC='false' toc='exclude'>
         <name>RESULTS</name>
 
         <figure anchor='code_RESERVE_RELEASE4res'>
@@ -1921,7 +1921,7 @@
           to normal file system semantics or a mismatched ffv2_key4.
         </t>
         <t>
-          The state of fattr4_reserved_state for the reservation file <bcp14>MUST</bcp14>
+          The state of fattr4reserved_state for the reservation file <bcp14>MUST</bcp14>
           be persisted to NFS4_RESERVED_RELEASED.
         </t>
       </section>
@@ -1932,7 +1932,7 @@
     <name>New NFSv4.2 Callback Operations</name>
     <section anchor='CB_RESERVE_REPAIR' numbered='true' removeInRFC='false' toc='default'>
       <name>Operation 16: CB_RESERVE_REPAIR - Repair a reservation of a byte range for writing</name>
-      <section anchor='CB_RESERVE_REPAIR4_args' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='CB_RESERVE_REPAIR4args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
         <figure anchor='code_CB_RESERVE_REPAIR4args'>
           <sourcecode type='xdr'>
@@ -1947,7 +1947,7 @@
         </figure>
       </section>
 
-      <section anchor='CB_RESERVE_REPAIR4_res' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='CB_RESERVE_REPAIR4res' numbered='true' removeInRFC='false' toc='exclude'>
         <name>RESULTS</name>
 
         <figure anchor='code_CB_RESERVE_REPAIR4res'>
