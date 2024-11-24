@@ -590,7 +590,7 @@
       client did an EXCHANGE_ID (see Section 18.35 of <xref target='RFC8881' />)
       operation with the metadata server. The
       intent is to have an unique and non-opauqe value for comparison.
-      The payload_id describes the index across the payload.  Finally,
+      The payload_id describes the position within the payload.  Finally,
       the crc32 is the 32 bit crc calculation of the header (with the
       crc32 field being 0) and the chunk. By combining the two parts of
       the payload, integrity is ensured for both the parts.
