@@ -1618,15 +1618,6 @@
           subsequent READ_CHUNK or READ_CHUNK_HEADER might show that
           the co_activated is true without any interaction by the client
           via COMMIT_CHUNK.
-
-          <cref anchor='AI26' source='TH'>
-            Automatic setting of co_activated to true if it is the first
-            write should be a performance boost. But it can lead to
-            the client having incorrect information (as above) and
-            trying to COMMIT_CHUNK a payload that has lost the race.
-            But is that bad? If you have racing clients, there is
-            no guarantee at all as to the contents of the file.
-          </cref>
         </t>
 
         <section anchor='guarded_write' numbered='true' removeInRFC='false' toc='exclude'>
@@ -1651,14 +1642,6 @@
             client_id. The client <bcp14>SHOULD</bcp14> present
             the smallest set of blocks as possible to meet this
             requirement.
-          </t>
-
-          <t>
-            <cref anchor='AI27' source='TH'>
-              And the complexity goes up here. Does the DS reject only
-              based on active blocks? Or can inactive ones also cause
-              rejection?
-            </cref>
           </t>
 
           <t>
@@ -1783,11 +1766,6 @@
           would be an earlier ra_offset and rrc_count would be an earlier
           ra_length supplied by another client (or even the same client) during
           a RESERVE operation.
-        </t>
-        <t>
-          <cref anchor='AI31' source='TH'>
-            Or like LOCK, we can use NFS4ERR_DENIED here.
-          </cref>
         </t>
         <t>
           Upon success, the rr_reservation_id (See <xref target='code_RESERVE4resok' />)
