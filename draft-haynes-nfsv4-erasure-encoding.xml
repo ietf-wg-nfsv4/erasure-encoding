@@ -1500,9 +1500,9 @@
 
         <figure anchor='code_write_chunk_guard4'>
           <sourcecode type='xdr'>
-/// union write_chunk_guard4 (bool wbg_check) {
+/// union write_chunk_guard4 (bool wcg_check) {
 ///     case TRUE:
-///         guard_chunk_owner4   wbg_chunk_owner;
+///         guard_chunk_owner4   wcg_chunk_owner;
 ///     case FALSE:
 ///         void;
 /// };
@@ -1633,7 +1633,7 @@
           <name>Guarding the Write</name>
           <t>
             A guarded WRITE_CHUNK is when the writing of a block
-            <bcp14>MUST</bcp14> fail if wca_guard.wbg_check is set
+            <bcp14>MUST</bcp14> fail if wca_guard.wcg_check is set
             and the target block does not have both the same change_id
             as the gco_change_id and the same client_id as the
             gco_client_id. This is useful in read-update-write
