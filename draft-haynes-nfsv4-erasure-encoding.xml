@@ -2305,16 +2305,6 @@ sh extract.sh &lt; spec.txt &gt; erasure_coding_prot.x
   </t>
 </section>
 
-<section numbered='true' removeInRFC='true' toc='default'>
-  <name>RFC Editor Notes</name>
-
-  <t>
-    [RFC Editor: prior to publishing this document as an RFC, please
-    replace all occurrences of RFCTBD10 with RFCxxxx where xxxx is the
-    RFC number of this document]
-  </t>
-</section>
-
 </back>
 
 </rfc>
