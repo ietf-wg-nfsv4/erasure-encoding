@@ -590,7 +590,7 @@
       client did an EXCHANGE_ID (see Section 18.35 of <xref target='RFC8881' />)
       operation with the metadata server. The
       intent is to have an unique and non-opauqe value for comparison.
-      The slot_id describes the index across the payload.  Finally,
+      The payload_id describes the index across the payload.  Finally,
       the crc32 is the 32 bit crc calculation of the header (with the
       crc32 field being 0) and the chunk. By combining the two parts of
       the payload, integrity is ensured for both the parts.
@@ -633,21 +633,21 @@
                           |
     +---------------------+-------------------------------+
     |            Erasure Encoding (Transform Forward)     |
-    +---+---------------------+---------------------+-----+
-        |                     |                     |
-        |                     |                     |
-    +---+-----------+     +---+-----------+     +---+-----------+
-    | HEADER        | ... | HEADER        | ... | HEADER        |
-    +---------------+     +---------------+     +---------------+
-    | guard   : 3:6 | ... | guard   : 3:6 | ... | guard   : 3:6 |
-    | slot_id : 0   | ... | slot_id : N-1 | ... | slot_id : 5   |
-    | crc32   :     | ... | crc32   :     | ... | crc32   :     |
-    +---------------+     +---------------+     +---------------+
-    | CHUNK         | ... | CHUNK         | ... | CHUNK         |
-    +---------------+     +---------------+     +---------------+
-    | data: ....    | ... | data: ....    | ... | data: ....    |
-    +---------------+     +---------------+     +---------------+
-      Data Server 1         Data Server N         Data Server 6
+    +---+----------------------+---------------------+----+
+        |                      |                     |
+        |                      |                     |
+    +---+------------+     +---+------------+     +--+-------------+
+    | HEADER         | ... | HEADER         | ... | HEADER         |
+    +----------------+     +----------------+     +----------------+
+    | guard   : 3:6  | ... | guard   : 3:6  | ... | guard   : 3:6  |
+    | payload_id : 0 | ... | payload_id : M | ... | payload_id : 5 |
+    | crc32   :      | ... | crc32   :      | ... | crc32   :      |
+    +----------------+     +----------------+     +----------------+
+    | CHUNK          | ... | CHUNK          | ... | CHUNK          |
+    +----------------+     +----------------+     +----------------+
+    | data: ....     | ... | data: ....     | ... | data: ....     |
+    +----------------+     +----------------+     +----------------+
+      Data Server 1          Data Server N          Data Server 6
         </artwork>
       </figure>
 
@@ -668,7 +668,7 @@
         | wca_stateid: 0                     |
         | wca_offset: 1                      |
         | wca_stable: FILE_SYNC4             |
-        | wca_slot_id: 0                     |
+        | wca_payload_id: 0                  |
         | wca_owner:                         |
         |            co_guard: 3:6           |
         | wca_block[0]:                      |
@@ -688,7 +688,7 @@
         This describes a 3 block write of data from an offset of 1 block in the file.
         As each block shares the wca_owner, it is only
         presented once. I.e., the data server will be able to construct the
-        header for each wca_block from the wca_slot_id, wca_owner,
+        header for each wca_block from the wca_payload_id, wca_owner,
         and wc_crc.
       </t>
 
@@ -726,7 +726,7 @@
         | HEADER             |
         +--------------------+
         | guard   : 7:6      |
-        | slot_id : 0        |
+        | payload_id : 0     |
         | crc32   : 0        |
         +--------------------+
         | CHUNK              |
@@ -747,19 +747,19 @@
 
         <figure anchor='crc_after_calc'>
           <artwork>
-        +------------------------------------+
+        +-----------------------------------+
         | WRITE_CHUNKargs                   |
-        +------------------------------------+
-        | wca_stateid: 0                     |
-        | wca_offset: 1                      |
-        | wca_stable: FILE_SYNC4             |
-        | wca_slot_id: 0                     |
-        | wca_owner:                         |
-        |            co_guard: 7:6           |
-        | wca_chunk[0]:                      |
-        |            wc_crc    :  0x21de8    |
-        |            wc_chunk  :  ......     |
-        +------------------------------------+
+        +-----------------------------------+
+        | wca_stateid: 0                    |
+        | wca_offset: 1                     |
+        | wca_stable: FILE_SYNC4            |
+        | wca_payload_id: 0                 |
+        | wca_owner:                        |
+        |            co_guard: 7:6          |
+        | wca_chunk[0]:                     |
+        |            wc_crc    :  0x21de8   |
+        |            wc_chunk  :  ......    |
+        +-----------------------------------+
           </artwork>
         </figure>
       </section>
@@ -770,18 +770,18 @@
       <figure anchor='decoding_transformation'>
         <name>Decoding a Data Block</name>
         <artwork>
-      Data Server 1         Data Server N         Data Server 6
-    +---------------+     +---------------+     +---------------+
-    | HEADER        | ... | HEADER        | ... | HEADER        |
-    +---------------+     +---------------+     +---------------+
-    | guard   : 3:6 | ... | guard   : 3:6 | ... | guard   : 3:6 |
-    | slot_id : 0   | ... | slot_id : N-1 | ... | slot_id : 5   |
-    | crc32   :     | ... | crc32   :     | ... | crc32   :     |
-    +---------------+     +---------------+     +---------------+
-    | CHUNK         | ... | CHUNK         | ... | CHUNK         |
-    +---------------+     +---------------+     +---------------+
-    | data: ....    | ... | data: ....    | ... | data: ....    |
-    +---+-----------+     +---+-----------+     +---+-----------+
+      Data Server 1          Data Server N          Data Server 6
+    +----------------+     +----------------+     +----------------+
+    | HEADER         | ... | HEADER         | ... | HEADER         |
+    +----------------+     +----------------+     +----------------+
+    | guard   : 3:6  | ... | guard   : 3:6  | ... | guard   : 3:6  |
+    | payload_id : 0 | ... | payload_id : M | ... | payload_id : 5 |
+    | crc32   :      | ... | crc32   :      | ... | crc32   :      |
+    +----------------+     +----------------+     +----------------+
+    | CHUNK          | ... | CHUNK          | ... | CHUNK          |
+    +----------------+     +----------------+     +----------------+
+    | data: ....     | ... | data: ....     | ... | data: ....     |
+    +---+------------+     +--+-------------+     +-+--------------+
         |                     |                     |
         |                     |                     |
     +---+---------------------+---------------------+-----+
@@ -811,7 +811,7 @@
         <figure anchor='crc_on_wire'>
           <artwork>
         +------------------------------------+
-        | READ_CHUNKresok                   |
+        | READ_CHUNKresok                    |
         +------------------------------------+
         | rcr_eof: false                     |
         | rcr_chunks[0]:                     |
@@ -839,7 +839,7 @@
         | HEADER             |
         +--------------------+
         | guard    : 7:6     |
-        | slot_id  : 0       |
+        | payload_id  : 0    |
         | crc32    : 0       |
         +--------------------+
         | CHUNK              |
@@ -1285,7 +1285,7 @@
 ///     uint32_t        rc_crc;
 ///     uint32_t        rc_effective_len;
 ///     chunk_owner4    rc_owner;
-///     uint32_t        rc_slot_id;
+///     uint32_t        rc_payload_id;
 ///     opaque          rc_block&lt;&gt;;
 /// };
           </sourcecode>
@@ -1370,33 +1370,24 @@
         | rcr_eof: true                  |
         | rcr_blocks[0]:                 |
         |     rc_crc: 0x3faddace         |
-        |     rc_effective_len: 4kB      |
         |     rc_owner:                  |
         |            co_chunk_id: 2      |
-        |            co_change_id: 3     |
-        |            co_client_id: 6     |
-        |            co_activated: true  |
-        |     rc_slot_id: 1              |
+        |            co_guard: 3:6       |
+        |     rc_payload_id: 1           |
         |     rc_block: ....             |
         | rcr_blocks[0]:                 |
         |     rc_crc: 0xdeade4e5         |
-        |     rc_effective_len: 4kB      |
         |     rc_owner:                  |
         |            co_chunk_id: 3      |
-        |            co_change_id: 0     |
-        |            co_client_id: 0     |
-        |            co_activated: false |
-        |     rc_slot_id: 1              |
+        |            co_guard: 0:0       |
+        |     rc_payload_id: 1           |
         |     rc_block: 0000...00000     |
         | rcr_blocks[0]:                 |
         |     rc_crc: 0x7778abcd         |
-        |     rc_effective_len: 2kB      |
         |     rc_owner:                  |
         |            co_chunk_id: 4      |
-        |            co_change_id: 3     |
-        |            co_client_id: 6     |
-        |            co_activated: true  |
-        |     rc_slot_id: 1              |
+        |            co_guard: 3:6       |
+        |     rc_payload_id: 1           |
         |     rc_block: ....             |
         +--------------------------------+
         </artwork>
@@ -1483,7 +1474,7 @@
         <figure anchor='code_wb_args_flags'>
           <sourcecode type='xdr'>
 /// const WRITE_CHUNK_FLAGS_UPDATE_HEADER_ONLY   = 0x00000001;
-/// const WRITE_CHUNK_FLAGS_ACTIVATE_IF_EMPTY      = 0x00000002;
+/// const WRITE_CHUNK_FLAGS_ACTIVATE_IF_EMPTY    = 0x00000002;
           </sourcecode>
         </figure>
 
@@ -1526,7 +1517,7 @@
 ///     offset4            wca_offset;
 ///     stable_how4        wca_stable;
 ///     chunk_owner4       wca_owner;
-///     uint32_t           wca_slot_id;
+///     uint32_t           wca_payload_id;
 ///     write_chunk_guard4 wca_guard;
 ///     write_chunk4       wca_data&lt;&gt;;
 /// };
