@@ -649,11 +649,113 @@
         Each data block of the file resident in the client's cache of the
         file will be encoded into N different payloads to be
         sent to the data servers as shown in <xref target='encoding_transformation' />.
-        Whilst they are shown as data blocks and chunks, as far
-        as WRITE is concerned, these are byte streams.
+        As WRITE_CHUNK (see <xref target='WRITE_CHUNK' />) can encode
+        multiple write_chunk4 into a single transaction, a more accurate
+        description of a WRITE_CHUNK might be as in <xref target='example_WRITE_CHUNK_args_1' />.
       </t>
+
+      <figure anchor='example_WRITE_CHUNK_args_1'>
+        <artwork>
+        +------------------------------------+
+        | WRITE_CHUNKargs                    |
+        +------------------------------------+
+        | wca_stateid: 0                     |
+        | wca_offset: 1                      |
+        | wca_stable: FILE_SYNC4             |
+        | wca_slot_id: 0                     |
+        | wca_owner:                         |
+        |            co_guard: 3:6           |
+        | wca_block[0]:                      |
+        |            wc_crc    :  0x32ef89   |
+        |            wc_block  :  ......     |
+        | wca_block[1]:                      |
+        |            wc_crc    :  0x56fa89   |
+        |            wc_block  :  ......     |
+        | wca_block[2]:                      |
+        |            wc_crc    :  0x7693af   |
+        |            wc_block  :  ......     |
+        +------------------------------------+
+        </artwork>
+      </figure>
+
+      <t>
+        This describes a 3 block write of data from an offset of 1 block in the file.
+        As each block shares the wca_owner, it is only
+        presented once. I.e., the data server will be able to construct the
+        header for each wca_block from the wca_seq_id, wca_owner,
+        wc_effective_len, and wc_crc.
+      </t>
+
+      <t>
+        Assuming that there were no issues, <xref target='example_WRITE_CHUNK_res_1' />
+        illustrates the results. The payload sequence id is implicit in the WRITE_CHUNKargs.
+      </t>
+
+      <figure anchor='example_WRITE_CHUNK_res_1'>
+        <artwork>
+        +-------------------------------+
+        | WRITE_CHUNKresok              |
+        +-------------------------------+
+        | wcr_count: 3                  |
+        | wcr_committed: FILE_SYNC4     |
+        | wcr_writeverf: 0xf1234abc     |
+        | wcr_owners[0]:                |
+        |            co_chunk_id: 1     |
+        |            co_guard:    3:6   |
+        | wcr_owners[1]:                |
+        |            co_chunk_id: 2     |
+        |            co_guard:    3:6   |
+        | wcr_owners[2]:                |
+        |            co_chunk_id: 3     |
+        |            co_guard:    3:6   |
+        +-------------------------------+
+        </artwork>
+      </figure>
+
       <section anchor='calculating_crc' numbered='true' removeInRFC='false' toc='exclude'>
         <name>Calculating the CRC32</name>
+        <figure anchor='crc_before_calc'>
+          <artwork>
+        +---+----------------+
+        | HEADER             |
+        +--------------------+
+        | guard   : 7:6      |
+        | slot_id : 0        |
+        | crc32   : 0        |
+        +--------------------+
+        | CHUNK              |
+        +--------------------+
+        | data:  ....        |
+        +--------------------+
+             Data Server 1
+          </artwork>
+        </figure>
+
+        <t>
+          Assuming the header and payload as in <xref target='crc_before_calc' />,
+          the crc32 needs to be calculated in order to fill in the wc_crc field. In this
+          case, the crc32 is calculated over the 3 fields as shown in the
+          header and the wc_chunk. In this example, it is calculated
+          to be 0x21de8. The resulting WRITE_CHUNK is shown in <xref target='crc_after_calc' />.
+        </t>
+
+        <figure anchor='crc_after_calc'>
+          <artwork>
+        +------------------------------------+
+        | WRITE_CHUNKargs                   |
+        +------------------------------------+
+        | wca_stateid: 0                     |
+        | wca_offset: 1                      |
+        | wca_stable: FILE_SYNC4             |
+        | wca_slot_id: 0                     |
+        | wca_owner:                         |
+        |            co_guard: 7:6           |
+        | wca_chunk[0]:                      |
+        |            wc_crc    :  0x21de8    |
+        |            wc_chunk  :  ......     |
+        +------------------------------------+
+          </artwork>
+        </figure>
       </section>
     </section>
 
@@ -700,6 +802,48 @@
       </t>
       <section anchor='checking_crc' numbered='true' removeInRFC='false' toc='exclude'>
         <name>Checking the CRC32</name>
+        <figure anchor='crc_on_wire'>
+          <artwork>
+        +------------------------------------+
+        | READ_CHUNKresok                   |
+        +------------------------------------+
+        | rcr_eof: false                     |
+        | rcr_chunks[0]:                     |
+        |            rc_crc: 0x21de8         |
+        |            rc_owner:               |
+        |                 co_chunk_id:  1    |
+        |                 co_guard:     7:6  |
+        |            rc_chunk  :  ......     |
+        +------------------------------------+
+          </artwork>
+        </figure>
+
+        <t>
+          Assuming the READ_CHUNK results as in <xref target='crc_on_wire' />,
+          the crc32 needs to be checked in order to ensure data integrity. Conceptually,
+          a header and payload can be built as shown in <xref target='crc_checking' />.
+          The crc32 is calculated over the 3 fields as shown in the
+          header and the rc_chunk. In this example, it is calculated
+          to be 0x21de8. Thus this payload for the data server has data integrity.
+        </t>
+
+        <figure anchor='crc_checking'>
+          <artwork>
+        +---+----------------+
+        | HEADER             |
+        +--------------------+
+        | guard    : 7:6     |
+        | slot_id  : 0       |
+        | crc32    : 0       |
+        +--------------------+
+        | CHUNK              |
+        +--------------------+
+        | data:  ....        |
+        +--------------------+
+             Data Server 1
+          </artwork>
+        </figure>
+
       </section>
     </section>
   </section>
@@ -1222,7 +1366,7 @@
         |     rc_crc: 0x3faddace         |
         |     rc_effective_len: 4kB      |
         |     rc_owner:                  |
-        |            co_block_id: 2      |
+        |            co_chunk_id: 2      |
         |            co_change_id: 3     |
         |            co_client_id: 6     |
         |            co_activated: true  |
@@ -1232,7 +1376,7 @@
         |     rc_crc: 0xdeade4e5         |
         |     rc_effective_len: 4kB      |
         |     rc_owner:                  |
-        |            co_block_id: 3      |
+        |            co_chunk_id: 3      |
         |            co_change_id: 0     |
         |            co_client_id: 0     |
         |            co_activated: false |
@@ -1242,7 +1386,7 @@
         |     rc_crc: 0x7778abcd         |
         |     rc_effective_len: 2kB      |
         |     rc_owner:                  |
-        |            co_block_id: 4      |
+        |            co_chunk_id: 4      |
         |            co_change_id: 3     |
         |            co_client_id: 6     |
         |            co_activated: true  |
@@ -1503,7 +1647,7 @@
           </t>
           <t>
             Note that as the guard_chunk_owner4 (see <xref target='code_guard_chunk_owner4' />
-            does not have a block_id and the WRITE_CHUNK applies
+            does not have a chunk_id and the WRITE_CHUNK applies
             to all blocks in the range of wca_offset to the length
             of wca_data, then each of the target blocks
             <bcp14>MUST</bcp14> have the same change_id and
