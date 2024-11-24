@@ -1471,7 +1471,7 @@
       <section anchor='WRITE_CHUNK4args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
 
-        <figure anchor='code_wb_args_flags'>
+        <figure anchor='code_wc_args_flags'>
           <sourcecode type='xdr'>
 /// const WRITE_CHUNK_FLAGS_UPDATE_HEADER_ONLY   = 0x00000001;
 /// const WRITE_CHUNK_FLAGS_ACTIVATE_IF_EMPTY    = 0x00000002;
@@ -1481,10 +1481,10 @@
         <figure anchor='code_write_chunk4'>
           <sourcecode type='xdr'>
 /// struct write_chunk4 {
-///     uint32_t        wb_crc;
-///     uint32_t        wb_effective_len;
-///     uint32_t        wb_flags;
-///     opaque          wb_block&lt;&gt;;
+///     uint32_t        wc_crc;
+///     uint32_t        wc_effective_len;
+///     uint32_t        wc_flags;
+///     opaque          wc_block&lt;&gt;;
 /// };
           </sourcecode>
         </figure>
@@ -1678,13 +1678,13 @@
             modified blocks.
           </t>
           <t>
-            The WRITE_CHUNK_FLAGS_UPDATE_HEADER_ONLY flag in wb_flags
+            The WRITE_CHUNK_FLAGS_UPDATE_HEADER_ONLY flag in wc_flags
             can be used to save
             the transmission of the blocks. If it is set, then
-            the wb_block is ignored. It <bcp14>MUST</bcp14> be
+            the wc_block is ignored. It <bcp14>MUST</bcp14> be
             empty. Note that the client <bcp14>MUST</bcp14> only
-            modify both the wb_crc and the wca_owner.co_change_id
-            fields in this case. The wb_crc <bcp14>MUST</bcp14>
+            modify both the wc_crc and the wca_owner.co_change_id
+            fields in this case. The wc_crc <bcp14>MUST</bcp14>
             change as the wca_owner.co_change_id has been modified
             (see <xref target='calculating_crc' />).
           </t>
