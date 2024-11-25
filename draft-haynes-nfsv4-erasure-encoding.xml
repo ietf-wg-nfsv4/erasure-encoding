@@ -663,6 +663,7 @@
       </t>
 
       <figure anchor='example_WRITE_CHUNK_args_1'>
+        <name>Example of WRITE_CHUNK_args</name>
         <artwork>
         +------------------------------------+
         | WRITE_CHUNKargs                    |
@@ -702,6 +703,7 @@
       </t>
 
       <figure anchor='example_WRITE_CHUNK_res_1'>
+        <name>Example of WRITE_CHUNK_res</name>
         <artwork>
         +-------------------------------+
         | WRITE_CHUNKresok              |
@@ -731,6 +733,7 @@
       <section anchor='calculating_crc' numbered='true' removeInRFC='false' toc='exclude'>
         <name>Calculating the CRC32</name>
         <figure anchor='crc_before_calc'>
+          <name>CRC32 Before Calculation</name>
           <artwork>
         +---+----------------+
         | HEADER             |
@@ -758,6 +761,7 @@
         </t>
 
         <figure anchor='crc_after_calc'>
+          <name>CRC32 After Calculation</name>
           <artwork>
         +-----------------------------------+
         | WRITE_CHUNKargs                   |
@@ -825,6 +829,7 @@
       <section anchor='checking_crc' numbered='true' removeInRFC='false' toc='exclude'>
         <name>Checking the CRC32</name>
         <figure anchor='crc_on_wire'>
+          <name>CRC32 on the Wire</name>
           <artwork>
         +------------------------------------+
         | READ_CHUNKresok                    |
@@ -851,6 +856,7 @@
         </t>
 
         <figure anchor='crc_checking'>
+          <name>CRC32 Being Checked</name>
           <artwork>
         +---+----------------+
         | HEADER             |
@@ -1113,6 +1119,7 @@
   <section anchor='EXCHGID4_FLAG_USE_ERASURE_DS' numbered='true' removeInRFC='false' toc='default'>
     <name>EXCHGID4_FLAG_USE_PNFS_DS</name>
     <figure anchor='code_EXCHGID4_FLAG_USE_ERASURE_DS'>
+      <name>XDR for EXCHGID4_FLAG_USE_PNFS_DS</name>
       <sourcecode type='xdr'>
 /// const EXCHGID4_FLAG_USE_ERASURE_DS      = 0x00100000;
       </sourcecode>
@@ -1145,6 +1152,7 @@
     <section anchor='fattr4_encoding_block_size' numbered='true' removeInRFC='false' toc='default'>
       <name>Attribute 88: fattr4_encoding_block_size</name>
       <figure anchor='code_fattr4_encoding_block_size'>
+        <name>XDR for fattr4_encoding_block_size</name>
         <sourcecode type='xdr'>
 /// typedef size_t                    fattr4_encoding_block_size;
 ///
@@ -1169,6 +1177,7 @@
     <section anchor='chunk_guard4' numbered='true' removeInRFC='false' toc='default'>
       <name>chunk_guard4</name>
       <figure anchor='code_chunk_guard4'>
+        <name>XDR for chunk_guard4</name>
         <sourcecode type='xdr'>
 /// struct chunk_guard4 {
 ///     uint32_t   cg_change_id;
@@ -1218,6 +1227,7 @@
     <section anchor='chunk_owner4' numbered='true' removeInRFC='false' toc='default'>
       <name>chunk_owner4</name>
       <figure anchor='code_chunk_owner4'>
+        <name>XDR for code_chunk_owner4</name>
         <sourcecode type='xdr'>
 /// struct chunk_owner4 {
 ///     chunk_guard4   co_guard;
@@ -1253,6 +1263,7 @@
       <section anchor='COMMIT_CHUNK4args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
         <figure anchor='code_COMMIT_CHUNK4args'>
+          <name>XDR for COMMIT_CHUNK4args</name>
           <sourcecode type='xdr'>
 /// struct COMMIT_CHUNK4args {
 ///     /* CURRENT_FH: file */
@@ -1267,6 +1278,7 @@
       <section anchor='COMMIT_CHUNK4res' numbered='true' removeInRFC='false' toc='exclude'>
         <name>RESULTS</name>
         <figure anchor='code_COMMIT_CHUNK4resok'>
+          <name>XDR for COMMIT_CHUNK4resok</name>
           <sourcecode type='xdr'>
 /// struct COMMIT_CHUNK4resok {
 ///     verifier4       ccr_writeverf;
@@ -1275,6 +1287,7 @@
         </figure>
 
         <figure anchor='code_COMMIT_CHUNK4res'>
+          <name>XDR for COMMIT_CHUNK4res</name>
           <sourcecode type='xdr'>
 /// union COMMIT_CHUNK4res switch (nfsstat4 ccr_status) {
 ///     case NFS4_OK:
