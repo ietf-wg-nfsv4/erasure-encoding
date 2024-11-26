@@ -110,7 +110,7 @@
       to atomically exchange the blocks in the reservation file with
       those in the data file. Finally, it will use RESERVE_RELEASE
       to start the deletion of old blocks. Both RESERVE_RECOVER
-      and RESERVE_INFO can be used by the client or metadata server
+      and ROLLBACK_LIST can be used by the client or metadata server
       to recover after a client restart or a client which has
       permanently gone away.
     </t>
@@ -982,7 +982,7 @@
             </td>
           </tr>
           <tr>
-            <td>RESERVE_INFO</td>
+            <td>ROLLBACK_LIST</td>
             <td>
               NFS4ERR_ACCESS, NFS4ERR_ADMIN_REVOKED, NFS4ERR_BADXDR,
               NFS4ERR_DEADSESSION, NFS4ERR_DELAY, NFS4ERR_DELEG_REVOKED,
@@ -1140,7 +1140,7 @@
     <t>
       If the data server sets EXCHGID4_FLAG_USE_ERASURE_DS during the
       EXCHANGE_ID operation, then it <bcp14>MUST</bcp14> support:
-      RESERVE, RESERVE_INFO, RESERVE_RECOVER, RESERVE_RELEASE,
+      RESERVE, ROLLBACK_LIST, RESERVE_RECOVER, RESERVE_RELEASE,
       and RESERVE_SWAP. Further, note that this support is
       orthogonal to the Erasure Encoding Type selected. The
       data server is unaware of which type is driving the I/O.
@@ -1974,13 +1974,13 @@
       </section>
     </section>
 
-    <section anchor='RESERVE_INFO' numbered='true' removeInRFC='false' toc='default'>
-      <name>Operation 78: RESERVE_INFO - Get information on a byte range for writing</name>
-      <section anchor='RESERVE_INFO4args' numbered='true' removeInRFC='false' toc='exclude'>
+    <section anchor='ROLLBACK_LIST' numbered='true' removeInRFC='false' toc='default'>
+      <name>Operation 78: ROLLBACK_LIST - Get information on a byte range for writing</name>
+      <section anchor='ROLLBACK_LIST4args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
-        <figure anchor='code_RESERVE_INFO4args'>
+        <figure anchor='code_ROLLBACK_LIST4args'>
           <sourcecode type='xdr'>
-/// struct RESERVE_INFO4args {
+/// struct ROLLBACK_LIST4args {
 ///     /* CURRENT_FH: file */
 ///     stateid4        ria_stateid;
 /// };
@@ -1988,32 +1988,30 @@
         </figure>
       </section>
 
-      <section anchor='RESERVE_INFO4res' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='ROLLBACK_LIST4res' numbered='true' removeInRFC='false' toc='exclude'>
         <name>RESULTS</name>
-        <figure anchor='code_reserve_info4'>
+        <figure anchor='code_rollback_info4'>
           <sourcecode type='xdr'>
-/// struct reserve_info4 {
-///     clientid4      ri_client_id;
-///     uint32_t       ri_reservation_id;
-///     offset4        ri_offset;
-///     count4         ri_count;
+/// struct rollback_info4 {
+///     uint32_t       ri_client_id;
+///     nfs_fh4        ri_fh;
 /// };
           </sourcecode>
         </figure>
 
-        <figure anchor='code_RESERVE_INFO4resok'>
+        <figure anchor='code_ROLLBACK_LIST4resok'>
           <sourcecode type='xdr'>
-/// struct RESERVE_INFO4resok {
-///     reserve_info4  rir_reservations&lt;&gt;;
+/// struct ROLLBACK_LIST4resok {
+///     rollback_info4  rlr_rollbacks&lt;&gt;;
 /// };
           </sourcecode>
         </figure>
 
-        <figure anchor='code_RESERVE_INFO4res'>
+        <figure anchor='code_ROLLBACK_LIST4res'>
           <sourcecode type='xdr'>
-/// union RESERVE_INFO4res switch (nfsstat4 rir_status) {
+/// union ROLLBACK_LIST4res switch (nfsstat4 rlr_status) {
 ///     case NFS4_OK:
-///         RESERVE_INFO4resok         rir_resok4;
+///         ROLLBACK_LIST4resok         rlr_resok4;
 ///     default:
 ///         void;
 /// };
@@ -2021,18 +2019,18 @@
         </figure>
       </section>
 
-      <section anchor='RESERVE_INFO4_desc' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='ROLLBACK_LIST4_desc' numbered='true' removeInRFC='false' toc='exclude'>
         <name>DESCRIPTION</name>
         <t>
-          RESERVE_INFO is a new operation to get reservation information on a file. The
-          user has to have access to the underlying file in order to get the set of
-          reservations. As shown in <xref target='code_RESERVE_INFO4args' />, a stateid
+          ROLLBACK_LIST is a new operation to list the open client rollback files
+          for the current filehandle.
+          As shown in <xref target='code_ROLLBACK_LIST4args' />, a stateid
           that follows the rules of <xref target='RESERVE4_desc' /> <bcp14>MUST</bcp14>
           be presented.
         </t>
         <t>
-          The result is an array of reserve_info4 (see <xref target='code_reserve_info4' />).
-          Note that the ri_client_id is for the pNFS case, it allows the metadata
+          The result is an array of rollback_info4 (see <xref target='code_rollback_info4' />).
+          The ri_client_id allows the metadata
           server to determine which reservations belonged to a dead client. Note that
           the ffv2_key4 associated with the reservation file <bcp14>MUST NOT</bcp14>
           be sent back in the results.
@@ -2079,7 +2077,7 @@
           match that which was persisted in the original RESERVE operation to create the
           reservation. The rra_client_id will only match if it is the original client
           which has not restarted. In any event, upon successful recovery, the rra_client_id
-          is persisted for the next time RESERVE_INFO is presented to the server.
+          is persisted for the next time ROLLBACK_LIST is presented to the server.
           As shown in <xref target='code_RESERVE_RECOVER4args' />, a stateid
           that follows the rules of <xref target='RESERVE4_desc' /> <bcp14>MUST</bcp14>
           be presented.
