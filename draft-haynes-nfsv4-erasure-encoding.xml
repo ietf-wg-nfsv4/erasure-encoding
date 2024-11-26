@@ -1258,14 +1258,62 @@
   <section anchor='ops' numbered='true' removeInRFC='false' toc='default'>
     <name>New NFSv4.2 Operations</name>
 
-    <section anchor='COMMIT_CHUNK' numbered='true' removeInRFC='false' toc='default'>
-      <name>Operation 77: COMMIT_CHUNK - Activate Cached Block Data</name>
-      <section anchor='COMMIT_CHUNK4args' numbered='true' removeInRFC='false' toc='exclude'>
+    <figure anchor='code_ops'>
+      <name>Operations XDR</name>
+      <sourcecode type='xdr'>
+///
+/// /* New operations for Erasure Encoding start here */
+///
+///  OP_CHUNK_COMMIT        = 77,
+///  OP_CHUNK_READ          = 78,
+///  OP_CHUNK_SWAP          = 79,
+///  OP_CHUNK_UNLOCK        = 80,
+///  OP_CHUNK_WRITE         = 81,
+///  OP_CHUNK_WRITE_SWAP_GUARD = 82,
+///  OP_GUARD_SWAP          = 83,
+///  OP_HEADER_READ         = 84,
+///  OP_ROLLBACK_CLOSE      = 85,
+///  OP_ROLLBACK_LIST       = 86,
+///  OP_ROLLBACK_OPEN       = 87,
+///  OP_SWAP                = 88,
+///
+      </sourcecode>
+    </figure>
+
+
+    <table anchor='tbl_op_defs'>
+      <name>Protocol Operation Definitions</name>
+      <thead>
+        <tr>
+          <th>Operation</th>
+          <th>Number</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr> <td>CHUNK_COMMIT</td> <td>77</td> <td><xref target='CHUNK_COMMIT' /></td> </tr>
+        <tr> <td>CHUNK_READ</td> <td>78</td> <td><xref target='CHUNK_READ' /></td> </tr>
+        <tr> <td>CHUBK_SWAP</td> <td>79</td> <td><xref target='CHUNK_READ' /></td> </tr>
+        <tr> <td>CHUNK_UNLOCK</td> <td>80</td> <td><xref target='CHUNK_READ' /></td> </tr>
+        <tr> <td>CHUNK_WRITE</td> <td>81</td> <td><xref target='CHUNK_WRITE' /></td> </tr>
+        <tr> <td>CHUNK_WRITE_SWAP_GUARD</td> <td>82</td> <td><xref target='CHUNK_WRITE' /></td> </tr>
+        <tr> <td>GUARD_SWAP</td> <td>83</td> <td><xref target='CHUNK_WRITE' /></td> </tr>
+        <tr> <td>HEADER_READ</td> <td>84</td> <td><xref target='HEADER_READ' /></td> </tr>
+        <tr> <td>ROLLBACK_CLOSE</td> <td>85</td> <td><xref target='ROLLBACK_LIST' /></td> </tr>
+        <tr> <td>ROLLBACK_LIST</td> <td>86</td> <td><xref target='ROLLBACK_LIST' /></td> </tr>
+        <tr> <td>ROLLBACK_OPEN</td> <td>87</td> <td><xref target='ROLLBACK_LIST' /></td> </tr>
+        <tr> <td>SWAP</td> <td>88</td> <td><xref target='ROLLBACK_LIST' /></td> </tr>
+      </tbody>
+    </table>
+
+    <section anchor='CHUNK_COMMIT' numbered='true' removeInRFC='false' toc='default'>
+      <name>Operation 77: CHUNK_COMMIT - Activate Cached Chunk Data</name>
+      <section anchor='CHUNK_COMMIT4args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
-        <figure anchor='code_COMMIT_CHUNK4args'>
-          <name>XDR for COMMIT_CHUNK4args</name>
+        <figure anchor='code_CHUNK_COMMIT4args'>
+          <name>XDR for CHUNK_COMMIT4args</name>
           <sourcecode type='xdr'>
-/// struct COMMIT_CHUNK4args {
+/// struct CHUNK_COMMIT4args {
 ///     /* CURRENT_FH: file */
 ///     offset4         cca_offset;
 ///     count4          cca_count;
@@ -1275,23 +1323,23 @@
         </figure>
       </section>
 
-      <section anchor='COMMIT_CHUNK4res' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='CHUNK_COMMIT4res' numbered='true' removeInRFC='false' toc='exclude'>
         <name>RESULTS</name>
-        <figure anchor='code_COMMIT_CHUNK4resok'>
-          <name>XDR for COMMIT_CHUNK4resok</name>
+        <figure anchor='code_CHUNK_COMMIT4resok'>
+          <name>XDR for CHUNK_COMMIT4resok</name>
           <sourcecode type='xdr'>
-/// struct COMMIT_CHUNK4resok {
+/// struct CHUNK_COMMIT4resok {
 ///     verifier4       ccr_writeverf;
 /// };
           </sourcecode>
         </figure>
 
-        <figure anchor='code_COMMIT_CHUNK4res'>
-          <name>XDR for COMMIT_CHUNK4res</name>
+        <figure anchor='code_CHUNK_COMMIT4res'>
+          <name>XDR for CHUNK_COMMIT4res</name>
           <sourcecode type='xdr'>
-/// union COMMIT_CHUNK4res switch (nfsstat4 ccr_status) {
+/// union CHUNK_COMMIT4res switch (nfsstat4 ccr_status) {
 ///     case NFS4_OK:
-///         COMMIT_CHUNK4resok   ccr_resok4;
+///         CHUNK_COMMIT4resok   ccr_resok4;
 ///     default:
 ///         void;
 /// };
@@ -1299,16 +1347,16 @@
         </figure>
       </section>
 
-      <section anchor='COMMIT_CHUNK_desc' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='CHUNK_COMMIT_desc' numbered='true' removeInRFC='false' toc='exclude'>
         <name>DESCRIPTION</name>
         <t>
-          COMMIT_CHUNK is COMMIT (see Section 18.3 of <xref target='RFC8881'
+          CHUNK_COMMIT is COMMIT (see Section 18.3 of <xref target='RFC8881'
           format='default' sectionFormat='of' />) with additional semantics
           over the chunk_owner activating the blocks. As such, all of
           the normal semantics of COMMIT directly apply.
         </t>
         <t>
-          The main difference between the two operations is that COMMIT_CHUNK
+          The main difference between the two operations is that CHUNK_COMMIT
           works on blocks and not a raw data stream. As such cca_offset
           is the starting block offset in the file and not the byte
           offset in the file. Some erasure encoding types can have
@@ -1325,56 +1373,8 @@
       </section>
     </section>
 
-    <section anchor='HEADER_READ' numbered='true' removeInRFC='false' toc='default'>
-      <name>Operation 78: HEADER_READ - Read Chunk Header from File</name>
-      <section anchor='HEADER_READ4args' numbered='true' removeInRFC='false' toc='exclude'>
-        <name>ARGUMENTS</name>
-        <figure anchor='code_HEADER_READ4args'>
-          <sourcecode type='xdr'>
-/// struct HEADER_READ4args {
-///     /* CURRENT_FH: file */
-///     stateid4    hra_stateid;
-///     offset4     hra_offset;
-///     count4      hra_count;
-/// };
-          </sourcecode>
-        </figure>
-      </section>
-
-      <section anchor='HEADER_READ4res' numbered='true' removeInRFC='false' toc='exclude'>
-        <name>RESULTS</name>
-        <figure anchor='code_HEADER_READ4resok'>
-          <sourcecode type='xdr'>
-/// struct HEADER_READ4resok {
-///     bool            hrr_eof;
-///     chunk_owner4    hrr_chunks&lt;&gt;;
-/// };
-          </sourcecode>
-        </figure>
-
-        <figure anchor='code_HEADER_READ4res'>
-          <sourcecode type='xdr'>
-/// union HEADER_READ4res switch (nfsstat4 hrr_status) {
-///     case NFS4_OK:
-///         HEADER_READ4resok     hrr_resok4;
-///     default:
-///         void;
-/// };
-          </sourcecode>
-        </figure>
-      </section>
-
-      <section anchor='HEADER_READ4_desc' numbered='true' removeInRFC='false' toc='exclude'>
-        <name>DESCRIPTION</name>
-        <t>
-          HEADER_READ differs from CHUNK_READ in that it only reads
-          chunk headers in the desired data range.
-        </t>
-      </section>
-    </section>
-
     <section anchor='CHUNK_READ' numbered='true' removeInRFC='false' toc='default'>
-      <name>Operation 79: CHUNK_READ - Read Blocks from File</name>
+      <name>Operation 78: CHUNK_READ - Read Chunks from File</name>
       <section anchor='CHUNK_READ4args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
         <figure anchor='code_CHUNK_READ4args'>
@@ -1430,8 +1430,7 @@
         <t>
           CHUNK_READ is READ (see Section 18.22 of <xref target='RFC8881'
           format='default' sectionFormat='of' />) with additional semantics
-          over the chunk_owner and the activation of blocks. As such, all of
-          the normal semantics of READ directly apply.
+          over the chunk_owner. As such, all of the normal semantics of READ directly apply.
         </t>
         <t>
           The main difference between the two operations is that CHUNK_READ
@@ -1515,8 +1514,56 @@
       </section>
     </section>
 
+    <section anchor='HEADER_READ' numbered='true' removeInRFC='false' toc='default'>
+      <name>Operation 79: HEADER_READ - Read Chunk Header from File</name>
+      <section anchor='HEADER_READ4args' numbered='true' removeInRFC='false' toc='exclude'>
+        <name>ARGUMENTS</name>
+        <figure anchor='code_HEADER_READ4args'>
+          <sourcecode type='xdr'>
+/// struct HEADER_READ4args {
+///     /* CURRENT_FH: file */
+///     stateid4    hra_stateid;
+///     offset4     hra_offset;
+///     count4      hra_count;
+/// };
+          </sourcecode>
+        </figure>
+      </section>
+
+      <section anchor='HEADER_READ4res' numbered='true' removeInRFC='false' toc='exclude'>
+        <name>RESULTS</name>
+        <figure anchor='code_HEADER_READ4resok'>
+          <sourcecode type='xdr'>
+/// struct HEADER_READ4resok {
+///     bool            hrr_eof;
+///     chunk_owner4    hrr_chunks&lt;&gt;;
+/// };
+          </sourcecode>
+        </figure>
+
+        <figure anchor='code_HEADER_READ4res'>
+          <sourcecode type='xdr'>
+/// union HEADER_READ4res switch (nfsstat4 hrr_status) {
+///     case NFS4_OK:
+///         HEADER_READ4resok     hrr_resok4;
+///     default:
+///         void;
+/// };
+          </sourcecode>
+        </figure>
+      </section>
+
+      <section anchor='HEADER_READ4_desc' numbered='true' removeInRFC='false' toc='exclude'>
+        <name>DESCRIPTION</name>
+        <t>
+          HEADER_READ differs from CHUNK_READ in that it only reads
+          chunk headers in the desired data range.
+        </t>
+      </section>
+    </section>
+
     <section anchor='ROLLBACK_CHUNK' numbered='true' removeInRFC='false' toc='default'>
-      <name>Operation 80: ROLLBACK_CHUNK - Rollback Cached Block Data</name>
+      <name>Operation 80: ROLLBACK_CHUNK - Rollback Cached Chunk Data</name>
       <section anchor='ROLLBACK_CHUNK4args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
         <figure anchor='code_ROLLBACK_CHUNK4args'>
@@ -1586,7 +1633,7 @@
     </section>
 
     <section anchor='CHUNK_WRITE' numbered='true' removeInRFC='false' toc='default'>
-      <name>Operation 81: CHUNK_WRITE - Write Blocks to File</name>
+      <name>Operation 81: CHUNK_WRITE - Write Chunks to File</name>
       <section anchor='CHUNK_WRITE4args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
 
@@ -1709,7 +1756,7 @@
             it is the first write to that block and the CHUNK_WRITE_FLAGS_ACTIVATE_IF_EMPTY flag is set
           </li>
           <li>
-            the COMMIT_CHUNK is issued later for that block.
+            the CHUNK_COMMIT is issued later for that block.
           </li>
         </ul>
         <t>
@@ -1726,7 +1773,7 @@
           co_activated of false, that the blocks are not activated. A
           subsequent CHUNK_READ or HEADER_READ might show that
           the co_activated is true without any interaction by the client
-          via COMMIT_CHUNK.
+          via CHUNK_COMMIT.
         </t>
 
         <section anchor='guarded_write' numbered='true' removeInRFC='false' toc='exclude'>
