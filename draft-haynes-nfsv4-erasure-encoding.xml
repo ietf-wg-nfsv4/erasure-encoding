@@ -284,7 +284,7 @@
       <t>
         FFV2_ENCODING_MIRRORED offers replication of data and
         not integrity of data. As such, it does not need operations
-        like RESERVE (see <xref target='RESERVE' />).
+        like CHUNK_WRITE (see <xref target='CHUNK_WRITE' />).
       </t>
     </section>
 
@@ -507,7 +507,7 @@
         the data reads will be satisfied by READ (see Section 18.22 of
         <xref target='RFC8881' />)
         calls to index 0. However, as this is also an active file,
-        there could also be READ_CHUNK (see <xref target='READ_CHUNK' />)
+        there could also be CHUNK_READ (see <xref target='CHUNK_READ' />)
         calls to the other indexes.
       </t>
 
@@ -552,9 +552,9 @@
         be sent. Further, when reading data from the instance files,
         the client <bcp14>MUST</bcp14> be prepared to have one of the
         encoding types supply data and the other type not to supply
-        data. I.e., the READ_CHUNK call to the data servers in mirror 1
+        data. I.e., the CHUNK_READ call to the data servers in mirror 1
         might return rlr_eof set to true
-        (see <xref target='code_READ_CHUNK4resok' />),
+        (see <xref target='code_CHUNK_READ4resok' />),
         which indicates that there is
         no data, where the READ call to the data server in mirror 0 might
         return eof to be false, which indicates that there is data. The
@@ -566,11 +566,11 @@
         the new encoding scheme, it is actively modifying the file. As
         such, it might be sequentially reading the file in order to
         translate. The READ calls to mirror 0  would be returning data
-        and the READ_CHUNK calls to mirror 1 would not be returning data. As
+        and the CHUNK_READ calls to mirror 1 would not be returning data. As
         the client overwrites the file, the WRITE call and WRITE_SWAP_CHUNK call would have data
         sent to all of the data servers. Finally, if the client reads
         back a section which had been modified earlier, both
-        the READ and READ_CHUNK calls would return data.
+        the READ and CHUNK_READ calls would return data.
       </t>
     </section>
   </section>
@@ -657,71 +657,71 @@
         Each data block of the file resident in the client's cache of the
         file will be encoded into N different payloads to be
         sent to the data servers as shown in <xref target='encoding_transformation' />.
-        As WRITE_CHUNK (see <xref target='WRITE_CHUNK' />) can encode
+        As CHUNK_WRITE (see <xref target='CHUNK_WRITE' />) can encode
         multiple write_chunk4 into a single transaction, a more accurate
-        description of a WRITE_CHUNK might be as in <xref target='example_WRITE_CHUNK_args_1' />.
+        description of a CHUNK_WRITE might be as in <xref target='example_CHUNK_WRITE_args_1' />.
       </t>
 
-      <figure anchor='example_WRITE_CHUNK_args_1'>
-        <name>Example of WRITE_CHUNK_args</name>
+      <figure anchor='example_CHUNK_WRITE_args_1'>
+        <name>Example of CHUNK_WRITE_args</name>
         <artwork>
         +------------------------------------+
-        | WRITE_CHUNKargs                    |
+        | CHUNK_WRITEargs                    |
         +------------------------------------+
-        | wca_stateid: 0                     |
-        | wca_offset: 1                      |
-        | wca_stable: FILE_SYNC4             |
-        | wca_payload_id: 0                  |
-        | wca_owner:                         |
+        | cwa_stateid: 0                     |
+        | cwa_offset: 1                      |
+        | cwa_stable: FILE_SYNC4             |
+        | cwa_payload_id: 0                  |
+        | cwa_owner:                         |
         |            co_guard:               |
         |                cg_change_id: 3     |
         |                cg_client_id: 6     |
-        | wca_chunk[0]:                      |
-        |            wc_crc    :  0x32ef89   |
-        |            wc_chunk  :  ......     |
-        | wca_chunk[1]:                      |
-        |            wc_crc    :  0x56fa89   |
-        |            wc_chunk  :  ......     |
-        | wca_chunk[2]:                      |
-        |            wc_crc    :  0x7693af   |
-        |            wc_chunk  :  ......     |
+        | cwa_chunk[0]:                      |
+        |            cw_crc    :  0x32ef89   |
+        |            cw_chunk  :  ......     |
+        | cwa_chunk[1]:                      |
+        |            cw_crc    :  0x56fa89   |
+        |            cw_chunk  :  ......     |
+        | cwa_chunk[2]:                      |
+        |            cw_crc    :  0x7693af   |
+        |            cw_chunk  :  ......     |
         +------------------------------------+
         </artwork>
       </figure>
 
       <t>
         This describes a 3 block write of data from an offset of 1 block in the file.
-        As each block shares the wca_owner, it is only
+        As each block shares the cwa_owner, it is only
         presented once. I.e., the data server will be able to construct the
-        header for each wca_chunk from the wca_payload_id, wca_owner,
-        and wc_crc.
+        header for each cwa_chunk from the cwa_payload_id, cwa_owner,
+        and cw_crc.
       </t>
 
       <t>
-        Assuming that there were no issues, <xref target='example_WRITE_CHUNK_res_1' />
-        illustrates the results. The payload sequence id is implicit in the WRITE_CHUNKargs.
+        Assuming that there were no issues, <xref target='example_CHUNK_WRITE_res_1' />
+        illustrates the results. The payload sequence id is implicit in the CHUNK_WRITEargs.
       </t>
 
-      <figure anchor='example_WRITE_CHUNK_res_1'>
-        <name>Example of WRITE_CHUNK_res</name>
+      <figure anchor='example_CHUNK_WRITE_res_1'>
+        <name>Example of CHUNK_WRITE_res</name>
         <artwork>
         +-------------------------------+
-        | WRITE_CHUNKresok              |
+        | CHUNK_WRITEresok              |
         +-------------------------------+
-        | wcr_count: 3                  |
-        | wcr_committed: FILE_SYNC4     |
-        | wcr_writeverf: 0xf1234abc     |
-        | wcr_owners[0]:                |
+        | cwr_count: 3                  |
+        | cwr_committed: FILE_SYNC4     |
+        | cwr_writeverf: 0xf1234abc     |
+        | cwr_owners[0]:                |
         |        co_chunk_id: 1         |
         |        co_guard:              |
         |            cg_change_id: 3    |
         |            cg_client_id: 6    |
-        | wcr_owners[1]:                |
+        | cwr_owners[1]:                |
         |        co_chunk_id: 2         |
         |        co_guard:              |
         |            cg_change_id: 3    |
         |            cg_client_id: 6    |
-        | wcr_owners[2]:                |
+        | cwr_owners[2]:                |
         |        co_chunk_id: 3         |
         |        co_guard:              |
         |            cg_change_id: 3    |
@@ -754,29 +754,29 @@
 
         <t>
           Assuming the header and payload as in <xref target='crc_before_calc' />,
-          the crc32 needs to be calculated in order to fill in the wc_crc field. In this
+          the crc32 needs to be calculated in order to fill in the cw_crc field. In this
           case, the crc32 is calculated over the 3 fields as shown in the
-          header and the wc_chunk. In this example, it is calculated
-          to be 0x21de8. The resulting WRITE_CHUNK is shown in <xref target='crc_after_calc' />.
+          header and the cw_chunk. In this example, it is calculated
+          to be 0x21de8. The resulting CHUNK_WRITE is shown in <xref target='crc_after_calc' />.
         </t>
 
         <figure anchor='crc_after_calc'>
           <name>CRC32 After Calculation</name>
           <artwork>
         +-----------------------------------+
-        | WRITE_CHUNKargs                   |
+        | CHUNK_WRITEargs                   |
         +-----------------------------------+
-        | wca_stateid: 0                    |
-        | wca_offset: 1                     |
-        | wca_stable: FILE_SYNC4            |
-        | wca_payload_id: 0                 |
-        | wca_owner:                        |
+        | cwa_stateid: 0                    |
+        | cwa_offset: 1                     |
+        | cwa_stable: FILE_SYNC4            |
+        | cwa_payload_id: 0                 |
+        | cwa_owner:                        |
         |        co_guard:                  |
         |          cg_change_id: 7          |
         |          cg_client_id: 6          |
-        | wca_chunk[0]:                     |
-        |        wc_crc    :  0x21de8       |
-        |        wc_chunk  :  ......        |
+        | cwa_chunk[0]:                     |
+        |        cw_crc    :  0x21de8       |
+        |        cw_chunk  :  ......        |
         +-----------------------------------+
           </artwork>
         </figure>
@@ -832,26 +832,26 @@
           <name>CRC32 on the Wire</name>
           <artwork>
         +------------------------------------+
-        | READ_CHUNKresok                    |
+        | CHUNK_READresok                    |
         +------------------------------------+
-        | rcr_eof: false                     |
-        | rcr_chunks[0]:                     |
-        |        rc_crc: 0x21de8             |
-        |        rc_owner:                   |
+        | crr_eof: false                     |
+        | crr_chunks[0]:                     |
+        |        cr_crc: 0x21de8             |
+        |        cr_owner:                   |
         |            co_guard:               |
         |                cg_change_id: 7     |
         |                cg_client_id: 6     |
-        |        rc_chunk  :  ......         |
+        |        cr_chunk  :  ......         |
         +------------------------------------+
           </artwork>
         </figure>
 
         <t>
-          Assuming the READ_CHUNK results as in <xref target='crc_on_wire' />,
+          Assuming the CHUNK_READ results as in <xref target='crc_on_wire' />,
           the crc32 needs to be checked in order to ensure data integrity. Conceptually,
           a header and payload can be built as shown in <xref target='crc_checking' />.
           The crc32 is calculated over the 3 fields as shown in the
-          header and the rc_chunk. In this example, it is calculated
+          header and the cr_chunk. In this example, it is calculated
           to be 0x21de8. Thus this payload for the data server has data integrity.
         </t>
 
@@ -1325,38 +1325,38 @@
       </section>
     </section>
 
-    <section anchor='READ_CHUNK_HEADER' numbered='true' removeInRFC='false' toc='default'>
-      <name>Operation 78: READ_CHUNK_HEADER - Read Chunk Header from File</name>
-      <section anchor='READ_CHUNK_HEADER4args' numbered='true' removeInRFC='false' toc='exclude'>
+    <section anchor='HEADER_READ' numbered='true' removeInRFC='false' toc='default'>
+      <name>Operation 78: HEADER_READ - Read Chunk Header from File</name>
+      <section anchor='HEADER_READ4args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
-        <figure anchor='code_READ_CHUNK_HEADER4args'>
+        <figure anchor='code_HEADER_READ4args'>
           <sourcecode type='xdr'>
-/// struct READ_CHUNK_HEADER4args {
+/// struct HEADER_READ4args {
 ///     /* CURRENT_FH: file */
-///     stateid4    rcha_stateid;
-///     offset4     rcha_offset;
-///     count4      rcha_count;
+///     stateid4    hra_stateid;
+///     offset4     hra_offset;
+///     count4      hra_count;
 /// };
           </sourcecode>
         </figure>
       </section>
 
-      <section anchor='READ_CHUNK_HEADER4res' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='HEADER_READ4res' numbered='true' removeInRFC='false' toc='exclude'>
         <name>RESULTS</name>
-        <figure anchor='code_READ_CHUNK_HEADER4resok'>
+        <figure anchor='code_HEADER_READ4resok'>
           <sourcecode type='xdr'>
-/// struct READ_CHUNK_HEADER4resok {
-///     bool            rchr_eof;
-///     chunk_owner4    rchr_chunks&lt;&gt;;
+/// struct HEADER_READ4resok {
+///     bool            hrr_eof;
+///     chunk_owner4    hrr_chunks&lt;&gt;;
 /// };
           </sourcecode>
         </figure>
 
-        <figure anchor='code_READ_CHUNK_HEADER4res'>
+        <figure anchor='code_HEADER_READ4res'>
           <sourcecode type='xdr'>
-/// union READ_CHUNK_HEADER4res switch (nfsstat4 rchr_status) {
+/// union HEADER_READ4res switch (nfsstat4 hrr_status) {
 ///     case NFS4_OK:
-///         READ_CHUNK4resok     rchr_resok4;
+///         HEADER_READ4resok     hrr_resok4;
 ///     default:
 ///         void;
 /// };
@@ -1364,60 +1364,60 @@
         </figure>
       </section>
 
-      <section anchor='READ_CHUNK_HEADER4_desc' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='HEADER_READ4_desc' numbered='true' removeInRFC='false' toc='exclude'>
         <name>DESCRIPTION</name>
         <t>
-          READ_CHUNK_HEADER differs from READ_CHUNK in that it only reads
+          HEADER_READ differs from CHUNK_READ in that it only reads
           chunk headers in the desired data range.
         </t>
       </section>
     </section>
 
-    <section anchor='READ_CHUNK' numbered='true' removeInRFC='false' toc='default'>
-      <name>Operation 79: READ_CHUNK - Read Blocks from File</name>
-      <section anchor='READ_CHUNK4args' numbered='true' removeInRFC='false' toc='exclude'>
+    <section anchor='CHUNK_READ' numbered='true' removeInRFC='false' toc='default'>
+      <name>Operation 79: CHUNK_READ - Read Blocks from File</name>
+      <section anchor='CHUNK_READ4args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
-        <figure anchor='code_READ_CHUNK4args'>
+        <figure anchor='code_CHUNK_READ4args'>
           <sourcecode type='xdr'>
-/// struct READ_CHUNK4args {
+/// struct CHUNK_READ4args {
 ///     /* CURRENT_FH: file */
-///     stateid4    rca_stateid;
-///     offset4     rca_offset;
-///     count4      rca_count;
+///     stateid4    cra_stateid;
+///     offset4     cra_offset;
+///     count4      cra_count;
 /// };
           </sourcecode>
         </figure>
       </section>
 
-      <section anchor='READ_CHUNK4res' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='CHUNK_READ4res' numbered='true' removeInRFC='false' toc='exclude'>
         <name>RESULTS</name>
 
         <figure anchor='code_read_chunk4'>
           <sourcecode type='xdr'>
 /// struct read_chunk4 {
-///     uint32_t        rc_crc;
-///     uint32_t        rc_effective_len;
-///     chunk_owner4    rc_owner;
-///     uint32_t        rc_payload_id;
-///     opaque          rc_chunk&lt;&gt;;
+///     uint32_t        cr_crc;
+///     uint32_t        cr_effective_len;
+///     chunk_owner4    cr_owner;
+///     uint32_t        cr_payload_id;
+///     opaque          cr_chunk&lt;&gt;;
 /// };
           </sourcecode>
         </figure>
 
-        <figure anchor='code_READ_CHUNK4resok'>
+        <figure anchor='code_CHUNK_READ4resok'>
           <sourcecode type='xdr'>
-/// struct READ_CHUNK4resok {
-///     bool        rcr_eof;
-///     read_chunk4 rcr_chunks&lt;&gt;;
+/// struct CHUNK_READ4resok {
+///     bool        crr_eof;
+///     read_chunk4 crr_chunks&lt;&gt;;
 /// };
           </sourcecode>
         </figure>
 
-        <figure anchor='code_READ_CHUNK4res'>
+        <figure anchor='code_CHUNK_READ4res'>
           <sourcecode type='xdr'>
-/// union READ_CHUNK4res switch (nfsstat4 rcr_status) {
+/// union CHUNK_READ4res switch (nfsstat4 crr_status) {
 ///     case NFS4_OK:
-///          READ_CHUNK4resok     rcr_resok4;
+///          CHUNK_READ4resok     crr_resok4;
 ///     default:
 ///          void;
 /// };
@@ -1425,89 +1425,89 @@
         </figure>
       </section>
 
-      <section anchor='READ_CHUNK_desc' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='CHUNK_READ_desc' numbered='true' removeInRFC='false' toc='exclude'>
         <name>DESCRIPTION</name>
         <t>
-          READ_CHUNK is READ (see Section 18.22 of <xref target='RFC8881'
+          CHUNK_READ is READ (see Section 18.22 of <xref target='RFC8881'
           format='default' sectionFormat='of' />) with additional semantics
           over the chunk_owner and the activation of blocks. As such, all of
           the normal semantics of READ directly apply.
         </t>
         <t>
-          The main difference between the two operations is that READ_CHUNK
-          works on blocks and not a raw data stream. As such rca_offset
+          The main difference between the two operations is that CHUNK_READ
+          works on blocks and not a raw data stream. As such cra_offset
           is the starting block offset in the file and not the byte
           offset in the file. Some erasure encoding types can have
           different block sizes depending on the
-          block type. Further, rca_count is a count of blocks to read
+          block type. Further, cra_count is a count of blocks to read
           and not bytes to read.
         </t>
         <t>
           When reading a set of blocks across the data servers, it can be
           the case that some data servers do not have any data at that
-          location. In that case, the server either returns rcr_eof
-          if the rca_offset exceeds the number of blocks that
+          location. In that case, the server either returns crr_eof
+          if the cra_offset exceeds the number of blocks that
           the data server is aware or it returns an empty block
           for that block.
         </t>
 
         <t>
-          For example, in <xref target='example_READ_CHUNK4args_1' />, the
+          For example, in <xref target='example_CHUNK_READ4args_1' />, the
           client asks for 4 blocks starting with the 3rd block in the file.
-          The second data server responds as in <xref target='example_READ_CHUNK4res_1' />.
+          The second data server responds as in <xref target='example_CHUNK_READ4res_1' />.
           The client would read this as there is valid data for blocks 2 and
           4, there is a hole at block 3, and there is no data for block 5.
           Note that the data server <bcp14>MUST</bcp14> calculate a valid
-          rc_crc for block 3 based on the generated fields.
+          cr_crc for block 3 based on the generated fields.
         </t>
 
-        <figure anchor='example_READ_CHUNK4args_1'>
+        <figure anchor='example_CHUNK_READ4args_1'>
           <artwork>
                 Data Server 2
         +--------------------------------+
-        | READ_CHUNK4args                |
+        | CHUNK_READ4args                |
         +--------------------------------+
-        | rca_stateid: 0                 |
-        | rca_offset: 2                  |
-        | rca_count: 4                   |
+        | cra_stateid: 0                 |
+        | cra_offset: 2                  |
+        | cra_count: 4                   |
         +----------+---------------------+
           </artwork>
         </figure>
 
-      <figure anchor='example_READ_CHUNK4res_1'>
+      <figure anchor='example_CHUNK_READ4res_1'>
         <artwork>
                 Data Server 2
         +--------------------------------+
-        | READ_CHUNK4resok               |
+        | CHUNK_READ4resok               |
         +--------------------------------+
-        | rcr_eof: true                  |
-        | rcr_chunks[0]:                 |
-        |     rc_crc: 0x3faddace         |
-        |     rc_owner:                  |
+        | crr_eof: true                  |
+        | crr_chunks[0]:                 |
+        |     cr_crc: 0x3faddace         |
+        |     cr_owner:                  |
         |         co_chunk_id: 2         |
         |         co_guard:              |
         |             cg_change_id: 3    |
         |             cg_client_id: 6    |
-        |     rc_payload_id: 1           |
-        |     rc_chunk: ....             |
-        | rcr_chunks[0]:                 |
-        |     rc_crc: 0xdeade4e5         |
-        |     rc_owner:                  |
+        |     cr_payload_id: 1           |
+        |     cr_chunk: ....             |
+        | crr_chunks[0]:                 |
+        |     cr_crc: 0xdeade4e5         |
+        |     cr_owner:                  |
         |         co_chunk_id: 3         |
         |         co_guard:              |
         |             cg_change_id: 0    |
         |             cg_client_id: 0    |
-        |     rc_payload_id: 1           |
-        |     rc_chunk: 0000...00000     |
-        | rcr_chunks[0]:                 |
-        |     rc_crc: 0x7778abcd         |
-        |     rc_owner:                  |
+        |     cr_payload_id: 1           |
+        |     cr_chunk: 0000...00000     |
+        | crr_chunks[0]:                 |
+        |     cr_crc: 0x7778abcd         |
+        |     cr_owner:                  |
         |         co_chunk_id: 4         |
         |         co_guard:              |
         |             cg_change_id: 3    |
         |             cg_client_id: 6    |
-        |     rc_payload_id: 1           |
-        |     rc_chunk: ....             |
+        |     cr_payload_id: 1           |
+        |     cr_chunk: ....             |
         +--------------------------------+
         </artwork>
       </figure>
@@ -1523,9 +1523,9 @@
           <sourcecode type='xdr'>
 /// struct ROLLBACK_CHUNK4args {
 ///     /* CURRENT_FH: file */
-///     offset4         rca_offset;
-///     count4          rca_count;
-///     chunk_owner4    rca_chunks&lt;&gt;;
+///     offset4         cra_offset;
+///     count4          cra_count;
+///     chunk_owner4    cra_chunks&lt;&gt;;
 /// };
           </sourcecode>
         </figure>
@@ -1536,16 +1536,16 @@
         <figure anchor='code_ROLLBACK_CHUNK4resok'>
           <sourcecode type='xdr'>
 /// struct ROLLBACK_CHUNK4resok {
-///     verifier4       rcr_writeverf;
+///     verifier4       crr_writeverf;
 /// };
           </sourcecode>
         </figure>
 
         <figure anchor='code_ROLLBACK_CHUNK4res'>
           <sourcecode type='xdr'>
-/// union ROLLBACK_CHUNK4res switch (nfsstat4 rcr_status) {
+/// union ROLLBACK_CHUNK4res switch (nfsstat4 crr_status) {
 ///     case NFS4_OK:
-///         ROLLBACK_CHUNK4resok   rcr_resok4;
+///         ROLLBACK_CHUNK4resok   crr_resok4;
 ///     default:
 ///         void;
 /// };
@@ -1564,95 +1564,95 @@
 
         <t>
           The main difference between the two operations is that ROLLBACK_CHUNK
-          works on blocks and not a raw data stream. As such rca_offset
+          works on blocks and not a raw data stream. As such cra_offset
           is the starting block offset in the file and not the byte
           offset in the file. Some erasure encoding types can have
           different block sizes depending on the
-          block type. Further, rca_count is a count of blocks to rollback
+          block type. Further, cra_count is a count of blocks to rollback
           and not bytes to rollback.
         </t>
         <t>
-          Further, while it may appear that the combination of rca_offset
-          and rca_count are redundant to rca_chunks, the purpose of
-          rca_chunks is to allow the data server to differentiate between
+          Further, while it may appear that the combination of cra_offset
+          and cra_count are redundant to cra_chunks, the purpose of
+          cra_chunks is to allow the data server to differentiate between
           potentially multiple pending blocks.
         </t>
 
         <t>
-          ROLLBACK_CHUNK deletes prior WRITE_CHUNK transactions. In case of write
+          ROLLBACK_CHUNK deletes prior CHUNK_WRITE transactions. In case of write
           holes, it allows the client to undo transactions to repair the file.
         </t>
       </section>
     </section>
 
-    <section anchor='WRITE_CHUNK' numbered='true' removeInRFC='false' toc='default'>
-      <name>Operation 81: WRITE_CHUNK - Write Blocks to File</name>
-      <section anchor='WRITE_CHUNK4args' numbered='true' removeInRFC='false' toc='exclude'>
+    <section anchor='CHUNK_WRITE' numbered='true' removeInRFC='false' toc='default'>
+      <name>Operation 81: CHUNK_WRITE - Write Blocks to File</name>
+      <section anchor='CHUNK_WRITE4args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
 
-        <figure anchor='code_wc_args_flags'>
+        <figure anchor='code_cw_args_flags'>
           <sourcecode type='xdr'>
-/// const WRITE_CHUNK_FLAGS_UPDATE_HEADER_ONLY   = 0x00000001;
-/// const WRITE_CHUNK_FLAGS_ACTIVATE_IF_EMPTY    = 0x00000002;
+/// const CHUNK_WRITE_FLAGS_UPDATE_HEADER_ONLY   = 0x00000001;
+/// const CHUNK_WRITE_FLAGS_ACTIVATE_IF_EMPTY    = 0x00000002;
           </sourcecode>
         </figure>
 
         <figure anchor='code_write_chunk4'>
           <sourcecode type='xdr'>
 /// struct write_chunk4 {
-///     uint32_t        wc_crc;
-///     uint32_t        wc_flags;
-///     opaque          wc_chunk&lt;&gt;;
+///     uint32_t        cw_crc;
+///     uint32_t        cw_flags;
+///     opaque          cw_chunk&lt;&gt;;
 /// };
           </sourcecode>
         </figure>
 
         <figure anchor='code_write_chunk_guard4'>
           <sourcecode type='xdr'>
-/// union write_chunk_guard4 (bool wcg_check) {
+/// union write_chunk_guard4 (bool cwg_check) {
 ///     case TRUE:
-///         chunk_guard4   wcg_guard;
+///         chunk_guard4   cwg_guard;
 ///     case FALSE:
 ///         void;
 /// };
           </sourcecode>
         </figure>
 
-        <figure anchor='code_WRITE_CHUNK4args'>
+        <figure anchor='code_CHUNK_WRITE4args'>
           <sourcecode type='xdr'>
-/// struct WRITE_CHUNK4args {
+/// struct CHUNK_WRITE4args {
 ///     /* CURRENT_FH: file */
-///     stateid4           wca_stateid;
-///     offset4            wca_offset;
-///     stable_how4        wca_stable;
-///     chunk_owner4       wca_owner;
-///     uint32_t           wca_payload_id;
-///     write_chunk_guard4 wca_guard;
-///     write_chunk4       wca_data&lt;&gt;;
+///     stateid4           cwa_stateid;
+///     offset4            cwa_offset;
+///     stable_how4        cwa_stable;
+///     chunk_owner4       cwa_owner;
+///     uint32_t           cwa_payload_id;
+///     write_chunk_guard4 cwa_guard;
+///     write_chunk4       cwa_data&lt;&gt;;
 /// };
           </sourcecode>
         </figure>
       </section>
 
-      <section anchor='WRITE_CHUNK4res' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='CHUNK_WRITE4res' numbered='true' removeInRFC='false' toc='exclude'>
         <name>RESULTS</name>
 
-        <figure anchor='code_WRITE_CHUNK4resok'>
+        <figure anchor='code_CHUNK_WRITE4resok'>
           <sourcecode type='xdr'>
-/// struct WRITE_CHUNK4resok {
-///     count4          wcr_count;
-///     stable_how4     wcr_committed;
-///     verifier4       wcr_writeverf;
-///     chunk_owner4    wcr_owners&lt;&gt;;
+/// struct CHUNK_WRITE4resok {
+///     count4          cwr_count;
+///     stable_how4     cwr_committed;
+///     verifier4       cwr_writeverf;
+///     chunk_owner4    cwr_owners&lt;&gt;;
 /// };
           </sourcecode>
         </figure>
 
-        <figure anchor='code_WRITE_CHUNK4res'>
+        <figure anchor='code_CHUNK_WRITE4res'>
           <sourcecode type='xdr'>
-/// union WRITE_CHUNK4res switch (nfsstat4 wcr_status) {
+/// union CHUNK_WRITE4res switch (nfsstat4 cwr_status) {
 ///     case NFS4_OK:
-///         WRITE_CHUNK4resok    wcr_resok4;
+///         CHUNK_WRITE4resok    cwr_resok4;
 ///     default:
 ///         void;
 /// };
@@ -1660,33 +1660,33 @@
         </figure>
       </section>
 
-      <section anchor='WRITE_CHUNK_desc' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='CHUNK_WRITE_desc' numbered='true' removeInRFC='false' toc='exclude'>
         <name>DESCRIPTION</name>
         <t>
-          WRITE_CHUNK is WRITE (see Section 18.32 of <xref target='RFC8881'
+          CHUNK_WRITE is WRITE (see Section 18.32 of <xref target='RFC8881'
           format='default' sectionFormat='of' />) with additional semantics
           over the chunk_owner and the activation of blocks. As such, all of
           the normal semantics of WRITE directly apply.
         </t>
         <t>
-          The main difference between the two operations is that WRITE_CHUNK
-          works on blocks and not a raw data stream. As such wca_offset
+          The main difference between the two operations is that CHUNK_WRITE
+          works on blocks and not a raw data stream. As such cwa_offset
           is the starting block offset in the file and not the byte
           offset in the file. Some erasure encoding types can have
           different block sizes depending on the
-          block type. Further, wcr_count is a count of written blocks
+          block type. Further, cwr_count is a count of written blocks
           and not written bytes.
         </t>
         <t>
-          If wca_stable is FILE_SYNC4, the
+          If cwa_stable is FILE_SYNC4, the
           data server <bcp14>MUST</bcp14> commit the written header and block data plus all file system metadata to
           stable storage before returning results.  This corresponds to the
           NFSv2 protocol semantics.  Any other behavior constitutes a protocol
-          violation.  If wca_stable is DATA_SYNC4, then the data server <bcp14>MUST</bcp14> commit all
+          violation.  If cwa_stable is DATA_SYNC4, then the data server <bcp14>MUST</bcp14> commit all
           of the header and block data  to stable storage and enough of the metadata to retrieve
           the data before returning.  The data server implementer is free to
           implement DATA_SYNC4 in the same fashion as FILE_SYNC4, but with a
-          possible performance drop.  If wca_stable is UNSTABLE4, the data server is
+          possible performance drop.  If cwa_stable is UNSTABLE4, the data server is
           free to commit any part of the header and  block data and the metadata to stable
           storage, including all or none, before returning a reply to the
           client.  There is no guarantee whether or when any uncommitted data
@@ -1706,7 +1706,7 @@
         </t>
         <ul>
           <li>
-            it is the first write to that block and the WRITE_CHUNK_FLAGS_ACTIVATE_IF_EMPTY flag is set
+            it is the first write to that block and the CHUNK_WRITE_FLAGS_ACTIVATE_IF_EMPTY flag is set
           </li>
           <li>
             the COMMIT_CHUNK is issued later for that block.
@@ -1715,16 +1715,16 @@
         <t>
           There are subtle interactions with write holes caused by racing
           clients. One client could win the race in each case, but because
-          it used a wca_stable of UNSTABLE4, the subsequent writes from
-          the second client with a wca_stable of FILE_SYNC4 can be awarded
+          it used a cwa_stable of UNSTABLE4, the subsequent writes from
+          the second client with a cwa_stable of FILE_SYNC4 can be awarded
           the co_activated being set to true for each of the blocks in
           the payload.
         </t>
         <t>
-          Finally, the interaction of wca_stable can cause a client to
+          Finally, the interaction of cwa_stable can cause a client to
           mistakenly believe that by the time it gets the response of
           co_activated of false, that the blocks are not activated. A
-          subsequent READ_CHUNK or READ_CHUNK_HEADER might show that
+          subsequent CHUNK_READ or HEADER_READ might show that
           the co_activated is true without any interaction by the client
           via COMMIT_CHUNK.
         </t>
@@ -1732,11 +1732,11 @@
         <section anchor='guarded_write' numbered='true' removeInRFC='false' toc='exclude'>
           <name>Guarding the Write</name>
           <t>
-            A guarded WRITE_CHUNK is when the writing of a block
-            <bcp14>MUST</bcp14> fail if wca_guard.wcg_check is set
+            A guarded CHUNK_WRITE is when the writing of a block
+            <bcp14>MUST</bcp14> fail if cwa_guard.cwg_check is set
             and the target chunk does not have both the same change_id
-            wca_guard.as the wcg_guard.cg_change_id and the same wca_guard.cg_change_id as the
-            wca_guard.wcg_guard.cg_change_id. This is useful in read-update-write
+            cwa_guard.as the cwg_guard.cg_change_id and the same cwa_guard.cg_change_id as the
+            cwa_guard.cwg_guard.cg_change_id. This is useful in read-update-write
             scenarios. The client reads a block, updates it, and
             is prepared to write it back. It guards the write such
             that if another writer has modified the block, the
@@ -1744,9 +1744,9 @@
           </t>
           <t>
             Note that as the chunk_guard4 (see <xref target='code_chunk_guard4' />
-            does not have a chunk_id and the WRITE_CHUNK applies
-            to all blocks in the range of wca_offset to the length
-            of wca_data, then each of the target blocks
+            does not have a chunk_id and the CHUNK_WRITE applies
+            to all blocks in the range of cwa_offset to the length
+            of cwa_data, then each of the target blocks
             <bcp14>MUST</bcp14> have the same cg_change_id and
             cg_client_id. The client <bcp14>SHOULD</bcp14> present
             the smallest set of blocks as possible to meet this
@@ -1758,7 +1758,7 @@
               Is the DS supposed to vet all blocks first or proceed to
               the first error? Or do all blocks and return an array
               of errors? (This last one is a no-go.) Also, if we do
-              the vet first, what happens if a WRITE_CHUNK comes in
+              the vet first, what happens if a CHUNK_WRITE comes in
               after the vetting? Are we to lock the file during this
               process. Even if we do that, we still have the issue
               of multiple DSes.
@@ -1787,14 +1787,14 @@
             modified blocks.
           </t>
           <t>
-            The WRITE_CHUNK_FLAGS_UPDATE_HEADER_ONLY flag in wc_flags
+            The CHUNK_WRITE_FLAGS_UPDATE_HEADER_ONLY flag in cw_flags
             can be used to save
             the transmission of the blocks. If it is set, then
-            the wc_chunk is ignored. It <bcp14>MUST</bcp14> be
+            the cw_chunk is ignored. It <bcp14>MUST</bcp14> be
             empty. Note that the client <bcp14>MUST</bcp14> only
-            modify both the wc_crc and the wca_owner.co_change_id
-            fields in this case. The wc_crc <bcp14>MUST</bcp14>
-            change as the wca_owner.co_change_id has been modified
+            modify both the cw_crc and the cwa_owner.co_change_id
+            fields in this case. The cw_crc <bcp14>MUST</bcp14>
+            change as the cwa_owner.co_change_id has been modified
             (see <xref target='calculating_crc' />).
           </t>
           <t>
