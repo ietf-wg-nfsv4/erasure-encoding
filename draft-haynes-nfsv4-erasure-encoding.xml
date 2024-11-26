@@ -814,6 +814,7 @@
                   +-------------+
         </artwork>
       </figure>
+
       <t>
         When reading chunks via a READ operation, the client will decode
         them into data blocks as shown in
@@ -1293,7 +1294,7 @@
       <tbody>
         <tr> <td>CHUNK_COMMIT</td> <td>77</td> <td><xref target='CHUNK_COMMIT' /></td> </tr>
         <tr> <td>CHUNK_READ</td> <td>78</td> <td><xref target='CHUNK_READ' /></td> </tr>
-        <tr> <td>CHUBK_SWAP</td> <td>79</td> <td><xref target='CHUNK_READ' /></td> </tr>
+        <tr> <td>CHUNK_SWAP</td> <td>79</td> <td><xref target='CHUNK_READ' /></td> </tr>
         <tr> <td>CHUNK_UNLOCK</td> <td>80</td> <td><xref target='CHUNK_READ' /></td> </tr>
         <tr> <td>CHUNK_WRITE</td> <td>81</td> <td><xref target='CHUNK_WRITE' /></td> </tr>
         <tr> <td>CHUNK_WRITE_SWAP_GUARD</td> <td>82</td> <td><xref target='CHUNK_WRITE' /></td> </tr>
