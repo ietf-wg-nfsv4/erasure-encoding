@@ -880,12 +880,6 @@
     </section>
   </section>
 
-  <section anchor='reserving_write_intent' numbered='true' removeInRFC='false' toc='default'>
-    <name>Reserving Writes</name>
-    <t>
-    </t>
-  </section>
-
   <section anchor='errors' numbered='true' removeInRFC='false' toc='default'>
     <name>New NFSv4.2 Error Values</name>
     <figure anchor='code_errors'>
