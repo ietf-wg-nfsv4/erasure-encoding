@@ -617,7 +617,7 @@
       Note, the erasure encoding algorithm itelf might not be sufficient
       to detect errors in the chunks. The crc32 checks will allow
       the data server to detect chunks with issues and then the
-      erasre decoding algorithm can reconstruct the missing chunk.
+      erasure decoding algorithm can reconstruct the missing chunk.
     </t>
 
     <section anchor='sec_encoding_transformation' numbered='true' removeInRFC='false' toc='default'>
