@@ -970,6 +970,13 @@
         needs guarded writes to prevent over writes and it does need the
         ability to rollback writes.
       </t>
+      <t>
+        In both modes, clients <bcp14>MUST NOT</bcp14> overwrite payloads
+        which already contain inconsistency. This directly follows from
+        <xref target='sec_reading' /> and <bcp14>MUST</bcp14> be handled
+        as discussed there. Once consistency in the payload has been
+        detected, the client can use those chunks as a basis for read/modify/update.
+      </t>
       <section>
         <name>Client File for Swapping Chunks</name>
         <t>
@@ -1013,6 +1020,76 @@
           recalls the layout and the subsequent LAYOUTGET returns the
           FFV2_FLAGS_ONLY_ONE_WRITER as being not set.
         </t>
+        <section anchor='sec_sw_repair' numbered='true' removeInRFC='false' toc='default'>
+          <name>Repairing Single Writer Payloads</name>
+          <t>
+            The corruption which occurs is a mixture of new chunks and old chunks
+            in the payload. If the client_ids do not match, then the chunks
+            with the non-matching id are the old chunks and the ones with
+            the same client_id are the new chunks. If the client_ids match,
+            then the ones with the smaller change_id are the old chunks,
+            and the ones with the larger change_id are the new chunks. Note
+            that due to the way change_ids are generated, this comparison
+            is only valid for about 49.7 days before the values wrap.
+          </t>
+          <t>
+            The write hole scenarios that can occur with the single writer are:
+          </t>
+          <ol newline='false' spacing='normal'>
+            <li>The client restarts after it has sent M of the N CHUNK_WRITE_SWAP.</li>
+            <li>The data server does not receive the CHUNK_WRITE_SWAP.</li>
+            <li>The data server does not reply to the CHUNK_WRITE_SWAP, the client has a FFV2_DS_FLAGS_SPARE, it writes to it, and then the original data server responds.</li>
+            <li>Any combination of the above occuring at the same time.</li>
+          </ol>
+
+          <t>
+            When the client restarts in the middle of the parallel writes
+            to the data servers, the original client might not be the
+            one which discovers the write hole. It may be the metadata
+            server has tasked a client to scan for write holes after
+            it detected that the original client restarted. As such,
+            the repair client would be using HEADER_READ to determine
+            there was a write hole for this chunk in the payload. The
+            repair action here depends on whether there are enough
+            new chunks in the payload for the client to decode the
+            data block. If there are, then the old chunks can be
+            erased. If there are not, then the new chunks are
+            rolled back via CHUNK_SWAP.
+          </t>
+          <t>
+            If the data server never receives the write, either the data server was partitioned
+            or temporarily down (rebooting or administrative action).
+            If a FFV2_DS_FLAGS_SPARE data server was made available
+            to the client, then the repair action it to write the chunk
+            to a spare. If there are not enough spares available to get consistency,
+            then the repair option is to rollback the written chunks via CHUNK_SWAP.
+          </t>
+          <t>
+            If there are a FFV2_DS_FLAGS_ACTIVE and a FFV2_DS_FLAGS_SPARE data
+            servers with the same chunk (their payload_ids match), then the repair
+            action is to remove the chunk from the FFV2_DS_FLAGS_SPARE
+            data server. The reason this <bcp14>MUST</bcp14> be done is that
+            an overwrite would only go to the FFV2_DS_FLAGS_ACTIVE data server,
+            which might cause a client to get confused when there are two
+            different chunks with the same payload_id. The client <bcp14>SHOULD</bcp14>
+            be able to figure this out, but a double failure might complicate
+            the subsequent repair of the payload.
+          </t>
+          <t>
+            If there are multiple failures of client and data server restarts, the
+            repair client will determine if their is consistency in the payload, in
+            which case it may decide to make no changes, or if not, then it rolls
+            back the chunks via CHUNK_SWAP.
+          </t>
+          <t>
+            <cref anchor='AI45' source='TH'>
+              And every subsequent CHUNK_READ will report an error, leading
+              to much hand wrangling and little progress. Do we hole punch
+              the ones that are not there? Or just rollback in either case
+              here?
+            </cref>
+          </t>
+        </section>
       </section>
       <section>
         <name>Mutliple Writer Mode</name>
@@ -1067,8 +1144,8 @@
           FFV2_FLAGS_ONLY_ONE_WRITER as being set.
         </t>
       </section>
-        <section anchor='sec_repair' numbered='true' removeInRFC='false' toc='default'>
-          <name>Repairing Payloads</name>
+        <section anchor='sec_mw_repair' numbered='true' removeInRFC='false' toc='default'>
+          <name>Repairing Multiple Writer Payloads</name>
           <t>
             When writing chunks, the write either succeeds for the client or fails. If
             all chunk writes in the payload succeed for the client, then it can delete the old chunks
