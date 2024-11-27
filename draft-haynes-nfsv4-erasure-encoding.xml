@@ -131,7 +131,7 @@
         <dd>
           One of the resulting chunks to be exchanged with a data
           server after a transformation has been applied to
-          a data block. Note that the resulting chunk
+          a data block. The resulting chunk
           may be a different size than the data block.
         </dd>
 
@@ -361,7 +361,7 @@
         concerned. The client <bcp14>MUST</bcp14> repair the file by using
         RESERVE on the entire length of the file and both decoding the existing
         data from the file and recoding the new data on the indicated data
-        server. Note that whilst all data servers <bcp14>MUST</bcp14> be reserved,
+        server. Whilst all data servers <bcp14>MUST</bcp14> be reserved,
         only the data server(s) to be repaired <bcp14>MUST</bcp14> have the RESERVE_SWAP
         operation applied. The remaining data servers can have their reservation
         files dropped via RESERVE_RELEASE.
@@ -490,7 +490,7 @@
     <section anchor='sec_mix_types' numbered='true' removeInRFC='false' toc='default'>
       <name>Mixing of Encoding Types</name>
       <t>
-        Note that effectively, multiple encoding types can be present
+        Multiple encoding types can be present
         in a Flexible File Version 2 Layout Type layout.  The ffv2_layout4 has an array
         of ffv2_mirror4, each of which has a ffv2_encoding_type4.
         The main reason to allow for this is to provide for either the
@@ -614,7 +614,7 @@
       and the combinations of headers and chunks all pass the crc32 checks.
     </t>
     <t>
-      Note, the erasure encoding algorithm itelf might not be sufficient
+      The erasure encoding algorithm itelf might not be sufficient
       to detect errors in the chunks. The crc32 checks will allow
       the data server to detect chunks with issues and then the
       erasure decoding algorithm can reconstruct the missing chunk.
@@ -822,7 +822,7 @@
       </t>
 
       <t>
-        Note that at this time, the
+        At this time, the
         client could detect issues in the integrity of the data. The handling
         and repair are out of the scope of this document and <bcp14>MUST</bcp14>
         be addressed in the document describing each erasure encoding type.
@@ -1451,7 +1451,7 @@
           The second data server responds as in <xref target='example_CHUNK_READ4res_1' />.
           The client would read this as there is valid data for blocks 2 and
           4, there is a hole at block 3, and there is no data for block 5.
-          Note that the data server <bcp14>MUST</bcp14> calculate a valid
+          The data server <bcp14>MUST</bcp14> calculate a valid
           cr_crc for block 3 based on the generated fields.
         </t>
 
@@ -1785,7 +1785,7 @@
             data server will reject the modification.
           </t>
           <t>
-            Note that as the chunk_guard4 (see <xref target='code_chunk_guard4' />
+            As the chunk_guard4 (see <xref target='code_chunk_guard4' />
             does not have a chunk_id and the CHUNK_WRITE applies
             to all blocks in the range of cwa_offset to the length
             of cwa_data, then each of the target blocks
@@ -1833,7 +1833,7 @@
             can be used to save
             the transmission of the blocks. If it is set, then
             the cw_chunk is ignored. It <bcp14>MUST</bcp14> be
-            empty. Note that the client <bcp14>MUST</bcp14> only
+            empty. The client <bcp14>MUST</bcp14> only
             modify both the cw_crc and the cwa_owner.co_change_id
             fields in this case. The cw_crc <bcp14>MUST</bcp14>
             change as the cwa_owner.co_change_id has been modified
@@ -1967,7 +1967,7 @@
           Note that such means are beyond the scope of this document.
         </t>
         <t>
-          Note that whilst RESERVE is presented in terms of pNFS and
+          Whilst RESERVE is presented in terms of pNFS and
           the Flexible File Version 2 Layout Type, nothing prevents it
           from being used with non-pNFS servers. I.e., RESERVE is
           not aware of the parallel aspect, it is the metadata server
@@ -1995,7 +1995,7 @@
           result in an error of NFS4ERR_RESERVATION_FILE.
         </t>
         <t>
-          Note that the entire file can be reserved with ra_offset being 0
+          The entire file can be reserved with ra_offset being 0
           and ra_length being NFS4_UINT64_MAX. This also allows for
           appending data to an existing file. The server <bcp14>MUST</bcp14> return
           NFS4ERR_INVAL under the following combinations of ra_length and ra_offset:
@@ -2073,8 +2073,8 @@
         <t>
           The result is an array of rollback_info4 (see <xref target='code_rollback_info4' />).
           The ri_client_id allows the metadata
-          server to determine which reservations belonged to a dead client. Note that
-          the ffv2_key4 associated with the reservation file <bcp14>MUST NOT</bcp14>
+          server to determine which reservations belonged to a dead client.
+          The ffv2_key4 associated with the reservation file <bcp14>MUST NOT</bcp14>
           be sent back in the results.
         </t>
       </section>
