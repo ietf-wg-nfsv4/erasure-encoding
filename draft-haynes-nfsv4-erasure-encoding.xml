@@ -471,7 +471,7 @@
           The ffv2_key4 (in <xref target='code_ffv2_key4' />) is a secret key known
           only to the metadata server, data server, and client. In the event of
           either a data server restart or a dead client, it can be used to
-          restablish a connection via ROLLBACK_OPEN_RECOVER.
+          restablish a connection via ROLLBACK_OPEN.
         </t>
       </section>
 
@@ -1489,9 +1489,9 @@
       </t>
       <t>
         If the data server sets EXCHGID4_FLAG_USE_ERASURE_DS during the
-        EXCHANGE_ID operation, then it <bcp14>MUST</bcp14> support:
-        ROLLBACK_OPEN, ROLLBACK_LIST, ROLLBACK_OPEN_RECOVER, ROLLBACK_CLOSE,
-        and ROLLBACK_OPEN_SWAP. Further, note that this support is
+        EXCHANGE_ID operation, then it <bcp14>MUST</bcp14> support
+        all of the operations in <xref target='tbl_op_defs' />.
+        Further, this support is
         orthogonal to the Erasure Encoding Type selected. The
         data server is unaware of which type is driving the I/O.
       </t>
