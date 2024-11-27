@@ -1018,8 +1018,12 @@
         </dl>
 
         <t>
-          It then returns
-          the chunk owners for the chunks in the data file. The old chunks
+          CHUNK_WRITE_SWAP_GUARD does not return any error in the case
+          that any one of the chunks it writes fails due to either of
+          the above criteria. It simply returns
+          the chunk owners for the chunks in the data file. The client can
+          easily infer that a specfic chunk is locked if the guard did
+          not change on that chunk. The old chunks
           stay in the client file either until overwritten or deleted. The
           issue with keeping them indefinitely comes about during the repair
           process when the client will have to consider all such chunks as
