@@ -830,7 +830,7 @@
           <t>
             Assuming the header and payload as in <xref target='crc_before_calc' />,
             the crc32 needs to be calculated in order to fill in the cw_crc field. In this
-            case, the crc32 is calculated over the 3 fields as shown in the
+            case, the crc32 is calculated over the 4 fields as shown in the
             header and the cw_chunk. In this example, it is calculated
             to be 0x21de8. The resulting CHUNK_WRITE is shown in <xref target='crc_after_calc' />.
           </t>
@@ -926,7 +926,7 @@
             Assuming the CHUNK_READ results as in <xref target='crc_on_wire' />,
             the crc32 needs to be checked in order to ensure data integrity. Conceptually,
             a header and payload can be built as shown in <xref target='crc_checking' />.
-            The crc32 is calculated over the 3 fields as shown in the
+            The crc32 is calculated over the 4 fields as shown in the
             header and the cr_chunk. In this example, it is calculated
             to be 0x21de8. Thus this payload for the data server has data integrity.
           </t>
