@@ -1233,6 +1233,35 @@
         </t>
       </section>
 
+      <section anchor='sec_whole_file_repair' numbered='true' removeInRFC='false' toc='default'>
+        <name>Whole File Repair</name>
+        <t>
+          <cref anchor='AI46' source='TH'>
+            Describe how a repair client can be assigned with missing
+            FFV2_DS_FLAGS_ACTIVE data servers and a number of
+            FFV2_DS_FLAGS_REPAIR data servers. Then the client will
+            either move chunks from FFV2_DS_FLAGS_SPARE data servers
+            to the FFV2_DS_FLAGS_REPAIR data servers or reconstruct
+            the chunks for the FFV2_DS_FLAGS_REPAIR based on the
+            decoded data blocks, The client indicates success by returning
+            the layout.
+          </cref>
+        </t>
+        <t>
+          <cref anchor='AI47' source='TH'>
+            For a slam dunk, introduce the concept of a proxy
+            repair client. I.e., the client appears as a single
+            FFV2_ENCODING_MIRRORED file to other clients. As it
+            receives WRITEs, it encodes them to the real
+            set of data servers. As it receives READs, it
+            decodes them from the real set of data servers.
+            Once the proxy repair is finished, the metadata
+            server will start pushing out layouts for the
+            real set of data servers.
+          </cref>
+        </t>
+      </section>
+
     </section>
 
     <section anchor='errors' numbered='true' removeInRFC='false' toc='default'>
@@ -1618,17 +1647,18 @@
 ///  OP_CHUNK_ERROR         = 78,
 ///  OP_CHUNK_LOCK          = 79,
 ///  OP_CHUNK_READ          = 80,
-///  OP_CHUNK_SWAP          = 81,
-///  OP_CHUNK_UNLOCK        = 82,
-///  OP_CHUNK_WRITE         = 83,
-///  OP_CHUNK_WRITE_SWAP    = 84,
-///  OP_CHUNK_WRITE_SWAP_GUARD = 85,
-///  OP_GUARD_SWAP          = 86,
-///  OP_HEADER_READ         = 87,
-///  OP_ROLLBACK_CLOSE      = 88,
-///  OP_ROLLBACK_LIST       = 89,
-///  OP_ROLLBACK_OPEN       = 90,
-///  OP_SWAP                = 91,
+///  OP_CHUNK_REPAIRED      = 81,
+///  OP_CHUNK_SWAP          = 82,
+///  OP_CHUNK_UNLOCK        = 83,
+///  OP_CHUNK_WRITE         = 84,
+///  OP_CHUNK_WRITE_SWAP    = 85,
+///  OP_CHUNK_WRITE_SWAP_GUARD = 86,
+///  OP_GUARD_SWAP          = 87,
+///  OP_HEADER_READ         = 88,
+///  OP_ROLLBACK_CLOSE      = 89,
+///  OP_ROLLBACK_LIST       = 90,
+///  OP_ROLLBACK_OPEN       = 91,
+///  OP_SWAP                = 92,
 ///
         </sourcecode>
       </figure>
@@ -1649,17 +1679,18 @@
           <tr> <td>CHUNK_ERROR</td> <td>78</td> <td>MDS</td> <td><xref target='CHUNK_READ' /></td> </tr>
           <tr> <td>CHUNK_LOCK</td> <td>79</td> <td>DS</td> <td><xref target='CHUNK_READ' /></td> </tr>
           <tr> <td>CHUNK_READ</td> <td>80</td> <td>DS</td> <td><xref target='CHUNK_READ' /></td> </tr>
-          <tr> <td>CHUNK_SWAP</td> <td>81</td> <td>DS</td> <td><xref target='CHUNK_READ' /></td> </tr>
-          <tr> <td>CHUNK_UNLOCK</td> <td>82</td> <td>DS</td> <td><xref target='CHUNK_READ' /></td> </tr>
-          <tr> <td>CHUNK_WRITE</td> <td>83</td> <td>DS</td> <td><xref target='CHUNK_WRITE' /></td> </tr>
-          <tr> <td>CHUNK_WRITE_SWAP</td> <td>84</td> <td>DS</td> <td><xref target='CHUNK_WRITE' /></td> </tr>
-          <tr> <td>CHUNK_WRITE_SWAP_GUARD</td> <td>DS</td> <td>85</td> <td><xref target='CHUNK_WRITE' /></td> </tr>
-          <tr> <td>GUARD_SWAP</td> <td>86</td> <td>DS</td> <td><xref target='CHUNK_WRITE' /></td> </tr>
-          <tr> <td>HEADER_READ</td> <td>87</td> <td>DS</td> <td><xref target='HEADER_READ' /></td> </tr>
-          <tr> <td>ROLLBACK_CLOSE</td> <td>88</td> <td>DS</td> <td><xref target='ROLLBACK_LIST' /></td> </tr>
-          <tr> <td>ROLLBACK_LIST</td> <td>89</td> <td>DS</td> <td><xref target='ROLLBACK_LIST' /></td> </tr>
-          <tr> <td>ROLLBACK_OPEN</td> <td>90</td> <td>DS</td> <td><xref target='ROLLBACK_LIST' /></td> </tr>
-          <tr> <td>SWAP</td> <td>91</td> <td>non-pNFS, MDS, DS</td> <td><xref target='ROLLBACK_LIST' /></td> </tr>
+          <tr> <td>CHUNK_REPAIRED</td> <td>81</td> <td>MDS</td> <td><xref target='CHUNK_READ' /></td> </tr>
+          <tr> <td>CHUNK_SWAP</td> <td>82</td> <td>DS</td> <td><xref target='CHUNK_READ' /></td> </tr>
+          <tr> <td>CHUNK_UNLOCK</td> <td>83</td> <td>DS</td> <td><xref target='CHUNK_READ' /></td> </tr>
+          <tr> <td>CHUNK_WRITE</td> <td>84</td> <td>DS</td> <td><xref target='CHUNK_WRITE' /></td> </tr>
+          <tr> <td>CHUNK_WRITE_SWAP</td> <td>85</td> <td>DS</td> <td><xref target='CHUNK_WRITE' /></td> </tr>
+          <tr> <td>CHUNK_WRITE_SWAP_GUARD</td> <td>DS</td> <td>86</td> <td><xref target='CHUNK_WRITE' /></td> </tr>
+          <tr> <td>GUARD_SWAP</td> <td>87</td> <td>DS</td> <td><xref target='CHUNK_WRITE' /></td> </tr>
+          <tr> <td>HEADER_READ</td> <td>88</td> <td>DS</td> <td><xref target='HEADER_READ' /></td> </tr>
+          <tr> <td>ROLLBACK_CLOSE</td> <td>89</td> <td>DS</td> <td><xref target='ROLLBACK_LIST' /></td> </tr>
+          <tr> <td>ROLLBACK_LIST</td> <td>90</td> <td>DS</td> <td><xref target='ROLLBACK_LIST' /></td> </tr>
+          <tr> <td>ROLLBACK_OPEN</td> <td>91</td> <td>DS</td> <td><xref target='ROLLBACK_LIST' /></td> </tr>
+          <tr> <td>SWAP</td> <td>92</td> <td>non-pNFS, MDS, DS</td> <td><xref target='ROLLBACK_LIST' /></td> </tr>
         </tbody>
       </table>
 
