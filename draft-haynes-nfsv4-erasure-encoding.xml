@@ -751,15 +751,12 @@
         |            co_guard:               |
         |                cg_change_id: 3     |
         |                cg_client_id: 6     |
-        | cwa_chunk[0]:                      |
-        |            cw_crc    :  0x32ef89   |
-        |            cw_chunk  :  ......     |
-        | cwa_chunk[1]:                      |
-        |            cw_crc    :  0x56fa89   |
-        |            cw_chunk  :  ......     |
-        | cwa_chunk[2]:                      |
-        |            cw_crc    :  0x7693af   |
-        |            cw_chunk  :  ......     |
+        | cwa_chunk_size  :  1048            |
+        | cwa_crc32s:                        |
+        |         [0]:  0x32ef89             |
+        |         [1]:  0x56fa89             |
+        |         [2]:  0x7693af             |
+        | cwa_chunks  :  ......              |
         +------------------------------------+
           </artwork>
         </figure>
@@ -768,8 +765,9 @@
           This describes a 3 block write of data from an offset of 1 block in the file.
           As each block shares the cwa_owner, it is only
           presented once. I.e., the data server will be able to construct the
-          header for each cwa_chunk from the cwa_payload_id, cwa_owner,
-          and cw_crc.
+          header for the i'th chunk from the cwa_chunks from the cwa_payload_id, the cwa_owner,
+          and the i'th crc32 from the cw_crc32s. The cwa_chunks are sent together
+          as a byte stream to increase performance.
         </t>
 
         <t>
@@ -838,21 +836,22 @@
           <figure anchor='crc_after_calc'>
             <name>CRC32 After Calculation</name>
             <artwork>
-        +-----------------------------------+
-        | CHUNK_WRITEargs                   |
-        +-----------------------------------+
-        | cwa_stateid: 0                    |
-        | cwa_offset: 1                     |
-        | cwa_stable: FILE_SYNC4            |
-        | cwa_payload_id: 0                 |
-        | cwa_owner:                        |
-        |        co_guard:                  |
-        |          cg_change_id: 7          |
-        |          cg_client_id: 6          |
-        | cwa_chunk[0]:                     |
-        |        cw_crc    :  0x21de8       |
-        |        cw_chunk  :  ......        |
-        +-----------------------------------+
+        +------------------------------------+
+        | CHUNK_WRITEargs                    |
+        +------------------------------------+
+        | cwa_stateid: 0                     |
+        | cwa_offset: 1                      |
+        | cwa_stable: FILE_SYNC4             |
+        | cwa_payload_id: 0                  |
+        | cwa_owner:                         |
+        |            co_guard:               |
+        |                cg_change_id: 7     |
+        |                cg_client_id: 6     |
+        | cwa_chunk_size  :  1048            |
+        | cwa_crc32s:                        |
+        |         [0]:  0x21de8              |
+        | cwa_chunks  :  ......              |
+        +------------------------------------+
             </artwork>
           </figure>
         </section>
@@ -2024,24 +2023,6 @@
         <name>Operation 81: CHUNK_WRITE - Write Chunks to File</name>
         <section anchor='CHUNK_WRITE4args' numbered='true' removeInRFC='false' toc='exclude'>
           <name>ARGUMENTS</name>
-
-          <figure anchor='code_cw_args_flags'>
-            <sourcecode type='xdr'>
-/// const CHUNK_WRITE_FLAGS_UPDATE_HEADER_ONLY   = 0x00000001;
-/// const CHUNK_WRITE_FLAGS_ACTIVATE_IF_EMPTY    = 0x00000002;
-            </sourcecode>
-          </figure>
-
-          <figure anchor='code_write_chunk4'>
-            <sourcecode type='xdr'>
-/// struct write_chunk4 {
-///     uint32_t        cw_crc;
-///     uint32_t        cw_flags;
-///     opaque          cw_chunk&lt;&gt;;
-/// };
-            </sourcecode>
-          </figure>
-
           <figure anchor='code_write_chunk_guard4'>
             <sourcecode type='xdr'>
 /// union write_chunk_guard4 (bool cwg_check) {
@@ -2063,7 +2044,9 @@
 ///     chunk_owner4       cwa_owner;
 ///     uint32_t           cwa_payload_id;
 ///     write_chunk_guard4 cwa_guard;
-///     write_chunk4       cwa_data&lt;&gt;;
+///     uint32_t           cwa_chunk_size;
+///     uint32_t           cwa_crc32s&lt;&gt;;
+///     opaque             cwa_chunks&lt;&gt;;
 /// };
             </sourcecode>
           </figure>
@@ -2198,46 +2181,6 @@
                 process. Even if we do that, we still have the issue
                 of multiple DSes.
               </cref>
-            </t>
-          </section>
-
-          <section anchor='update_header' numbered='true' removeInRFC='false' toc='exclude'>
-            <name>Updating the Header Only</name>
-            <t>
-              Some erasure encoding types keep their blocks in plain text and
-              have parity blocks in order to provide integrity. A common
-              configuration for Reed Solomon is 4 active blocks, 2
-              parity blocks, and 2 spares. Assuming 4kB data blocks,
-              then each payload delivers 16kB of data and 8kB of parity.
-              If the application modifies the first data block, then
-              all that needs to change is the first active block and the
-              two parity blocks in the payload.
-            </t>
-            <t>
-              In any other approach, only 12kB of the total 24kB has to
-              be written to storage. If that is attempted in the Flexible
-              Files Version 2 Layout Type, then the payload will be deemed
-              as inconsistent. The reason for this is that the change_id
-              for the unmodified blocks will not match those of the
-              modified blocks.
-            </t>
-            <t>
-              The CHUNK_WRITE_FLAGS_UPDATE_HEADER_ONLY flag in cw_flags
-              can be used to save
-              the transmission of the blocks. If it is set, then
-              the cw_chunk is ignored. It <bcp14>MUST</bcp14> be
-              empty. The client <bcp14>MUST</bcp14> only
-              modify both the cw_crc and the cwa_owner.co_change_id
-              fields in this case. The cw_crc <bcp14>MUST</bcp14>
-              change as the cwa_owner.co_change_id has been modified
-              (see <xref target='calculating_crc' />).
-            </t>
-            <t>
-              For the
-              purpose of computing the activation state of the block,
-              The data server <bcp14>MUST</bcp14> treat this as
-              an overwrite. Thus, in the response, co_activated
-              <bcp14>MUST</bcp14> be false.
             </t>
           </section>
         </section>
