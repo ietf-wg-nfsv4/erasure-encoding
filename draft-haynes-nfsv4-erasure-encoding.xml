@@ -624,6 +624,32 @@
     </section>
   </section>
 
+  <section anchor='sec_NFSv42_ops_to_data_file' numbered='true' removeInRFC='false' toc='default'>
+    <name>NFSv4.2 Operations Allowed to Data Files</name>
+        <t>
+          <cref anchor='AI42' source='TH'>
+            In Flexible File Version 1 Layout Type, the emphasis was on
+            NFSv3 DSes. We limited the operations that clients could
+            send to data files to be COMMIT, READ, and WRITE. We
+            further limited the MDS to GETATTR, SETATTR, CREATE,
+            and REMOVE. (Funny enough, this is not mandated by
+            <xref target='RFC8435' />.) We need to call this
+            out in this draft and also we need to limit the
+            NFSv4.2 operations. Besides the ones created here,
+            consider: READ, WRITE, and COMMIT for mirroring types and
+            ALLOCATE, CLONE, COPY, DEALLOCATE, GETFH, PUTFH,
+            READ_PLUS, RESTOREFH, SAVEFH, SEEK, and SEQUENCE  for all types.
+          </cref>
+          <cref anchor='AI43' source='TH'>
+            Of special merit is SETATTR. Do we want to allow the clients
+            to be able to truncate the data files? Which also brings up
+            DEALLOCATE. Perhaps we want CHUNK_DEALLOCATE? That way we
+            can swap out chunks with the client file. CHUNK_DEALLOCATE_GUARD.
+            Really need to determine capabilities of XFS swap!
+          </cref>
+        </t>
+  </section>
+
   <section anchor='sec_erasure_encoding' numbered='true' removeInRFC='false' toc='default'>
     <name>Erasure Encoding</name>
     <t>
@@ -1023,8 +1049,14 @@
           the above criteria. It simply returns
           the chunk owners for the chunks in the data file. The client can
           easily infer that a specfic chunk is locked if the guard did
-          not change on that chunk. The old chunks
-          stay in the client file either until overwritten or deleted. The
+          not change on that chunk. Once a client determines that a chunk
+          is locked, it <bcp14>MUST NOT</bcp14> rewrite to that chunk unless
+          it has been informed by the metadata server via CB_CHUNK_REPAIR to repair the chunk
+          or by inspection via HEADER_READ it determines that the locking
+          state is gone.
+        </t>
+        <t>
+          The old chunks stay in the client file either until overwritten or deleted. The
           issue with keeping them indefinitely comes about during the repair
           process when the client will have to consider all such chunks as
           possibly needing repair.
@@ -1035,6 +1067,68 @@
           FFV2_FLAGS_ONLY_ONE_WRITER as being set.
         </t>
       </section>
+        <section anchor='sec_repair' numbered='true' removeInRFC='false' toc='default'>
+          <name>Repairing Payloads</name>
+          <t>
+            When writing chunks, the write either succeeds for the client or fails. If
+            all chunk writes in the payload succeed for the client, then it can delete the old chunks
+            out of the swap file. If all chunk writes in the payload fail for the
+            client, then it if it knows the data block is entirely new data that it
+            can abandon the write attempt or retry with an overwrite. If it knows
+            that the data block update was a partial update, then it can re-read the
+            chunks from the data server and attempt to rewrite the chunks. In any
+            of these cases, the failure <bcp14>MUST</bcp14> be reported to the
+            metadata server via CHUNK_ERROR. Even though the clients can easily
+            determine the winner, there are two scenarios which can lead to deadlock
+            in the repair process:
+          </t>
+
+          <dl newline='false' spacing='normal'>
+            <dt>winning client restarts or permamently goes away:</dt>
+            <dd>
+              If the clients all determine that the lowest or highest winning
+              client_id is the one to repair the chunks, then if it
+              restarts or permamently goes away, the other clients will
+              be stuck waiting for it to act.
+            </dd>
+            <dt>winning client is unaware of locked chunks:</dt>
+            <dd>
+              If the winning client succeed in writing all chunks in the payload,
+              and another client failed against each guarded write, then the
+              winning client is unaware that the chunks are locked. And while
+              the losing clients could detect the consistency and attempt
+              to CHUNK_UNLOCK the chunk, that client could restart or go away
+              permamently.
+            </dd>
+          </dl>
+
+          <t>
+            Once the metadata server gets the CHUNK_ERROR, it selects a client
+            to repair the chunk. It sends a CB_CHUNK_REPAIR, which contains
+            both a client_id and a key to use whilst repairing the chunk.
+            It will use these values to override what it gets back in the
+            LAYOUTGET. The client then uses CHUNK_SWAP(unlock) from the client
+            file of the winner to get a consistent payload. If all chunks
+            are already consistent, then it CHUNK_UNLOCKs all the chunks
+            to release the lock.
+          </t>
+          <t>
+            <cref anchor='AI44' source='TH'>
+              client_id and key for each chunk? I.e., it can repair many?
+            </cref>
+          </t>
+          <t>
+            If the metadata server detects that the client restarts, then
+            it reissues the CB_CHUNK_REPAIR to either that client when it
+            comes back online or to any other client.
+          </t>
+          <t>
+            All clients which have detected the inconsistency can determine
+            when they can start accessing the chunk via HEADER_READ. Once
+            the lock goes away, the clients can CHUNK_READ the chunk to
+            decide if they are going to update the chunk.
+          </t>
+        </section>
     </section>
 
     <section anchor='sec_reading' numbered='true' removeInRFC='false' toc='default'>
@@ -1058,11 +1152,6 @@
       </t>
     </section>
 
-    <section anchor='sec_repair' numbered='true' removeInRFC='false' toc='default'>
-      <name>Repairing Payloads</name>
-      <t>
-      </t>
-    </section>
   </section>
 
   <section anchor='errors' numbered='true' removeInRFC='false' toc='default'>
@@ -1228,7 +1317,7 @@
         </thead>
         <tbody>
           <tr>
-            <td>CB_ROLLBACK_OPEN_REPAIR</td>
+            <td>CB_CHUNK_REPAIR</td>
             <td>
               NFS4ERR_BADXDR,
               NFS4ERR_BAD_STATEID, NFS4ERR_DEADSESSION, NFS4ERR_DELAY,
@@ -1263,7 +1352,7 @@
           <tr>
             <td>NFS4ERR_ENCODING_NOT_SUPPORTED</td>
             <td>
-              CB_ROLLBACK_OPEN_REPAIR, LAYOUTGET
+              CB_CHUNK_REPAIR, LAYOUTGET
             </td>
           </tr>
           <tr>
@@ -1445,19 +1534,20 @@
 /// /* New operations for Erasure Encoding start here */
 ///
 ///  OP_CHUNK_COMMIT        = 77,
-///  OP_CHUNK_LOCK          = 78,
-///  OP_CHUNK_READ          = 79,
-///  OP_CHUNK_SWAP          = 80,
-///  OP_CHUNK_UNLOCK        = 81,
-///  OP_CHUNK_WRITE         = 82,
-///  OP_CHUNK_WRITE_SWAP    = 83,
-///  OP_CHUNK_WRITE_SWAP_GUARD = 84,
-///  OP_GUARD_SWAP          = 85,
-///  OP_HEADER_READ         = 86,
-///  OP_ROLLBACK_CLOSE      = 87,
-///  OP_ROLLBACK_LIST       = 88,
-///  OP_ROLLBACK_OPEN       = 89,
-///  OP_SWAP                = 90,
+///  OP_CHUNK_ERROR         = 78,
+///  OP_CHUNK_LOCK          = 79,
+///  OP_CHUNK_READ          = 80,
+///  OP_CHUNK_SWAP          = 81,
+///  OP_CHUNK_UNLOCK        = 82,
+///  OP_CHUNK_WRITE         = 83,
+///  OP_CHUNK_WRITE_SWAP    = 84,
+///  OP_CHUNK_WRITE_SWAP_GUARD = 85,
+///  OP_GUARD_SWAP          = 86,
+///  OP_HEADER_READ         = 87,
+///  OP_ROLLBACK_CLOSE      = 88,
+///  OP_ROLLBACK_LIST       = 89,
+///  OP_ROLLBACK_OPEN       = 90,
+///  OP_SWAP                = 91,
 ///
       </sourcecode>
     </figure>
@@ -1469,24 +1559,26 @@
         <tr>
           <th>Operation</th>
           <th>Number</th>
+          <th>Target Server</th>
           <th>Description</th>
         </tr>
       </thead>
       <tbody>
-        <tr> <td>CHUNK_COMMIT</td> <td>77</td> <td><xref target='CHUNK_COMMIT' /></td> </tr>
-        <tr> <td>CHUNK_LOCK</td> <td>78</td> <td><xref target='CHUNK_READ' /></td> </tr>
-        <tr> <td>CHUNK_READ</td> <td>79</td> <td><xref target='CHUNK_READ' /></td> </tr>
-        <tr> <td>CHUNK_SWAP</td> <td>80</td> <td><xref target='CHUNK_READ' /></td> </tr>
-        <tr> <td>CHUNK_UNLOCK</td> <td>81</td> <td><xref target='CHUNK_READ' /></td> </tr>
-        <tr> <td>CHUNK_WRITE</td> <td>82</td> <td><xref target='CHUNK_WRITE' /></td> </tr>
-        <tr> <td>CHUNK_WRITE_SWAP</td> <td>83</td> <td><xref target='CHUNK_WRITE' /></td> </tr>
-        <tr> <td>CHUNK_WRITE_SWAP_GUARD</td> <td>84</td> <td><xref target='CHUNK_WRITE' /></td> </tr>
-        <tr> <td>GUARD_SWAP</td> <td>85</td> <td><xref target='CHUNK_WRITE' /></td> </tr>
-        <tr> <td>HEADER_READ</td> <td>86</td> <td><xref target='HEADER_READ' /></td> </tr>
-        <tr> <td>ROLLBACK_CLOSE</td> <td>87</td> <td><xref target='ROLLBACK_LIST' /></td> </tr>
-        <tr> <td>ROLLBACK_LIST</td> <td>88</td> <td><xref target='ROLLBACK_LIST' /></td> </tr>
-        <tr> <td>ROLLBACK_OPEN</td> <td>89</td> <td><xref target='ROLLBACK_LIST' /></td> </tr>
-        <tr> <td>SWAP</td> <td>90</td> <td><xref target='ROLLBACK_LIST' /></td> </tr>
+        <tr> <td>CHUNK_COMMIT</td> <td>77</td> <td>DS</td> <td><xref target='CHUNK_COMMIT' /></td> </tr>
+        <tr> <td>CHUNK_ERROR</td> <td>78</td> <td>MDS</td> <td><xref target='CHUNK_READ' /></td> </tr>
+        <tr> <td>CHUNK_LOCK</td> <td>79</td> <td>DS</td> <td><xref target='CHUNK_READ' /></td> </tr>
+        <tr> <td>CHUNK_READ</td> <td>80</td> <td>DS</td> <td><xref target='CHUNK_READ' /></td> </tr>
+        <tr> <td>CHUNK_SWAP</td> <td>81</td> <td>DS</td> <td><xref target='CHUNK_READ' /></td> </tr>
+        <tr> <td>CHUNK_UNLOCK</td> <td>82</td> <td>DS</td> <td><xref target='CHUNK_READ' /></td> </tr>
+        <tr> <td>CHUNK_WRITE</td> <td>83</td> <td>DS</td> <td><xref target='CHUNK_WRITE' /></td> </tr>
+        <tr> <td>CHUNK_WRITE_SWAP</td> <td>84</td> <td>DS</td> <td><xref target='CHUNK_WRITE' /></td> </tr>
+        <tr> <td>CHUNK_WRITE_SWAP_GUARD</td> <td>DS</td> <td>85</td> <td><xref target='CHUNK_WRITE' /></td> </tr>
+        <tr> <td>GUARD_SWAP</td> <td>86</td> <td>DS</td> <td><xref target='CHUNK_WRITE' /></td> </tr>
+        <tr> <td>HEADER_READ</td> <td>87</td> <td>DS</td> <td><xref target='HEADER_READ' /></td> </tr>
+        <tr> <td>ROLLBACK_CLOSE</td> <td>88</td> <td>DS</td> <td><xref target='ROLLBACK_LIST' /></td> </tr>
+        <tr> <td>ROLLBACK_LIST</td> <td>89</td> <td>DS</td> <td><xref target='ROLLBACK_LIST' /></td> </tr>
+        <tr> <td>ROLLBACK_OPEN</td> <td>90</td> <td>DS</td> <td><xref target='ROLLBACK_LIST' /></td> </tr>
+        <tr> <td>SWAP</td> <td>91</td> <td>non-pNFS, MDS, DS</td> <td><xref target='ROLLBACK_LIST' /></td> </tr>
       </tbody>
     </table>
 
@@ -2252,13 +2344,13 @@
 
   <section anchor='cb_ops' numbered='true' removeInRFC='false' toc='default'>
     <name>New NFSv4.2 Callback Operations</name>
-    <section anchor='CB_ROLLBACK_OPEN_REPAIR' numbered='true' removeInRFC='false' toc='default'>
-      <name>Operation 16: CB_ROLLBACK_OPEN_REPAIR - Repair a reservation of a byte range for writing</name>
-      <section anchor='CB_ROLLBACK_OPEN_REPAIR4args' numbered='true' removeInRFC='false' toc='exclude'>
+    <section anchor='CB_CHUNK_REPAIR' numbered='true' removeInRFC='false' toc='default'>
+      <name>Operation 16: CB_CHUNK_REPAIR - Repair a reservation of a byte range for writing</name>
+      <section anchor='CB_CHUNK_REPAIR4args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
-        <figure anchor='code_CB_ROLLBACK_OPEN_REPAIR4args'>
+        <figure anchor='code_CB_CHUNK_REPAIR4args'>
           <sourcecode type='xdr'>
-/// struct CB_ROLLBACK_OPEN_REPAIR4args {
+/// struct CB_CHUNK_REPAIR4args {
 ///     /* CURRENT_FH: file */
 ///     stateid4             crra_stateid;
 ///     uint32_t             crra_reservation_id;
@@ -2269,28 +2361,28 @@
         </figure>
       </section>
 
-      <section anchor='CB_ROLLBACK_OPEN_REPAIR4res' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='CB_CHUNK_REPAIR4res' numbered='true' removeInRFC='false' toc='exclude'>
         <name>RESULTS</name>
 
-        <figure anchor='code_CB_ROLLBACK_OPEN_REPAIR4res'>
+        <figure anchor='code_CB_CHUNK_REPAIR4res'>
           <sourcecode type='xdr'>
-/// struct CB_ROLLBACK_OPEN_REPAIR4res {
+/// struct CB_CHUNK_REPAIR4res {
 ///     nfsstat4 crrr_status;
 /// };
           </sourcecode>
         </figure>
       </section>
 
-      <section anchor='CB_ROLLBACK_OPEN_REPAIR4_desc' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='CB_CHUNK_REPAIR4_desc' numbered='true' removeInRFC='false' toc='exclude'>
         <name>DESCRIPTION</name>
         <t>
-          CB_ROLLBACK_OPEN_REPAIR is a new callback operation to request that the client repair a reservation
+          CB_CHUNK_REPAIR is a new callback operation to request that the client repair a reservation
           on a file. The user has to have access to the underlying file in order to release
           the reservation. For the given reservation identified by rra_reservation_id
-          (see <xref target='code_CB_ROLLBACK_OPEN_REPAIR4args' />), the crra_key <bcp14>MUST</bcp14>
+          (see <xref target='code_CB_CHUNK_REPAIR4args' />), the crra_key <bcp14>MUST</bcp14>
           match that which was persisted in the original ROLLBACK_OPEN operation to create the
           reservation.
-          As shown in <xref target='code_CB_ROLLBACK_OPEN_REPAIR4args' />, a stateid
+          As shown in <xref target='code_CB_CHUNK_REPAIR4args' />, a stateid
           that follows the rules of <xref target='ROLLBACK_OPEN4_desc' /> <bcp14>MUST</bcp14>
           be presented.
         </t>
@@ -2298,7 +2390,7 @@
           If the client does not support the ROLLBACK_OPEN family of operations, it
           <bcp14>MUST</bcp14> return an error of NFS4ERR_NOTSUPP. Note that
           this is most likely going to occur as in this case it will not
-          support CB_ROLLBACK_OPEN_REPAIR. If the client does not support the
+          support CB_CHUNK_REPAIR. If the client does not support the
           crra_type for the erasure encoding type, then it <bcp14>MUST</bcp14>
           return an error of NFS4ERR_ENCODING_NOT_SUPPORTED.
         </t>
