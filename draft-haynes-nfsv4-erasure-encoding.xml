@@ -288,21 +288,70 @@
       </t>
     </section>
 
-    <section anchor='ff_flags4' numbered='true' removeInRFC='false' toc='default'>
-      <name>ff_flags4</name>
-      <figure anchor='code_ff_flags4'>
+    <section anchor='ss_write_mirror' numbered='true' removeInRFC='false' toc='default'>
+      <name>To be done later</name>
+    </section>
+
+    <section anchor='ffv2_flags4' numbered='true' removeInRFC='false' toc='default'>
+      <name>ffv2_flags4</name>
+      <figure anchor='code_ffv2_flags4'>
         <sourcecode type='xdr'>
-   const FF_FLAGS_NO_LAYOUTCOMMIT   = 0x00000001;
-   const FF_FLAGS_NO_IO_THRU_MDS    = 0x00000002;
-   const FF_FLAGS_NO_READ_IO        = 0x00000004;
-   const FF_FLAGS_WRITE_ONE_MIRROR  = 0x00000008;
-   typedef uint32_t ff_flags4;
+/// const FFV2_FLAGS_NO_LAYOUTCOMMIT   = 0x00000001;
+/// const FFV2_FLAGS_NO_IO_THRU_MDS    = 0x00000002;
+/// const FFV2_FLAGS_NO_READ_IO        = 0x00000004;
+/// const FFV2_FLAGS_WRITE_ONE_MIRROR  = 0x00000008;
+/// const FFV2_FLAGS_ONLY_ONE_WRITER   = 0x00000010;
+/// typedef uint32_t ffv2_flags4;
         </sourcecode>
       </figure>
+
       <t>
-        ff_flags4 is defined as in Section 5.1 of <xref target='RFC8435' /> and is shown
-        in <xref target='code_ff_flags4' /> for reference.
+        The ff2_flags4 in <xref target='code_ffv2_flags4' /> is a bitmap
+        that allows the metadata server to inform
+        the client of particular conditions that may result from more or
+        less tight coupling of the storage devices.
       </t>
+
+      <dl newline='false' spacing='normal'>
+        <dt>FFV2_FLAGS_NO_LAYOUTCOMMIT:</dt>
+        <dd>
+           can be set to indicate that the client is not required to
+           send LAYOUTCOMMIT to the metadata server.
+        </dd>
+
+        <dt>FFV2_FLAGS_NO_IO_THRU_MDS:</dt>
+        <dd>
+           can be set to indicate that the client should not send I/O
+           operations to the metadata server.  That is, even if the
+           client could determine that there was a network disconnect
+           to a storage device, the client should not try to proxy the
+           I/O through the metadata server.
+        </dd>
+
+        <dt>FFV2_FLAGS_NO_READ_IO:</dt>
+        <dd>
+           can be set to indicate that the client should not send READ
+           requests with the layouts of iomode LAYOUTIOMODE4_RW.  Instead,
+           it should request a layout of iomode LAYOUTIOMODE4_READ from
+           the metadata server.
+        </dd>
+
+        <dt>FFV2_FLAGS_WRITE_ONE_MIRROR:</dt>
+        <dd>
+           can be set to indicate that the client only needs to update
+           one of the mirrors (see <xref target='ss_write_mirror' />).
+        </dd>
+
+        <dt>FFV2_FLAGS_ONLY_ONE_WRITER:</dt>
+        <dd>
+          can be set to indicate that the client only needs to use
+          CHUNK_WRITE_SWAP to update the chunks in the data file. I.e.,
+          keep the ability to rollback in case of a write hole
+          caused by overwriting. If this flag is not set, then the
+          client <bcp14>MUST</bcp14> write chunks with CHUNK_WRITE_SWAP_GUARD
+          in order to prevent collision across the data servers.
+        </dd>
+      </dl>
     </section>
 
     <section anchor='ffv2_file_info4' numbered='true' removeInRFC='false' toc='default'>
@@ -454,7 +503,7 @@
    /// struct ffv2_layout4 {
    ///     length4                 ffl_stripe_unit;
    ///     ffv2_mirror4            ffl_mirrors&lt;&gt;;
-   ///     ff_flags4               ffl_flags;
+   ///     ffv2_flags4             ffl_flags;
    ///     uint32_t                ffl_stats_collect_hint;
    /// };
         </sourcecode>
@@ -875,7 +924,6 @@
              Data Server 1
           </artwork>
         </figure>
-
       </section>
     </section>
   </section>
@@ -1264,13 +1312,14 @@
 ///  OP_CHUNK_SWAP          = 79,
 ///  OP_CHUNK_UNLOCK        = 80,
 ///  OP_CHUNK_WRITE         = 81,
-///  OP_CHUNK_WRITE_SWAP_GUARD = 82,
-///  OP_GUARD_SWAP          = 83,
-///  OP_HEADER_READ         = 84,
-///  OP_ROLLBACK_CLOSE      = 85,
-///  OP_ROLLBACK_LIST       = 86,
-///  OP_ROLLBACK_OPEN       = 87,
-///  OP_SWAP                = 88,
+///  OP_CHUNK_WRITE_SWAP    = 82,
+///  OP_CHUNK_WRITE_SWAP_GUARD = 83,
+///  OP_GUARD_SWAP          = 84,
+///  OP_HEADER_READ         = 85,
+///  OP_ROLLBACK_CLOSE      = 86,
+///  OP_ROLLBACK_LIST       = 87,
+///  OP_ROLLBACK_OPEN       = 88,
+///  OP_SWAP                = 89,
 ///
       </sourcecode>
     </figure>
