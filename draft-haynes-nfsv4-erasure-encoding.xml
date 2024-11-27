@@ -2487,15 +2487,15 @@
         XDR description of the new flags:
       </t>
       <sourcecode type='xdr'>
-  #!/bin/sh
-  grep '^ *///' $* | sed 's?^ */// ??' | sed 's?^ *///$??'
+#!/bin/sh
+grep '^ *///' $* | sed 's?^ */// ??' | sed 's?^ *///$??'
       </sourcecode>
       <t>
         That is, if the above script is stored in a file called 'extract.sh', and
         this document is in a file called 'spec.txt', then the reader can do:
       </t>
       <sourcecode type='xdr'>
-  sh extract.sh &lt; spec.txt &gt; erasure_coding_prot.x
+sh extract.sh &lt; spec.txt &gt; erasure_coding_prot.x
       </sourcecode>
       <t>
         The effect of the script is to remove leading white space from each
