@@ -104,12 +104,12 @@
       to be detected and the choice of what constitutes the good copy
       is difficult.  This document updates the Flexible File Layout Type
       to version 2 by providing data integrity for erasure encoding.
-      It introduces a new operation RESERVE that allow the client to reserve
+      It introduces a new operation ROLLBACK_OPEN that allow the client to reserve
       ranges of the data file by creating a reservation file to store
-      modifications. When the client is ready, it will use RESERVE_SWAP
+      modifications. When the client is ready, it will use ROLLBACK_OPEN_SWAP
       to atomically exchange the blocks in the reservation file with
-      those in the data file. Finally, it will use RESERVE_RELEASE
-      to start the deletion of old blocks. Both RESERVE_RECOVER
+      those in the data file. Finally, it will use ROLLBACK_CLOSE
+      to start the deletion of old blocks. Both ROLLBACK_OPEN_RECOVER
       and ROLLBACK_LIST can be used by the client or metadata server
       to recover after a client restart or a client which has
       permanently gone away.
@@ -176,11 +176,10 @@
           The metadata portion of the file, stored on the metadata server.
         </dd>
 
-        <dt>reservation file:</dt>
+        <dt>client file:</dt>
         <dd>
-          A temporary file established when a reservation is created.
-          It contains modifications which are intended to be swapped
-          with the orginal file.
+          A temporary file established on the data server by the
+          client to allow chunks to be swapped with the orginal file.
         </dd>
 
         <dt>replication of data:</dt>
@@ -408,12 +407,12 @@
         used by the metadata server to inform the client that the indicated
         data server is a replacement data server as far as existing data is
         concerned. The client <bcp14>MUST</bcp14> repair the file by using
-        RESERVE on the entire length of the file and both decoding the existing
+        ROLLBACK_OPEN on the entire length of the file and both decoding the existing
         data from the file and recoding the new data on the indicated data
         server. Whilst all data servers <bcp14>MUST</bcp14> be reserved,
-        only the data server(s) to be repaired <bcp14>MUST</bcp14> have the RESERVE_SWAP
+        only the data server(s) to be repaired <bcp14>MUST</bcp14> have the ROLLBACK_OPEN_SWAP
         operation applied. The remaining data servers can have their reservation
-        files dropped via RESERVE_RELEASE.
+        files dropped via ROLLBACK_CLOSE.
       </t>
       <t>
         See  <xref target='Plank97' /> for further
@@ -471,7 +470,7 @@
         The ffv2_key4 (in <xref target='code_ffv2_key4' />) is a secret key known
         only to the metadata server, data server, and client. In the event of
         either a data server restart or a dead client, it can be used to
-        restablish a connection via RESERVE_RECOVER.
+        restablish a connection via ROLLBACK_OPEN_RECOVER.
       </t>
     </section>
 
@@ -789,7 +788,7 @@
         +--------------------+
         | guard:             |
         |   change_id: 7     |
-        |   cleint_id: 6     |
+        |   client_id: 6     |
         | payload_id : 0     |
         | crc32   : 0        |
         +--------------------+
@@ -913,7 +912,7 @@
         +--------------------+
         | guard:             |
         |   change_id: 7     |
-        |   cleint_id: 6     |
+        |   client_id: 6     |
         | payload_id  : 0    |
         | crc32    : 0       |
         +--------------------+
@@ -925,6 +924,107 @@
           </artwork>
         </figure>
       </section>
+    </section>
+
+    <section anchor='sec_write_modes' numbered='true' removeInRFC='false' toc='default'>
+      <name>Write Modes</name>
+      <t>
+        There are two basic writing modes for erasure encoding and they depend on
+        the metadata server using FFV2_FLAGS_ONLY_ONE_WRITER in the ffl_flags
+        in the ffv2_layout4 (see <xref target='code_ffv2_layout4' />) to inform
+        the client whether it is the only writer to the file or not. If it
+        is the only writer, then CHUNK_WRITE_SWAP can be used to write chunks.
+        In this scenario, there is no write contention, but write holes can occur
+        as the client overwrites old data. Thus the client does not need guarded
+        writes, but it does need the ability to rollback writes. If it is not
+        the only writer, then CHUNK_WRITE_SWAP_GUARD <bcp14>MUST</bcp14> be
+        used to write chunks. In this scenario, the write holes can also be
+        caused by multiple clients writing to the same chunk. Thus the client
+        needs guarded writes to prevent over writes and it does need the
+        ability to rollback writes.
+      </t>
+      <section>
+        <name>Client File for Swapping Chunks</name>
+        <t>
+          The client does not write chunks directly to the data file, instead
+          it first writes them to a per client temporary file and then swaps
+          them with the existing chunks in the data file. This swapping allows
+          the client to rollback the changes if necessary. The client file
+          is created by ROLLBACK_OPEN (see <xref target='ROLLBACK_OPEN' />)
+          and is persisted until a ROLLBACK_CLOSE (see <xref target='ROLLBACK_CLOSE' />)
+          is sent to the data server. The chunks in the client file <bcp14>MUST</bcp14>
+          survive a data server restart. Unlike normal files on a metadata
+          server, both data files and client files do not need to be recovered
+          by the client in the grace period. After a data server restart, the
+          ROLLBACK_LIST (see <xref target='ROLLBACK_LIST' />) can be used to
+          recover the client filehandle.
+        </t>
+      </section>
+      <section>
+        <name>Single Writer Mode</name>
+        <t>
+          If the client detects that the FFV2_FLAGS_ONLY_ONE_WRITER is set, then
+          it uses CHUNK_WRITE_SWAP to write chunks first to the client file
+          and then swaps those chunks directly to the data file. It then returns
+          the chunk owners for the chunks in the data file. The old chunks
+          stay in the client file either until overwritten or deleted. The
+          issue with keeping them indefinitely comes about during the repair
+          process when the client will have to consider all such chunks as
+          possibly needing repair.
+        </t>
+        <t>
+          A client will exit the Single Writer Mode when the metadata server
+          recalls the layout and the subsequent LAYOUTGET returns the
+          FFV2_FLAGS_ONLY_ONE_WRITER as being not set.
+        </t>
+      </section>
+      <section>
+        <name>Mutliple Writer Mode</name>
+        <t>
+          If the client detects that the FFV2_FLAGS_ONLY_ONE_WRITER is not set, then
+          it uses CHUNK_WRITE_SWAP_GUARD to write chunks first to the client file
+          and then provisionally swaps those chunks directly to the data file.
+          The swap is provisional based on two states:
+        </t>
+
+        <dl newline='false' spacing='normal'>
+          <dt>matching of the guard values:</dt>
+          <dd>
+            The CHUNK_WRITE_SWAP_GUARD sends a guard value which is checked
+            against the persisted guard values on the chunk. If the guard
+            values match, then the swap can proceed to the next check. If
+            the values do not match, then the data server <bcp14>MUST</bcp14>
+            set the chunk as locked and persist that file attribute.
+          </dd>
+          <dt>locking state of the chunk:</dt>
+          <dd>
+            If the chunk is locked, then no other chunk can be swapped in
+            on top of it. This prevents racing clients from overwriting
+            each other and possibly losing the original chunk contents.
+            Once it is locked, either a CHUNK_UNLOCK operation can
+            unlock it or a CHUNK_SWAP with the csa_unlock flag set
+            unlocks it after swapping the chunks.
+          </dd>
+        </dl>
+
+        <t>
+          It then returns
+          the chunk owners for the chunks in the data file. The old chunks
+          stay in the client file either until overwritten or deleted. The
+          issue with keeping them indefinitely comes about during the repair
+          process when the client will have to consider all such chunks as
+          possibly needing repair.
+        </t>
+        <t>
+          A client will exit the Multiple Writer Mode when the metadata server
+          recalls the layout and the subsequent LAYOUTGET returns the
+          FFV2_FLAGS_ONLY_ONE_WRITER as being set.
+        </t>
+      </section>
+    </section>
+
+    <section anchor='sec_repair' numbered='true' removeInRFC='false' toc='default'>
+      <name>Repairing Payloads</name>
     </section>
   </section>
 
@@ -1007,7 +1107,7 @@
         </thead>
         <tbody>
           <tr>
-            <td>RESERVE</td>
+            <td>ROLLBACK_OPEN</td>
             <td>
               NFS4ERR_ACCESS, NFS4ERR_ADMIN_REVOKED, NFS4ERR_BADXDR,
               NFS4ERR_BAD_STATEID, NFS4ERR_DEADSESSION, NFS4ERR_DELAY,
@@ -1041,7 +1141,7 @@
             </td>
           </tr>
           <tr>
-            <td>RESERVE_RECOVER</td>
+            <td>ROLLBACK_OPEN_RECOVER</td>
             <td>
               NFS4ERR_ACCESS, NFS4ERR_ADMIN_REVOKED, NFS4ERR_BADXDR,
               NFS4ERR_DELAY, NFS4ERR_FHEXPIRED, NFS4ERR_GRACE,
@@ -1055,7 +1155,7 @@
             </td>
           </tr>
           <tr>
-            <td>RESERVE_RELEASE</td>
+            <td>ROLLBACK_CLOSE</td>
             <td>
               NFS4ERR_ACCESS, NFS4ERR_ADMIN_REVOKED, NFS4ERR_BADXDR,
               NFS4ERR_DELAY, NFS4ERR_FHEXPIRED, NFS4ERR_GRACE,
@@ -1091,7 +1191,7 @@
         </thead>
         <tbody>
           <tr>
-            <td>CB_RESERVE_REPAIR</td>
+            <td>CB_ROLLBACK_OPEN_REPAIR</td>
             <td>
               NFS4ERR_BADXDR,
               NFS4ERR_BAD_STATEID, NFS4ERR_DEADSESSION, NFS4ERR_DELAY,
@@ -1126,13 +1226,13 @@
           <tr>
             <td>NFS4ERR_ENCODING_NOT_SUPPORTED</td>
             <td>
-              CB_RESERVE_REPAIR, LAYOUTGET
+              CB_ROLLBACK_OPEN_REPAIR, LAYOUTGET
             </td>
           </tr>
           <tr>
             <td>NFS4ERR_RESERVATION_CONFLICT</td>
             <td>
-              RESERVE
+              ROLLBACK_OPEN
             </td>
           </tr>
           <tr>
@@ -1183,8 +1283,8 @@
     <t>
       If the data server sets EXCHGID4_FLAG_USE_ERASURE_DS during the
       EXCHANGE_ID operation, then it <bcp14>MUST</bcp14> support:
-      RESERVE, ROLLBACK_LIST, RESERVE_RECOVER, RESERVE_RELEASE,
-      and RESERVE_SWAP. Further, note that this support is
+      ROLLBACK_OPEN, ROLLBACK_LIST, ROLLBACK_OPEN_RECOVER, ROLLBACK_CLOSE,
+      and ROLLBACK_OPEN_SWAP. Further, note that this support is
       orthogonal to the Erasure Encoding Type selected. The
       data server is unaware of which type is driving the I/O.
     </t>
@@ -1229,7 +1329,7 @@
         </sourcecode>
       </figure>
       <t>
-        The chunk_guard4 (see <xref target='code_chunk_guard4' /> is effectively a 64 bit value, with
+        The chunk_guard4 (see <xref target='code_chunk_guard4' />) is effectively a 64 bit value, with
         the upper 32 bits, cg_change_id,  being the current time in ms and the lower 32
         bits, cg_client_id, being an unique id established when the client did the
         EXCHANGE_ID operation (see Section 18.35 of <xref target='RFC8881' />)
@@ -1308,18 +1408,19 @@
 /// /* New operations for Erasure Encoding start here */
 ///
 ///  OP_CHUNK_COMMIT        = 77,
-///  OP_CHUNK_READ          = 78,
-///  OP_CHUNK_SWAP          = 79,
-///  OP_CHUNK_UNLOCK        = 80,
-///  OP_CHUNK_WRITE         = 81,
-///  OP_CHUNK_WRITE_SWAP    = 82,
-///  OP_CHUNK_WRITE_SWAP_GUARD = 83,
-///  OP_GUARD_SWAP          = 84,
-///  OP_HEADER_READ         = 85,
-///  OP_ROLLBACK_CLOSE      = 86,
-///  OP_ROLLBACK_LIST       = 87,
-///  OP_ROLLBACK_OPEN       = 88,
-///  OP_SWAP                = 89,
+///  OP_CHUNK_LOCK          = 78,
+///  OP_CHUNK_READ          = 79,
+///  OP_CHUNK_SWAP          = 80,
+///  OP_CHUNK_UNLOCK        = 81,
+///  OP_CHUNK_WRITE         = 82,
+///  OP_CHUNK_WRITE_SWAP    = 83,
+///  OP_CHUNK_WRITE_SWAP_GUARD = 84,
+///  OP_GUARD_SWAP          = 85,
+///  OP_HEADER_READ         = 86,
+///  OP_ROLLBACK_CLOSE      = 87,
+///  OP_ROLLBACK_LIST       = 88,
+///  OP_ROLLBACK_OPEN       = 89,
+///  OP_SWAP                = 90,
 ///
       </sourcecode>
     </figure>
@@ -1336,17 +1437,19 @@
       </thead>
       <tbody>
         <tr> <td>CHUNK_COMMIT</td> <td>77</td> <td><xref target='CHUNK_COMMIT' /></td> </tr>
-        <tr> <td>CHUNK_READ</td> <td>78</td> <td><xref target='CHUNK_READ' /></td> </tr>
-        <tr> <td>CHUNK_SWAP</td> <td>79</td> <td><xref target='CHUNK_READ' /></td> </tr>
-        <tr> <td>CHUNK_UNLOCK</td> <td>80</td> <td><xref target='CHUNK_READ' /></td> </tr>
-        <tr> <td>CHUNK_WRITE</td> <td>81</td> <td><xref target='CHUNK_WRITE' /></td> </tr>
-        <tr> <td>CHUNK_WRITE_SWAP_GUARD</td> <td>82</td> <td><xref target='CHUNK_WRITE' /></td> </tr>
-        <tr> <td>GUARD_SWAP</td> <td>83</td> <td><xref target='CHUNK_WRITE' /></td> </tr>
-        <tr> <td>HEADER_READ</td> <td>84</td> <td><xref target='HEADER_READ' /></td> </tr>
-        <tr> <td>ROLLBACK_CLOSE</td> <td>85</td> <td><xref target='ROLLBACK_LIST' /></td> </tr>
-        <tr> <td>ROLLBACK_LIST</td> <td>86</td> <td><xref target='ROLLBACK_LIST' /></td> </tr>
-        <tr> <td>ROLLBACK_OPEN</td> <td>87</td> <td><xref target='ROLLBACK_LIST' /></td> </tr>
-        <tr> <td>SWAP</td> <td>88</td> <td><xref target='ROLLBACK_LIST' /></td> </tr>
+        <tr> <td>CHUNK_LOCK</td> <td>78</td> <td><xref target='CHUNK_READ' /></td> </tr>
+        <tr> <td>CHUNK_READ</td> <td>79</td> <td><xref target='CHUNK_READ' /></td> </tr>
+        <tr> <td>CHUNK_SWAP</td> <td>80</td> <td><xref target='CHUNK_READ' /></td> </tr>
+        <tr> <td>CHUNK_UNLOCK</td> <td>81</td> <td><xref target='CHUNK_READ' /></td> </tr>
+        <tr> <td>CHUNK_WRITE</td> <td>82</td> <td><xref target='CHUNK_WRITE' /></td> </tr>
+        <tr> <td>CHUNK_WRITE_SWAP</td> <td>83</td> <td><xref target='CHUNK_WRITE' /></td> </tr>
+        <tr> <td>CHUNK_WRITE_SWAP_GUARD</td> <td>84</td> <td><xref target='CHUNK_WRITE' /></td> </tr>
+        <tr> <td>GUARD_SWAP</td> <td>85</td> <td><xref target='CHUNK_WRITE' /></td> </tr>
+        <tr> <td>HEADER_READ</td> <td>86</td> <td><xref target='HEADER_READ' /></td> </tr>
+        <tr> <td>ROLLBACK_CLOSE</td> <td>87</td> <td><xref target='ROLLBACK_LIST' /></td> </tr>
+        <tr> <td>ROLLBACK_LIST</td> <td>88</td> <td><xref target='ROLLBACK_LIST' /></td> </tr>
+        <tr> <td>ROLLBACK_OPEN</td> <td>89</td> <td><xref target='ROLLBACK_LIST' /></td> </tr>
+        <tr> <td>SWAP</td> <td>90</td> <td><xref target='ROLLBACK_LIST' /></td> </tr>
       </tbody>
     </table>
 
@@ -1899,53 +2002,29 @@
       </section>
     </section>
 
-    <section anchor='RESERVE' numbered='true' removeInRFC='false' toc='default'>
-      <name>Operation 77: RESERVE - Reserve a byte range for writing</name>
-      <section anchor='RESERVE4args' numbered='true' removeInRFC='false' toc='exclude'>
+    <section anchor='ROLLBACK_OPEN' numbered='true' removeInRFC='false' toc='default'>
+      <name>Operation 77: ROLLBACK_OPEN - Reserve a byte range for writing</name>
+      <section anchor='ROLLBACK_OPEN4args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
-        <figure anchor='code_RESERVE4args'>
+        <figure anchor='code_ROLLBACK_OPEN4args'>
           <sourcecode type='xdr'>
-/// struct RESERVE4args {
+/// struct ROLLBACK_OPEN4args {
 ///     /* CURRENT_FH: file */
-///     stateid4        ra_stateid;
-///     ffv2_key4       ra_key;
-///     clientid4       ra_client_id;
-///     offset4         ra_offset;
-///     length4         ra_length;
+///     stateid4        roa_stateid;
+///     ffv2_key4       roa_key;
+///     uint32_t        roa_client_id;
 /// };
           </sourcecode>
         </figure>
       </section>
 
-      <section anchor='RESERVE4res' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='ROLLBACK_OPEN4res' numbered='true' removeInRFC='false' toc='exclude'>
         <name>RESULTS</name>
-        <figure anchor='code_RESERVE4resok'>
+        <figure anchor='code_ROLLBACK_OPEN4res'>
           <sourcecode type='xdr'>
-/// struct RESERVE4resok {
-///     uint32_t        rr_reservation_id;
-///     offset4         rr_offset;
-///     length4         rr_length;
-/// };
-          </sourcecode>
-        </figure>
-
-        <figure anchor='code_RESERVE4resconflict'>
-          <sourcecode type='xdr'>
-/// struct RESERVE4resconflict {
-///     offset4        rrc_offset;
-///     count4         rrc_count;
-/// };
-          </sourcecode>
-        </figure>
-
-        <figure anchor='code_RESERVE4res'>
-          <sourcecode type='xdr'>
-/// union RESERVE4res switch (nfsstat4 rr_status) {
+/// union ROLLBACK_OPEN4res switch (nfsstat4 ror_status) {
 ///     case NFS4_OK:
-///         /* New CURRENT_FH: opened reservation file */
-///         RESERVE4resok         rr_resok4;
-///     case NFS4ERR_RESERVATION_CONFLICT:
-///         RESERVE4resconflict   rr_resconflict4;
+///         /* New CURRENT_FH: opened client file */
 ///     default:
 ///         void;
 /// };
@@ -1953,114 +2032,63 @@
         </figure>
       </section>
 
-      <section anchor='RESERVE4_desc' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='ROLLBACK_OPEN4_desc' numbered='true' removeInRFC='false' toc='exclude'>
         <name>DESCRIPTION</name>
         <t>
-          RESERVE is a new operation to reserve for writing a section of a file
-          given from the offset of ra_offset to a range of ra_offset + ra_length
-          bytes. If the server already has a reservation that overlaps the
-          requested range, then the server <bcp14>MUST</bcp14> return an error
-          of NFS4ERR_RESERVATION_CONFLICT and fill in the RESERVE4resconflict
-          (see <xref target='code_RESERVE4resconflict' />)
-          with at least one of the conflicting reservations. I.e., rrc_offset
-          would be an earlier ra_offset and rrc_count would be an earlier
-          ra_length supplied by another client (or even the same client) during
-          a RESERVE operation.
-        </t>
-        <t>
-          Upon success, the rr_reservation_id (see <xref target='code_RESERVE4resok' />)
-          identifier is an unique reference to the reservation and it <bcp14>MUST</bcp14>
-          persist across server restarts. As the ra_offset might not be aligned
-          on a data block of the server, rr_offset is the start of the data
-          block such that rr_offset &lt;= ra_offset. Further, since the
-          ra_length might also not be aligned at the end of a data block,
-          rr_length &gt;= ra_length. The client <bcp14>MUST</bcp14>
-          detect the difference and make sure to copy these excess data
-          from the data file to the reservation file. I.e., if the
-          client only acts on the range of ra_offset to ra_length,
-          then it might inadvertantly overwrite the excess data
-          with garbage.
-        </t>
-        <t>
-          RESERVE creates a new reservation file on the server and
-          populates the current filehandle for it. As the reservation
+          ROLLBACK_OPEN is a new operation to open a per client file for staging
+          of chunks to the data file and populates 
+          the current filehandle for it. As the reservation
           file is not visible in the server namespace, the client
-          <bcp14>MUST</bcp14> issue a GETATTR(fh) (see Section
-          18.7 of <xref target='RFC8881' />) to get the filehandle.
-          The reservation file <bcp14>MUST</bcp14> have the exact
-          same authorization as the file (see Section 2.8.1 of <xref target='RFC8881' />),
+          <bcp14>MUST</bcp14> issue a GETFH (see Section
+          18.8 of <xref target='RFC8881' />) to get the filehandle.
+          The client file <bcp14>MUST</bcp14> have the exact
+          same authorization as the data file (see Section 2.8.1 of <xref target='RFC8881' />),
           which means the attributes mode, owner,
           owner_group, acl, dacl, and sacl <bcp14>MUST</bcp14> track those
           of the file. I.e., they <bcp14>MUST NOT</bcp14> be modified by
-          SETATTR on the reservation file and if they are modified on
-          the file, they <bcp14>MUST</bcp14> be modified equivalently
-          on the reservation file. Finally, the values of time_access,
+          SETATTR on the client file and if they are modified on
+          the data file, they <bcp14>MUST</bcp14> be modified equivalently
+          on the client file. Finally, the values of time_access,
           time_backup, time_create, time_metadata, time_modify, and change
-          <bcp14>MUST</bcp14> initially be those of the file, but they
-          <bcp14>MUST</bcp14> be tracked separately from the file.
+          <bcp14>MUST</bcp14> initially be those of the data file, but they
+          <bcp14>MUST</bcp14> be tracked separately from the data file.
         </t>
         <t>
-          RESERVE <bcp14>MUST</bcp14> check for write access just like
+          ROLLBACK_OPEN <bcp14>MUST</bcp14> check for write access just like
           the WRITE operation. I.e., if the owner does not have write
           permissions, if it is a read-only filesystem, etc, the
           appropriate error <bcp14>MUST</bcp14> be returned to the
-          RESERVE operation.
+          ROLLBACK_OPEN operation.
         </t>
         <t>
-          The server <bcp14>MUST</bcp14> persist the ra_key and the ra_client_id
-          in order to authenticate subsequent operations on the reservation file.
-          These are not visible attributes for the reservation file. The
-          server <bcp14>MUST</bcp14> not reveal the ra_key in a GETATTR result.
-          If the client loses the ra_key, then server <bcp14>MUST</bcp14>
-          allow for local administrative action to release the reservation.
+          The metadata server <bcp14>MUST</bcp14> persist the roa_key and the roa_client_id
+          in order to authenticate subsequent operations on the client file.
+          These are not visible attributes for the client file. The
+          metadata server <bcp14>MUST</bcp14> not reveal the roa_key in a GETATTR result.
+          If the metadata server loses the roa_key, then the data server <bcp14>MUST</bcp14>
+          allow for local administrative action to close the client file
           Note that such means are beyond the scope of this document.
         </t>
         <t>
-          Whilst RESERVE is presented in terms of pNFS and
-          the Flexible File Version 2 Layout Type, nothing prevents it
-          from being used with non-pNFS servers. I.e., RESERVE is
-          not aware of the parallel aspect, it is the metadata server
-          and client which are aware of that relationship.
-        </t>
-        <t>
-          As such the ra_stateid follows the rules for a WRITE request
-          (see Section 18.32.3 of of <xref target='RFC8881'
-          />) for non-pNFS servers and
-          the rules for Loosely Coupled I/O for pNFS (see Section 2.3.1
-          of <xref target='RFC8435' />).
+          The ra_stateid follows the rules for a WRITE request
+          for pNFS (see Section 2.3.1 of <xref target='RFC8435' />).
           I.e., an anonymous stateid is presented.
         </t>
         <t>
-          The reservation file <bcp14>MUST NOT</bcp14> be recovered
-          during grace recovery. The file <bcp14>MUST</bcp14> be
-          recovered and then the client can use RESERVE_RECOVER
-          to get the reservation filehandle.
+          ROLLBACK_OPEN can also be used to recover a client file. The
+          user has to have access to the underlying file in order to recover
+          the reservation. If the client file already exists, 
+          the roa_key <bcp14>MUST</bcp14>
+          match that which was persisted in the original ROLLBACK_OPEN operation to create the
+          client file. The roa_client_id <bcp14>MUST</bcp14> also match that of
+          which was persisted in the original ROLLBACK_OPEN operation to create the
+          client file.
         </t>
         <t>
-          A file with a reservation is consisdered opened, even
-          if it is not reclaimed during grace recovery. I.e.,
-          the reservation prevents the file from being deleted
-          by normal means. A REMOVE on the file <bcp14>MUST</bcp14>
-          result in an error of NFS4ERR_RESERVATION_FILE.
-        </t>
-        <t>
-          The entire file can be reserved with ra_offset being 0
-          and ra_length being NFS4_UINT64_MAX. This also allows for
-          appending data to an existing file. The server <bcp14>MUST</bcp14> return
-          NFS4ERR_INVAL under the following combinations of ra_length and ra_offset:
-        </t>
-
-        <ul>
-          <li>ra_length is equal to zero.</li>
-
-          <li>
-            ra_length is not equal to NFS4_UINT64_MAX, and the sum of ra_length and
-            ra_offset exceeds NFS4_UINT64_MAX.
-          </li>
-        </ul>
-        <t>
-          The state of fattr4reserved_state for the reservation file <bcp14>MUST</bcp14>
-          be persisted to NFS4_RESERVED_INITIALIZED.
+          If the roa_key does not match that peristed, then the server
+          <bcp14>MUST</bcp14> send back the error NFS4ERR_PERM. The client can use
+          GETATTR to determine if this was due to normal file system semantics or
+          a mismatched ffv2_key4.
         </t>
       </section>
     </section>
@@ -2116,7 +2144,7 @@
           ROLLBACK_LIST is a new operation to list the open client rollback files
           for the current filehandle.
           As shown in <xref target='code_ROLLBACK_LIST4args' />, a stateid
-          that follows the rules of <xref target='RESERVE4_desc' /> <bcp14>MUST</bcp14>
+          that follows the rules of <xref target='ROLLBACK_OPEN4_desc' /> <bcp14>MUST</bcp14>
           be presented.
         </t>
         <t>
@@ -2129,67 +2157,13 @@
       </section>
     </section>
 
-    <section anchor='RESERVE_RECOVER' numbered='true' removeInRFC='false' toc='default'>
-      <name>Operation 79: RESERVE_RECOVER - Get information on a byte range for writing</name>
-      <section anchor='RESERVE_RECOVER4args' numbered='true' removeInRFC='false' toc='exclude'>
+    <section anchor='ROLLBACK_CLOSE' numbered='true' removeInRFC='false' toc='default'>
+      <name>Operation 80: ROLLBACK_CLOSE - Release reservation on a byte range for writing</name>
+      <section anchor='ROLLBACK_CLOSE4args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
-        <figure anchor='code_RESERVE_RECOVER4args'>
+        <figure anchor='code_ROLLBACK_CLOSE4args'>
           <sourcecode type='xdr'>
-/// struct RESERVE_RECOVER4args {
-///     /* CURRENT_FH: file */
-///     stateid4        rra_stateid;
-///     uint32_t        rra_reservation_id;
-///     ffv2_key4       rra_key;
-///     clientid4       rra_client_id;
-/// };
-          </sourcecode>
-        </figure>
-      </section>
-
-      <section anchor='RESERVE_RECOVER4res' numbered='true' removeInRFC='false' toc='exclude'>
-        <name>RESULTS</name>
-
-        <figure anchor='code_RESERVE_RECOVER4res'>
-          <sourcecode type='xdr'>
-/// struct RESERVE_RECOVER4res {
-///     nfsstat4 rrr_status;
-/// };
-          </sourcecode>
-        </figure>
-      </section>
-
-      <section anchor='RESERVE_RECOVER4_desc' numbered='true' removeInRFC='false' toc='exclude'>
-        <name>DESCRIPTION</name>
-        <t>
-          RESERVE_RECOVER is a new operation to recover a reservation on a file. The
-          user has to have access to the underlying file in order to recover
-          the reservation. For the given reservation identified by rra_reservation_id
-          (see <xref target='code_RESERVE_RECOVER4args' />), the rra_key <bcp14>MUST</bcp14>
-          match that which was persisted in the original RESERVE operation to create the
-          reservation. The rra_client_id will only match if it is the original client
-          which has not restarted. In any event, upon successful recovery, the rra_client_id
-          is persisted for the next time ROLLBACK_LIST is presented to the server.
-          As shown in <xref target='code_RESERVE_RECOVER4args' />, a stateid
-          that follows the rules of <xref target='RESERVE4_desc' /> <bcp14>MUST</bcp14>
-          be presented.
-        </t>
-        <t>
-          If there is no matching reservation for the rra_reservation_id, then
-          the server <bcp14>MUST</bcp14> send back the error NFS4ERR_NOENT. If the
-          rra_key does not match that peristed, then the server <bcp14>MUST</bcp14> send back the error
-          NFS4ERR_PERM. The client can use GETATTR to determine if this was due
-          to normal file system semantics or a mismatched ffv2_key4.
-        </t>
-      </section>
-    </section>
-
-    <section anchor='RESERVE_RELEASE' numbered='true' removeInRFC='false' toc='default'>
-      <name>Operation 80: RESERVE_RELEASE - Release reservation on a byte range for writing</name>
-      <section anchor='RESERVE_RELEASE4args' numbered='true' removeInRFC='false' toc='exclude'>
-        <name>ARGUMENTS</name>
-        <figure anchor='code_RESERVE_RELEASE4args'>
-          <sourcecode type='xdr'>
-/// struct RESERVE_RELEASE4args {
+/// struct ROLLBACK_CLOSE4args {
 ///     /* CURRENT_FH: file */
 ///     stateid4        rra_stateid;
 ///     uint32_t        rra_reservation_id;
@@ -2199,29 +2173,29 @@
         </figure>
       </section>
 
-      <section anchor='RESERVE_RELEASE4res' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='ROLLBACK_CLOSE4res' numbered='true' removeInRFC='false' toc='exclude'>
         <name>RESULTS</name>
 
-        <figure anchor='code_RESERVE_RELEASE4res'>
+        <figure anchor='code_ROLLBACK_CLOSE4res'>
           <sourcecode type='xdr'>
-/// struct RESERVE_RELEASE4res {
+/// struct ROLLBACK_CLOSE4res {
 ///     nfsstat4 rrr_status;
 /// };
           </sourcecode>
         </figure>
       </section>
 
-      <section anchor='RESERVE_RELEASE4_desc' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='ROLLBACK_CLOSE4_desc' numbered='true' removeInRFC='false' toc='exclude'>
         <name>DESCRIPTION</name>
         <t>
-          RESERVE_RELEASE is a new operation to release a reservation on a file. The
+          ROLLBACK_CLOSE is a new operation to release a reservation on a file. The
           user has to have access to the underlying file in order to release
           the reservation. For the given reservation identified by rra_reservation_id
-          (see <xref target='code_RESERVE_RELEASE4args' />), the rra_key <bcp14>MUST</bcp14>
-          match that which was persisted in the original RESERVE operation to create the
+          (see <xref target='code_ROLLBACK_CLOSE4args' />), the rra_key <bcp14>MUST</bcp14>
+          match that which was persisted in the original ROLLBACK_OPEN operation to create the
           reservation.
-          As shown in <xref target='code_RESERVE_RELEASE4args' />, a stateid
-          that follows the rules of <xref target='RESERVE4_desc' /> <bcp14>MUST</bcp14>
+          As shown in <xref target='code_ROLLBACK_CLOSE4args' />, a stateid
+          that follows the rules of <xref target='ROLLBACK_OPEN4_desc' /> <bcp14>MUST</bcp14>
           be presented.
         </t>
         <t>
@@ -2233,7 +2207,7 @@
         </t>
         <t>
           The state of fattr4reserved_state for the reservation file <bcp14>MUST</bcp14>
-          be persisted to NFS4_RESERVED_RELEASED.
+          be persisted to NFS4_ROLLBACK_OPEND_RELEASED.
         </t>
       </section>
     </section>
@@ -2241,13 +2215,13 @@
 
   <section anchor='cb_ops' numbered='true' removeInRFC='false' toc='default'>
     <name>New NFSv4.2 Callback Operations</name>
-    <section anchor='CB_RESERVE_REPAIR' numbered='true' removeInRFC='false' toc='default'>
-      <name>Operation 16: CB_RESERVE_REPAIR - Repair a reservation of a byte range for writing</name>
-      <section anchor='CB_RESERVE_REPAIR4args' numbered='true' removeInRFC='false' toc='exclude'>
+    <section anchor='CB_ROLLBACK_OPEN_REPAIR' numbered='true' removeInRFC='false' toc='default'>
+      <name>Operation 16: CB_ROLLBACK_OPEN_REPAIR - Repair a reservation of a byte range for writing</name>
+      <section anchor='CB_ROLLBACK_OPEN_REPAIR4args' numbered='true' removeInRFC='false' toc='exclude'>
         <name>ARGUMENTS</name>
-        <figure anchor='code_CB_RESERVE_REPAIR4args'>
+        <figure anchor='code_CB_ROLLBACK_OPEN_REPAIR4args'>
           <sourcecode type='xdr'>
-/// struct CB_RESERVE_REPAIR4args {
+/// struct CB_ROLLBACK_OPEN_REPAIR4args {
 ///     /* CURRENT_FH: file */
 ///     stateid4             crra_stateid;
 ///     uint32_t             crra_reservation_id;
@@ -2258,36 +2232,36 @@
         </figure>
       </section>
 
-      <section anchor='CB_RESERVE_REPAIR4res' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='CB_ROLLBACK_OPEN_REPAIR4res' numbered='true' removeInRFC='false' toc='exclude'>
         <name>RESULTS</name>
 
-        <figure anchor='code_CB_RESERVE_REPAIR4res'>
+        <figure anchor='code_CB_ROLLBACK_OPEN_REPAIR4res'>
           <sourcecode type='xdr'>
-/// struct CB_RESERVE_REPAIR4res {
+/// struct CB_ROLLBACK_OPEN_REPAIR4res {
 ///     nfsstat4 crrr_status;
 /// };
           </sourcecode>
         </figure>
       </section>
 
-      <section anchor='CB_RESERVE_REPAIR4_desc' numbered='true' removeInRFC='false' toc='exclude'>
+      <section anchor='CB_ROLLBACK_OPEN_REPAIR4_desc' numbered='true' removeInRFC='false' toc='exclude'>
         <name>DESCRIPTION</name>
         <t>
-          CB_RESERVE_REPAIR is a new callback operation to request that the client repair a reservation
+          CB_ROLLBACK_OPEN_REPAIR is a new callback operation to request that the client repair a reservation
           on a file. The user has to have access to the underlying file in order to release
           the reservation. For the given reservation identified by rra_reservation_id
-          (see <xref target='code_CB_RESERVE_REPAIR4args' />), the crra_key <bcp14>MUST</bcp14>
-          match that which was persisted in the original RESERVE operation to create the
+          (see <xref target='code_CB_ROLLBACK_OPEN_REPAIR4args' />), the crra_key <bcp14>MUST</bcp14>
+          match that which was persisted in the original ROLLBACK_OPEN operation to create the
           reservation.
-          As shown in <xref target='code_CB_RESERVE_REPAIR4args' />, a stateid
-          that follows the rules of <xref target='RESERVE4_desc' /> <bcp14>MUST</bcp14>
+          As shown in <xref target='code_CB_ROLLBACK_OPEN_REPAIR4args' />, a stateid
+          that follows the rules of <xref target='ROLLBACK_OPEN4_desc' /> <bcp14>MUST</bcp14>
           be presented.
         </t>
         <t>
-          If the client does not support the RESERVE family of operations, it
+          If the client does not support the ROLLBACK_OPEN family of operations, it
           <bcp14>MUST</bcp14> return an error of NFS4ERR_NOTSUPP. Note that
           this is most likely going to occur as in this case it will not
-          support CB_RESERVE_REPAIR. If the client does not support the
+          support CB_ROLLBACK_OPEN_REPAIR. If the client does not support the
           crra_type for the erasure encoding type, then it <bcp14>MUST</bcp14>
           return an error of NFS4ERR_ENCODING_NOT_SUPPORTED.
         </t>
