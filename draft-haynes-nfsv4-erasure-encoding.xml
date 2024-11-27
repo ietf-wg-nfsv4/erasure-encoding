@@ -1038,7 +1038,11 @@
             <ol>
               <li>The client restarts after it has sent M of the N CHUNK_WRITE_SWAP.</li>
               <li>The data server does not receive the CHUNK_WRITE_SWAP.</li>
-              <li>The data server does not reply to the CHUNK_WRITE_SWAP, the client has a FFV2_DS_FLAGS_SPARE, it writes to it, and then the original data server responds.</li>
+              <li>
+                The data server does not reply to the CHUNK_WRITE_SWAP,
+                the client has a FFV2_DS_FLAGS_SPARE, it writes to it,
+                and then the original data server responds.
+              </li>
               <li>Any combination of the above occuring at the same time.</li>
             </ol>
 
