@@ -103,14 +103,15 @@
       However, lacking integrity checks, silent corruptions are not able
       to be detected and the choice of what constitutes the good copy
       is difficult.  This document updates the Flexible File Layout Type
-      to version 2 by providing data integrity for erasure encoding.
-      It introduces a new operation ROLLBACK_OPEN that allow the client to reserve
-      ranges of the data file by creating a reservation file to store
-      modifications. When the client is ready, it will use ROLLBACK_OPEN_SWAP
-      to atomically exchange the blocks in the reservation file with
-      those in the data file. Finally, it will use ROLLBACK_CLOSE
-      to start the deletion of old blocks. Both ROLLBACK_OPEN_RECOVER
-      and ROLLBACK_LIST can be used by the client or metadata server
+      to version 2 by providing data integrity for erasure encoding. Data
+      blocks are transformed into a header and a chunk.
+      It introduces a new operation ROLLBACK_OPEN that allow the client to maintain
+      rollbacks to the data file by creating a per client file to store chunk
+      modifications. The client writes chunks to the client file and then
+      atomically exchanges the chunks in the client file with
+      those in the data file. In case of write holes, it can rollback
+      the chunks. It can remove the client file with ROLLBACK_CLOSE.
+      Both ROLLBACK_OPEN and ROLLBACK_LIST can be used by the client or metadata server
       to recover after a client restart or a client which has
       permanently gone away.
     </t>
@@ -958,6 +959,15 @@
           by the client in the grace period. After a data server restart, the
           ROLLBACK_LIST (see <xref target='ROLLBACK_LIST' />) can be used to
           recover the client filehandle.
+        </t>
+        <t>
+          <cref anchor='AI41' source='TH'>
+            Need to describe the header file and the fact that each client file
+            will also need a header file. Do we need a header file if our unit
+            of measure is the chunk? Can we just store the header in front of the
+            chunk? This will depend on how the XFS swap operates. I.e., is it
+            byte ranges or block based?
+          </cref>
         </t>
       </section>
       <section>
