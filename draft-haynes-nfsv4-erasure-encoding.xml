@@ -1037,8 +1037,31 @@
       </section>
     </section>
 
+    <section anchor='sec_reading' numbered='true' removeInRFC='false' toc='default'>
+      <name>Reading Chunks</name>
+      <t>
+        The client reads chunks from the data file via CHUNK_READ. The number of
+        chunks in the payload that need to be consistent depend on both the
+        Erasure Encoding Type and the level of protection selected. If the
+        client has enough consistent chunks in the payload, then it can proceed
+        to use them to build a data block. If it does not have enough consistent
+        chunks in the payload, then it can either decide to return a LAYOUTERROR
+        of NFS4ERR_PAYLOAD_NOT_CONSISTENT to the metadata server or it can retry
+        the CHUNK_READ until there are enough consistent chunks in the payload.
+      </t>
+      <t>
+        As another client might be writing to the chunks as they are being read,
+        it is entirely possible to read the chunks while they are not consistent.
+        As such, it might even be the non-consistent chunks which contain the new
+        data and a better action than building the data block is to retry the
+        CHUNK_READ to see if new chunks are overwritten.
+      </t>
+    </section>
+
     <section anchor='sec_repair' numbered='true' removeInRFC='false' toc='default'>
       <name>Repairing Payloads</name>
+      <t>
+      </t>
     </section>
   </section>
 
