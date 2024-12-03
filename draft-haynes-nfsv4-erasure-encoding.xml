@@ -2395,6 +2395,31 @@
 
     <section anchor='cb_ops' numbered='true' removeInRFC='false' toc='default'>
       <name>New NFSv4.2 Callback Operations</name>
+
+      <figure anchor='code_cb_ops'>
+        <name>Callback Operations XDR</name>
+        <sourcecode type='xdr'>
+///
+/// /* New callback operations for Erasure Coding start here */
+///        CB_CHUNK_REPAIR                 = 16,
+///
+        </sourcecode>
+      </figure>
+
+      <table anchor='tbl_cb_op_defs'>
+        <name>Protocol Callback Operation Definitions</name>
+        <thead>
+          <tr>
+            <th>Callback Operation</th>
+            <th>Number</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr> <td>CB_CHUNK_REPAIR</td> <td>16</td> <td><xref target='CB_CHUNK_REPAIR' /></td> </tr>
+        </tbody>
+      </table>
+
       <section anchor='CB_CHUNK_REPAIR' numbered='true' removeInRFC='false' toc='default'>
         <name>Operation 16: CB_CHUNK_REPAIR - Repair a reservation of a byte range for writing</name>
         <section anchor='CB_CHUNK_REPAIR4args' numbered='true' removeInRFC='false' toc='exclude'>
