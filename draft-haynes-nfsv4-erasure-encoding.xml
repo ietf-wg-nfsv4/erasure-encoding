@@ -655,7 +655,7 @@
       <name>Erasure Coding</name>
       <t>
         Erasure Coding takes a data block and transforms it to a payload to
-        send to the data servers (see <xref target='coding_transformation' />). It
+        send to the data servers (see <xref target='encoding_transformation' />). It
         generates a metadata header and transformed block per data server. The header is metadata
         information for the transformed block. From now on, the metadata is
         simply referred to as the header and the transformed block as the
@@ -1659,7 +1659,6 @@
 ///
         </sourcecode>
       </figure>
-
 
       <table anchor='tbl_op_defs'>
         <name>Protocol Operation Definitions</name>
