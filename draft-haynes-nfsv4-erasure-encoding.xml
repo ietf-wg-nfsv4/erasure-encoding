@@ -716,7 +716,7 @@
     | HEADER         | ... | HEADER         | ... | HEADER         |
     +----------------+     +----------------+     +----------------+
     | guard:         | ... | guard:         | ... | guard:         |
-    |   change_id: 3 | ... |   change_id: 3 | ... |   change_id: 3 |
+    |   gen_id   : 3 | ... |   gen_id   : 3 | ... |   gen_id   : 3 |
     |   client_id: 6 | ... |   client_id: 6 | ... |   client_id: 6 |
     | payload_id : 0 | ... | payload_id : M | ... | payload_id : 5 |
     | crc32   :      | ... | crc32   :      | ... | crc32   :      |
@@ -750,7 +750,7 @@
         | cwa_payload_id: 0                  |
         | cwa_owner:                         |
         |            co_guard:               |
-        |                cg_change_id: 3     |
+        |                cg_gen_id   : 3     |
         |                cg_client_id: 6     |
         | cwa_chunk_size  :  1048            |
         | cwa_crc32s:                        |
@@ -788,17 +788,17 @@
         | cwr_owners[0]:                |
         |        co_chunk_id: 1         |
         |        co_guard:              |
-        |            cg_change_id: 3    |
+        |            cg_gen_id   : 3    |
         |            cg_client_id: 6    |
         | cwr_owners[1]:                |
         |        co_chunk_id: 2         |
         |        co_guard:              |
-        |            cg_change_id: 3    |
+        |            cg_gen_id   : 3    |
         |            cg_client_id: 6    |
         | cwr_owners[2]:                |
         |        co_chunk_id: 3         |
         |        co_guard:              |
-        |            cg_change_id: 3    |
+        |            cg_gen_id   : 3    |
         |            cg_client_id: 6    |
         +-------------------------------+
           </artwork>
@@ -813,7 +813,7 @@
         | HEADER             |
         +--------------------+
         | guard:             |
-        |   change_id: 7     |
+        |   gen_id   : 7     |
         |   client_id: 6     |
         | payload_id : 0     |
         | crc32   : 0        |
@@ -846,7 +846,7 @@
         | cwa_payload_id: 0                  |
         | cwa_owner:                         |
         |            co_guard:               |
-        |                cg_change_id: 7     |
+        |                cg_gen_id   : 7     |
         |                cg_client_id: 6     |
         | cwa_chunk_size  :  1048            |
         | cwa_crc32s:                        |
@@ -868,7 +868,7 @@
     | HEADER         | ... | HEADER         | ... | HEADER         |
     +----------------+     +----------------+     +----------------+
     | guard:         | ... | guard:         | ... | guard:         |
-    |   change_id: 3 | ... |   change_id: 3 | ... |   change_id: 3 |
+    |   gen_id   : 3 | ... |   gen_id   : 3 | ... |   gen_id   : 3 |
     |   client_id: 6 | ... |   client_id: 6 | ... |   client_id: 6 |
     | payload_id : 0 | ... | payload_id : M | ... | payload_id : 5 |
     | crc32   :      | ... | crc32   :      | ... | crc32   :      |
@@ -915,7 +915,7 @@
         |        cr_crc: 0x21de8             |
         |        cr_owner:                   |
         |            co_guard:               |
-        |                cg_change_id: 7     |
+        |                cg_gen_id   : 7     |
         |                cg_client_id: 6     |
         |        cr_chunk  :  ......         |
         +------------------------------------+
@@ -938,7 +938,7 @@
         | HEADER             |
         +--------------------+
         | guard:             |
-        |   change_id: 7     |
+        |   gen_id   : 7     |
         |   client_id: 6     |
         | payload_id  : 0    |
         | crc32    : 0       |
@@ -1026,11 +1026,8 @@
               The corruption which occurs is a mixture of new chunks and old chunks
               in the payload. If the client_ids do not match, then the chunks
               with the non-matching id are the old chunks and the ones with
-              the same client_id are the new chunks. If the client_ids match,
-              then the ones with the smaller change_id are the old chunks,
-              and the ones with the larger change_id are the new chunks. Note
-              that due to the way change_ids are generated, this comparison
-              is only valid for about 49.7 days before the values wrap.
+              the same client_id are the new chunks. The smaller gen_id
+              are always the older chunks.
             </t>
             <t>
               The write hole scenarios that can occur with the single writer are:
@@ -1559,14 +1556,14 @@
           <name>XDR for chunk_guard4</name>
           <sourcecode type='xdr'>
 /// struct chunk_guard4 {
-///     uint32_t   cg_change_id;
+///     uint32_t   cg_gen_id;
 ///     uint32_t   cg_client_id;
 /// };
           </sourcecode>
         </figure>
         <t>
           The chunk_guard4 (see <xref target='code_chunk_guard4' />) is effectively a 64 bit value, with
-          the upper 32 bits, cg_change_id,  being the current time in ms and the lower 32
+          the upper 32 bits, cg_gen_id,  being the current generation id of the chunk on the DS and the lower 32
           bits, cg_client_id, being an unique id established when the client did the
           EXCHANGE_ID operation (see Section 18.35 of <xref target='RFC8881' />)
           with the metadata server. The lower 32 bits are set passed
@@ -1583,9 +1580,9 @@
           <sourcecode type='c'>
 /// int compare_chunk_guard(chunk_guard4 src, chunk_guard4 dst)
 /// {
-///     if (src.cg_change_id &amp; dst.cg_change_id) {
+///     if (src.cg_gen_id &amp; dst.cg_gen_id) {
 ///         return -1;
-///     } else if (src.cg_change_id &gt; dst.cg_change_id) {
+///     } else if (src.cg_gen_id &gt; dst.cg_gen_id) {
 ///         return 1;
 ///     } else if (src.cg_client_id &amp; dst.cg_client_id ) {
 ///         return -1;
@@ -1873,7 +1870,7 @@
         |     cr_owner:                  |
         |         co_chunk_id: 2         |
         |         co_guard:              |
-        |             cg_change_id: 3    |
+        |             cg_gen_id   : 3    |
         |             cg_client_id: 6    |
         |     cr_payload_id: 1           |
         |     cr_chunk: ....             |
@@ -1882,7 +1879,7 @@
         |     cr_owner:                  |
         |         co_chunk_id: 3         |
         |         co_guard:              |
-        |             cg_change_id: 0    |
+        |             cg_gen_id   : 0    |
         |             cg_client_id: 0    |
         |     cr_payload_id: 1           |
         |     cr_chunk: 0000...00000     |
@@ -1891,7 +1888,7 @@
         |     cr_owner:                  |
         |         co_chunk_id: 4         |
         |         co_guard:              |
-        |             cg_change_id: 3    |
+        |             cg_gen_id   : 3    |
         |             cg_client_id: 6    |
         |     cr_payload_id: 1           |
         |     cr_chunk: ....             |
@@ -2153,9 +2150,9 @@
             <t>
               A guarded CHUNK_WRITE is when the writing of a block
               <bcp14>MUST</bcp14> fail if cwa_guard.cwg_check is set
-              and the target chunk does not have both the same change_id
-              cwa_guard.as the cwg_guard.cg_change_id and the same cwa_guard.cg_change_id as the
-              cwa_guard.cwg_guard.cg_change_id. This is useful in read-update-write
+              and the target chunk does not have both the same gen_id
+              cwa_guard.as the cwg_guard.cg_gen_id and the same cwa_guard.cg_gen_id as the
+              cwa_guard.cwg_guard.cg_gen_id. This is useful in read-update-write
               scenarios. The client reads a block, updates it, and
               is prepared to write it back. It guards the write such
               that if another writer has modified the block, the
@@ -2166,7 +2163,7 @@
               does not have a chunk_id and the CHUNK_WRITE applies
               to all blocks in the range of cwa_offset to the length
               of cwa_data, then each of the target blocks
-              <bcp14>MUST</bcp14> have the same cg_change_id and
+              <bcp14>MUST</bcp14> have the same cg_gen_id and
               cg_client_id. The client <bcp14>SHOULD</bcp14> present
               the smallest set of blocks as possible to meet this
               requirement.
