@@ -417,8 +417,7 @@
         </t>
         <t>
           See  <xref target='Plank97' /> for further
-          reference to storage layouts for coding and <xref target='Howard19' /> for distributed
-          consensus..
+          reference to storage layouts for coding.
         </t>
       </section>
 
@@ -2628,14 +2627,6 @@ sh extract.sh &lt; spec.txt &gt; erasure_coding_prot.x
       <name>Informative References</name>
         <xi:include xmlns:xi='http://www.w3.org/2001/XInclude'
            href='https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.1813.xml'/>
-        <reference anchor="Howard19" target="https://arxiv.org/abs/1902.06776">
-          <front>
-            <title>A Generalised Solution to Distributed Consensus</title>
-            <author surname="Howard" fullname="Heidi Howard" />
-            <author surname="Mortier" fullname="Richard Mortier" />
-            <date year="2019" />
-          </front>
-        </reference>
         <reference anchor='Plank97' target='http://web.eecs.utk.edu/~jplank/plank/papers/CS-96-332.html'>
           <front>
             <title>A Tutorial on Reed-Solomon Coding for Fault-Tolerance in RAID-like System</title>
