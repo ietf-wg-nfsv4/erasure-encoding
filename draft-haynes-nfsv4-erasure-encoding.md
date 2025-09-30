@@ -1136,19 +1136,18 @@ is driving the I/O.
    /// const FATTR4_CODING_BLOCK_SIZE  = 88;
    ///
 ~~~
-{: #fig-X title="The X" }
+{: #fig-fattr4_coding_block_size title="XDR for fattr4_coding_block_size" }
 
-                Figure 23: XDR for fattr4_coding_block_size
-
-   The new attribute fattr4_coding_block_size (see Figure 23) is an
-   OPTIONAL to NFSv4.2 attribute which MUST be supported if the metadata
-   server supports the Flexible File Version 2 Layout Type.  By querying
-   it, the client can determine the data block size it is to use when
-   coding the data blocks to chunks.
+   The new attribute fattr4_coding_block_size (see
+   {{fig-fattr4_coding_block_size}}) is an OPTIONAL to NFSv4.2
+   attribute which MUST be supported if the metadata server supports
+   the Flexible File Version 2 Layout Type.  By querying it, the
+   client can determine the data block size it is to use when coding
+   the data blocks to chunks.
 
 # New NFSv4.2 Common Data Structures
 
-## chunk_guard4
+## chunk_guard4 {#sec-chunk_guard4}
 
 ~~~ xdr
    /// struct chunk_guard4 {
@@ -1156,17 +1155,16 @@ is driving the I/O.
    ///     uint32_t   cg_client_id;
    /// };
 ~~~
-{: #fig-X title="The X" }
+{: #fig-chunk_guard4 title="XDR for chunk_guard4" }
 
-                      Figure 24: XDR for chunk_guard4
-
-   The chunk_guard4 (see Figure 24) is effectively a 64 bit value, with
-   the upper 32 bits, cg_gen_id, being the current generation id of the
-   chunk on the DS and the lower 32 bits, cg_client_id, being an unique
-   id established when the client did the EXCHANGE_ID operation (see
-   Section 18.35 of {{RFC8881}}) with the metadata server.  The lower 32
-   bits are set passed back in the LAYOUTGET operation (see
-   Section 18.43 of {{RFC8881}}) as the fml_client_id (see Section 2.9).
+   The chunk_guard4 (see {{fig-chunk_guard4}}) is effectively a 64
+   bit value, with the upper 32 bits, cg_gen_id, being the current
+   generation id of the chunk on the DS and the lower 32 bits,
+   cg_client_id, being an unique id established when the client did
+   the EXCHANGE_ID operation (see Section 18.35 of {{RFC8881}})
+   with the metadata server.  The lower 32 bits are set passed back
+   in the LAYOUTGET operation (see Section 18.43 of {{RFC8881}})
+   as the fml_client_id (see Section 2.9).
 
 ## chunk_owner4
 
@@ -1176,15 +1174,13 @@ is driving the I/O.
    ///     uint32_t       co_id;
    /// };
 ~~~
-{: #fig-X title="The X" }
+{: #fig-chunk_owner4 title="XDR for chunk_owner4" }
 
-                    Figure 25: XDR for code_chunk_owner4
-
-   The chunk_owner4 (see Figure 25) is used to determine when and by
+   The chunk_owner4 (see {{fig-chunk_owner4}}) is used to determine when and by
    whom a block was written.  The co_id is used to identify the block
    and MUST be the index of the chunk within the file.  I.e., it is the
    offset of the start of the chunk divided by the chunk length.  The
-   co_guard is a chunk_guard4 (see Section 8.1 used to identify a given
+   co_guard is a chunk_guard4 (see {{sec-chunk_guard4}}), used to identify a given
    transaction.
 
    The co_guard is like the change attribute (see Section 5.8.1.4 of
@@ -1216,9 +1212,7 @@ is driving the I/O.
    ///  OP_SWAP                = 92,
    ///
 ~~~
-{: #fig-X title="The X" }
-
-                         Figure 26: Operations XDR
+{: #fig-ops-xdr title="Operations XDR" }
 
    | Operation              | Number | Target Server     | Description |
    | ---
@@ -1238,7 +1232,7 @@ is driving the I/O.
    | ROLLBACK_LIST          | 90     | DS                | Section 9.7 |
    | ROLLBACK_OPEN          | 91     | DS                | Section 9.7 |
    | SWAP                   | 92     | non-pNFS, MDS, DS         | Section 9.7 |
-{: #tbl-protocol-ops title="X"}
+{: #tbl-protocol-ops title="Protocol OPs"}
 
 ## Operation 77: CHUNK_COMMIT - Activate Cached Chunk Data
 
@@ -1662,7 +1656,7 @@ is driving the I/O.
    such that if another writer has modified the block, the data server
    will reject the modification.
 
-   As the chunk_guard4 (see Figure 24 does not have a chunk_id and the
+   As the chunk_guard4 (see {{fig-chunk_guard4}} does not have a chunk_id and the
    CHUNK_WRITE applies to all blocks in the range of cwa_offset to the
    length of cwa_data, then each of the target blocks MUST have the same
    cg_gen_id and cg_client_id.  The client SHOULD present the smallest
