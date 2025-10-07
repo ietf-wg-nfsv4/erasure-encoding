@@ -1,17 +1,12 @@
-# Copyright (C) The IETF Trust (2019)
-#
+LIBDIR := lib
+INDEX_FORMAT := md
+include $(LIBDIR)/main.mk
 
-YEAR=`date +%Y`
-MONTH=`date +%B`
-DAY=`date +%d`
-VERS=04
-
-BASEDOC=draft-haynes-nfsv4-erasure-encoding
-
-all: $(BASEDOC)-$(VERS).xml
-
-$(BASEDOC)-$(VERS).xml: $(BASEDOC).xml
-	sed -e s/VERSIONVAR/${VERS}/g -e s/DAYVAR/${DAY}/g -e s/MONTHVAR/${MONTH}/g -e s/YEARVAR/${YEAR}/g < $(BASEDOC).xml > $@
-
-text: $(BASEDOC)-$(VERS).xml
-	xml2rfc --text $(BASEDOC)-$(VERS).xml
+$(LIBDIR)/main.mk:
+ifneq (,$(shell grep "path *= *$(LIBDIR)" .gitmodules 2>/dev/null))
+	git submodule sync
+	git submodule update $(CLONE_ARGS) --init
+else
+	git clone -q --depth 10 $(CLONE_ARGS) \
+	    -b main https://github.com/martinthomson/i-d-template $(LIBDIR)
+endif

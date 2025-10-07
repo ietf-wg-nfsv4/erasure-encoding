@@ -34,6 +34,12 @@ normative:
 
 informative:
   Plank97:
+    title: A Tutorial on Reed-Solomon Coding for Fault-Tolerance in RAID-like System
+    author:
+    - ins: J. Plank
+      name: J. Plank
+      target: http://web.eecs.utk.edu/~jplank/plank/papers/CS-96-332.htm
+    date: September 1997
   RFC1813:
 
 --- abstract
@@ -70,6 +76,8 @@ out.  In the first draft, we simply explain the semantics changes.
 As these are accepted by the knowledgeable reviewers, we will flesh
 out the operation description sections to include sub-sections more
 akin to 18.32.3 and 18.32.4 of {{RFC8881}}.
+
+--- middle
 
 # Introduction
 
@@ -402,7 +410,7 @@ tells the client which id to use when interacting with the data servers.
 ~~~
 {: #fig-ffv2_layout4 title="The ffv2_layout4" }
 
-The ffv2_layout4 (in {{fog-ffv2_layout4}}) describes the Flexible File
+The ffv2_layout4 (in {{fig-ffv2_layout4}}) describes the Flexible File
 Layout Version 2.
 
 ## ffv2_layouthint4
@@ -481,7 +489,7 @@ header and transformed block will be sent.  Further, when reading data
 from the instance files, the client MUST be prepared to have one of
 the coding types supply data and the other type not to supply data.
 I.e., the CHUNK_READ call to the data servers in mirror 1 might return
-rlr_eof set to true (see {{fig-read_chunk}}), which indicates that there is no
+rlr_eof set to true (see {{fig-read_chunk4}}), which indicates that there is no
 data, where the READ call to the data server in mirror 0 might return
 eof to be false, which indicates that there is data.  The client MUST
 determine that there is in fact data.
@@ -1349,7 +1357,7 @@ is driving the I/O.
    exceeds the number of blocks that the data server is aware or it
    returns an empty block for that block.
 
-   For example, in {{ig-example-CHUNK_READ4args}}, the client asks for 4 blocks starting with
+   For example, in {{fig-example-CHUNK_READ4args}}, the client asks for 4 blocks starting with
    the 3rd block in the file.  The second data server responds as in
    {{fig-example-CHUNK_READ4resok}}.  The client would read this as there is valid data for
    blocks 2 and 4, there is a hole at block 3, and there is no data for
@@ -1865,19 +1873,19 @@ extract into a ready-to-compile form.  The reader can feed this document
 into the shell script in {{fig-extract}} to produce the machine-readable
 XDR description of the flexible file layout type.
 
-~~ shell
+~~~ shell
 #!/bin/sh
 grep '^ *///' $* | sed 's?^ */// ??' | sed 's?^ *///$??'
-~~
+~~~
 {: #fig-extract title="extract.sh"}
 
 That is, if the above script is stored in a file called "extract.sh"
 and this document is in a file called "spec.txt", then the reader can
 run the script as in {{fig-extract-example}}.
 
-~~ shell
+~~~ shell
 sh extract.sh < spec.txt > flex_files2_prot.x
-~~
+~~~
 {: #fig-extract-example title="Example use of extract.sh"}
 
 The effect of the script is to remove leading blank space from each
