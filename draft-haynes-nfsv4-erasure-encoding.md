@@ -368,7 +368,7 @@ types of chunks.
 ~~~
 {: #fig-ffv2_key4 title="The ffv2_key4" }
 
-The ffv2_key4 (in Figure {{fig-ffv2_key4}}) is a secret key known only
+The ffv2_key4 (in {{fig-ffv2_key4}}) is a secret key known only
 to the metadata server, data server, and client.  In the event of either
 a data server restart or a dead client, it can be used to restablish a
 connection via ROLLBACK_OPEN.
@@ -481,7 +481,7 @@ header and transformed block will be sent.  Further, when reading data
 from the instance files, the client MUST be prepared to have one of
 the coding types supply data and the other type not to supply data.
 I.e., the CHUNK_READ call to the data servers in mirror 1 might return
-rlr_eof set to true (see Figure 32), which indicates that there is no
+rlr_eof set to true (see {{fig-read_chunk}}), which indicates that there is no
 data, where the READ call to the data server in mirror 0 might return
 eof to be false, which indicates that there is data.  The client MUST
 determine that there is in fact data.
@@ -780,7 +780,7 @@ to be 0x21de8.  Thus this payload for the data server has data integrity.
 
 There are two basic writing modes for erasure coding and they depend
 the metadata server using FFV2_FLAGS_ONLY_ONE_WRITER in the ffl_flags
-in the ffv2_layout4 (see Figure 10) to inform the client whether it
+in the ffv2_layout4 (see {{fig-ffv2_layout4}}) to inform the client whether it
 is the only writer to the file or not.  If it is the only writer,
 then CHUNK_WRITE_SWAP can be used to write chunks.  In this scenario,
 there is no write contention, but write holes can occur as the client
@@ -1234,7 +1234,7 @@ is driving the I/O.
    | SWAP                   | 92     | non-pNFS, MDS, DS         | Section 9.7 |
 {: #tbl-protocol-ops title="Protocol OPs"}
 
-## Operation 77: CHUNK_COMMIT - Activate Cached Chunk Data
+## Operation 77: CHUNK_COMMIT - Activate Cached Chunk Data {#sec-CHUNK_COMMIT}
 
 ### ARGUMENTS
 
@@ -1246,9 +1246,7 @@ is driving the I/O.
    ///     chunk_owner4    cca_chunks<>;
    /// };
 ~~~
-{: #fig-X title="The X" }
-
-                    Figure 27: XDR for CHUNK_COMMIT4args
+{: #fig-CHUNK_COMMIT4args title="XDR for CHUNK_COMMIT4args" }
 
 ### RESULTS
 
@@ -1257,9 +1255,7 @@ is driving the I/O.
    ///     verifier4       ccr_writeverf;
    /// };
 ~~~
-{: #fig-X title="The X" }
-
-                   Figure 28: XDR for CHUNK_COMMIT4resok
+{: #fig-CHUNK_COMMIT4resok title="XDR for CHUNK_COMMIT4resok" }
 
 ~~~ xdr
    /// union CHUNK_COMMIT4res switch (nfsstat4 ccr_status) {
@@ -1269,9 +1265,7 @@ is driving the I/O.
    ///         void;
    /// };
 ~~~
-{: #fig-X title="The X" }
-
-                    Figure 29: XDR for CHUNK_COMMIT4res
+{: #fig-CHUNK_COMMIT4res title="XDR for CHUNK_COMMIT4res" }
 
 ### DESCRIPTION
 
@@ -1291,7 +1285,7 @@ is driving the I/O.
    to allow the data server to differentiate between potentially
    multiple pending blocks.
 
-## Operation 78: CHUNK_READ - Read Chunks from File
+## Operation 78: CHUNK_READ - Read Chunks from File {#sec-CHUNK_READ}
 
 ### ARGUMENTS
 
@@ -1303,9 +1297,7 @@ is driving the I/O.
    ///     count4      cra_count;
    /// };
 ~~~
-{: #fig-X title="The X" }
-
-                                 Figure 30
+{: #fig-CHUNK_READ4args title="XDR for CHUNK_READ4args" }
 
 ### RESULTS
 
@@ -1318,9 +1310,7 @@ is driving the I/O.
    ///     opaque          cr_chunk<>;
    /// };
 ~~~
-{: #fig-X title="The X" }
-
-                                 Figure 31
+{: #fig-read_chunk4 title="XDR for read_chunk4" }
 
 ~~~ xdr
    /// struct CHUNK_READ4resok {
@@ -1328,9 +1318,7 @@ is driving the I/O.
    ///     read_chunk4 crr_chunks<>;
    /// };
 ~~~
-{: #fig-X title="The X" }
-
-                                 Figure 32
+{: #fig-CHUNK_READ4resok title="XDR for CHUNK_READ4resok" }
 
 ~~~ xdr
    /// union CHUNK_READ4res switch (nfsstat4 crr_status) {
@@ -1340,9 +1328,7 @@ is driving the I/O.
    ///          void;
    /// };
 ~~~
-{: #fig-X title="The X" }
-
-                                 Figure 33
+{: #fig-CHUNK_READ4res title="XDR for CHUNK_READ4res" }
 
 ### DESCRIPTION
 
@@ -1363,9 +1349,9 @@ is driving the I/O.
    exceeds the number of blocks that the data server is aware or it
    returns an empty block for that block.
 
-   For example, in Figure 34, the client asks for 4 blocks starting with
+   For example, in {{ig-example-CHUNK_READ4args}}, the client asks for 4 blocks starting with
    the 3rd block in the file.  The second data server responds as in
-   Figure 35.  The client would read this as there is valid data for
+   {{fig-example-CHUNK_READ4resok}}.  The client would read this as there is valid data for
    blocks 2 and 4, there is a hole at block 3, and there is no data for
    block 5.  The data server MUST calculate a valid cr_crc for block 3
    based on the generated fields.
@@ -1380,9 +1366,7 @@ is driving the I/O.
            | cra_count: 4                   |
            +----------+---------------------+
 ~~~
-{: #fig-X title="The X" }
-
-                                 Figure 34
+{: #fig-example-CHUNK_READ4args title="Example: CHUNK_READ4args parameters" }
 
 ~~~
                    Data Server 2
@@ -1419,11 +1403,9 @@ is driving the I/O.
            |     cr_chunk: ....             |
            +--------------------------------+
 ~~~
-{: #fig-X title="The X" }
+{: #fig-example-CHUNK_READ4resok title="Example: Resulting CHUNK_READ4resok reply" }
 
-                                 Figure 35
-
-## Operation 79: HEADER_READ - Read Chunk Header from File
+## Operation 79: HEADER_READ - Read Chunk Header from File {#sec-HEADER_READ}
 
 ### ARGUMENTS
 
@@ -1435,9 +1417,7 @@ is driving the I/O.
    ///     count4      hra_count;
    /// };
 ~~~
-{: #fig-X title="The X" }
-
-                                 Figure 36
+{: #fig-HEADER_READ4args title="XDR for HEADER_READ4args" }
 
 ### RESULTS
 
@@ -1447,9 +1427,7 @@ is driving the I/O.
    ///     chunk_owner4    hrr_chunks<>;
    /// };
 ~~~
-{: #fig-X title="The X" }
-
-                                 Figure 37
+{: #fig-HEADER_READ4resok title="XDR for HEADER_READ4resok" }
 
 ~~~ xdr
    /// union HEADER_READ4res switch (nfsstat4 hrr_status) {
@@ -1459,16 +1437,14 @@ is driving the I/O.
    ///         void;
    /// };
 ~~~
-{: #fig-X title="The X" }
-
-                                 Figure 38
+{: #fig-HEADER_READ4res title="XDR for HEADER_READ4resok" }
 
 ### DESCRIPTION
 
    HEADER_READ differs from CHUNK_READ in that it only reads chunk
    headers in the desired data range.
 
-## Operation 80: ROLLBACK_CHUNK - Rollback Cached Chunk Data
+## Operation 80: ROLLBACK_CHUNK - Rollback Cached Chunk Data {#sec-ROLLBACK_CHUNK}
 
 ### ARGUMENTS
 
@@ -1480,9 +1456,7 @@ is driving the I/O.
    ///     chunk_owner4    cra_chunks<>;
    /// };
 ~~~
-{: #fig-X title="The X" }
-
-                                 Figure 39
+{: #fig-ROLLBACK_CHUNK4args title="XDR for ROLLBACK_CHUNK4args" }
 
 ### RESULTS
 
@@ -1491,9 +1465,7 @@ is driving the I/O.
    ///     verifier4       crr_writeverf;
    /// };
 ~~~
-{: #fig-X title="The X" }
-
-                                 Figure 40
+{: #fig-ROLLBACK_CHUNK4resok title="XDR for ROLLBACK_CHUNK4resok" }
 
 ~~~ xdr
    /// union ROLLBACK_CHUNK4res switch (nfsstat4 crr_status) {
@@ -1503,9 +1475,7 @@ is driving the I/O.
    ///         void;
    /// };
 ~~~
-{: #fig-X title="The X" }
-
-                                 Figure 41
+{: #fig-ROLLBACK_CHUNK4res title="XDR for ROLLBACK_CHUNK4res" }
 
 ### DESCRIPTION
 
@@ -1530,7 +1500,7 @@ is driving the I/O.
    write holes, it allows the client to undo transactions to repair the
    file.
 
-## Operation 81: CHUNK_WRITE - Write Chunks to File
+## Operation 81: CHUNK_WRITE - Write Chunks to File {#sec-CHUNK_WRITE}
 
 ### ARGUMENTS
 
@@ -1542,9 +1512,7 @@ is driving the I/O.
    ///         void;
    /// };
 ~~~
-{: #fig-X title="The X" }
-
-                                 Figure 42
+{: #fig-write_chunk_guard4 title="XDR for write_chunk_guard4" }
 
 ~~~ xdr
    /// struct CHUNK_WRITE4args {
@@ -1560,9 +1528,7 @@ is driving the I/O.
    ///     opaque             cwa_chunks<>;
    /// };
 ~~~
-{: #fig-X title="The X" }
-
-                                 Figure 43
+{: #fig-CHUNK_WRITE4args title="XDR for CHUNK_WRITE4args" }
 
 ### RESULTS
 
@@ -1574,9 +1540,7 @@ is driving the I/O.
    ///     chunk_owner4    cwr_owners<>;
    /// };
 ~~~
-{: #fig-X title="The X" }
-
-                                 Figure 44
+{: #fig-CHUNK_WRITE4resok title="XDR for CHUNK_WRITE4resok" }
 
 ~~~ xdr
    /// union CHUNK_WRITE4res switch (nfsstat4 cwr_status) {
@@ -1586,9 +1550,7 @@ is driving the I/O.
    ///         void;
    /// };
 ~~~
-{: #fig-X title="The X" }
-
-                                 Figure 45
+{: #fig-CHUNK_WRITE4res title="XDR for CHUNK_WRITE4res" }
 
 ### DESCRIPTION
 
@@ -1672,7 +1634,7 @@ is driving the I/O.
    //
    // -- TH
 
-## Operation 77: ROLLBACK_OPEN - Reserve a byte range for writing
+## Operation 77: ROLLBACK_OPEN - Reserve a byte range for writing {#sec-ROLLBACK_OPEN}
 
 ### ARGUMENTS
 
@@ -1684,9 +1646,7 @@ is driving the I/O.
    ///     uint32_t        roa_client_id;
    /// };
 ~~~
-{: #fig-X title="The X" }
-
-                                 Figure 46
+{: #fig-ROLLBACK_OPEN4args title="XDR for ROLLBACK_OPEN4args" }
 
 ### RESULTS
 
@@ -1698,9 +1658,7 @@ is driving the I/O.
    ///         void;
    /// };
 ~~~
-{: #fig-X title="The X" }
-
-                                 Figure 47
+{: #fig-ROLLBACK_OPEN4res title="XDR for ROLLBACK_OPEN4res" }
 
 ### DESCRIPTION
 
@@ -1748,8 +1706,7 @@ is driving the I/O.
    determine if this was due to normal file system semantics or a
    mismatched ffv2_key4.
 
-## Operation 78: ROLLBACK_LIST - Get information on a byte range for
-      writing
+## Operation 78: ROLLBACK_LIST - Get information on a byte range for writing {#sec-ROLLBACK_LIST}
 
 ### ARGUMENTS
 
@@ -1759,9 +1716,7 @@ is driving the I/O.
    ///     stateid4        ria_stateid;
    /// };
 ~~~
-{: #fig-X title="The X" }
-
-                                 Figure 48
+{: #fig-ROLLBACK_LIST4args title="XDR for ROLLBACK_LIST4args" }
 
 ### RESULTS
 
@@ -1771,18 +1726,14 @@ is driving the I/O.
    ///     nfs_fh4        ri_fh;
    /// };
 ~~~
-{: #fig-X title="The X" }
-
-                                 Figure 49
+{: #fig-rollback_info4 title="XDR for rollback_info4" }
 
 ~~~ xdr
    /// struct ROLLBACK_LIST4resok {
    ///     rollback_info4  rlr_rollbacks<>;
    /// };
 ~~~
-{: #fig-X title="The X" }
-
-                                 Figure 50
+{: #fig-ROLLBACK_LIST4resok title="XDR for ROLLBACK_LIST4resok" }
 
 ~~~ xdr
    /// union ROLLBACK_LIST4res switch (nfsstat4 rlr_status) {
@@ -1792,23 +1743,20 @@ is driving the I/O.
    ///         void;
    /// };
 ~~~
-{: #fig-X title="The X" }
-
-                                 Figure 51
+{: #fig-ROLLBACK_LIST4res title="XDR for ROLLBACK_LIST4res" }
 
 ### DESCRIPTION
 
    ROLLBACK_LIST is a new operation to list the open client rollback
-   files for the current filehandle.  As shown in Figure 48, a stateid
+   files for the current filehandle.  As shown in {{fig-ROLLBACK_LIST4args}}, a stateid
    that follows the rules of Section 9.6.3 MUST be presented.
 
-   The result is an array of rollback_info4 (see Figure 49).  The
+   The result is an array of rollback_info4 (see {{fig-rollback_info4}}).  The
    ri_client_id allows the metadata server to determine which
    reservations belonged to a dead client.  The ffv2_key4 associated
    with the reservation file MUST NOT be sent back in the results.
 
-## Operation 80: ROLLBACK_CLOSE - Release reservation on a byte range
-      for writing
+## Operation 80: ROLLBACK_CLOSE - Release reservation on a byte range for writing {#sec-ROLLBACK_CLOSE}
 
 ### ARGUMENTS
 
@@ -1820,9 +1768,8 @@ is driving the I/O.
    ///     ffv2_key4       rra_key;
    /// };
 ~~~
-{: #fig-X title="The X" }
+{: #fig-ROLLBACK_CLOSE4args title="XDR for ROLLBACK_CLOSE4args" }
 
-                                 Figure 52
 
 ### RESULTS
 
@@ -1831,18 +1778,16 @@ is driving the I/O.
    ///     nfsstat4 rrr_status;
    /// };
 ~~~
-{: #fig-X title="The X" }
-
-                                 Figure 53
+{: #fig-ROLLBACK_CLOSE4res title="XDR for ROLLBACK_CLOSE4res" }
 
 ### DESCRIPTION
 
    ROLLBACK_CLOSE is a new operation to release a reservation on a file.
    The user has to have access to the underlying file in order to
    release the reservation.  For the given reservation identified by
-   rra_reservation_id (see Figure 52), the rra_key MUST match that which
+   rra_reservation_id (see {{fig-ROLLBACK_CLOSE4args}}), the rra_key MUST match that which
    was persisted in the original ROLLBACK_OPEN operation to create the
-   reservation.  As shown in Figure 52, a stateid that follows the rules
+   reservation.  As shown in {{fig-ROLLBACK_CLOSE4args}}, a stateid that follows the rules
    of Section 9.6.3 MUST be presented.
 
    If there is no matching reservation for the rra_reservation_id, then
@@ -1862,20 +1807,14 @@ is driving the I/O.
    ///        CB_CHUNK_REPAIR                 = 16,
    ///
 ~~~
-{: #fig-X title="The X" }
-
-                     Figure 54: Callback Operations XDR
+{: #fig-CB_CHUNK_REPAIR title="Callback Operations XDR" }
 
  | Callback Operation | Number | Description  |
  | ---
  | CB_CHUNK_REPAIR    | 16     | Section 10.1 |
-{: #tbl-X title="X"}
+{: #tbl-cb_ops title="Protocol Callback Operation Definitions"}
 
-                   Table 6: Protocol Callback Operation
-                               Definitions
-
-## Operation 16: CB_CHUNK_REPAIR - Repair a reservation of a byte
-       range for writing
+## Operation 16: CB_CHUNK_REPAIR - Repair a reservation of a byte range for writing {#sec-CB_CHUNK_REPAIR}
 
 ###  ARGUMENTS
 
@@ -1888,9 +1827,7 @@ is driving the I/O.
    ///     ffv2_coding_type4    crra_type;
    /// };
 ~~~
-{: #fig-X title="The X" }
-
-                                 Figure 55
+{: #fig-CB_CHUNK_REPAIR4args title="XDR for CB_CHUNK_REPAIR4args" }
 
 ###  RESULTS
 
@@ -1899,19 +1836,17 @@ is driving the I/O.
    ///     nfsstat4 crrr_status;
    /// };
 ~~~
-{: #fig-X title="The X" }
-
-                                 Figure 56
+{: #fig-CB_CHUNK_REPAIR4res title="XDR for CB_CHUNK_REPAIR4res" }
 
 ###  DESCRIPTION
 
    CB_CHUNK_REPAIR is a new callback operation to request that the
    client repair a reservation on a file.  The user has to have access
    to the underlying file in order to release the reservation.  For the
-   given reservation identified by rra_reservation_id (see Figure 55),
+   given reservation identified by rra_reservation_id (see {{fig-CB_CHUNK_REPAIR4args}}),
    the crra_key MUST match that which was persisted in the original
    ROLLBACK_OPEN operation to create the reservation.  As shown in
-   Figure 55, a stateid that follows the rules of Section 9.6.3 MUST be
+   {{fig-CB_CHUNK_REPAIR4args}}, a stateid that follows the rules of Section 9.6.3 MUST be
    presented.
 
    If the client does not support the ROLLBACK_OPEN family of
