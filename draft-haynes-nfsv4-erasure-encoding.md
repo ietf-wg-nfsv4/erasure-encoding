@@ -1161,12 +1161,12 @@ is driving the I/O.
 ~~~
 {: #fig-fattr4_coding_block_size title="XDR for fattr4_coding_block_size" }
 
-   The new attribute fattr4_coding_block_size (see
-   {{fig-fattr4_coding_block_size}}) is an OPTIONAL to NFSv4.2
-   attribute which MUST be supported if the metadata server supports
-   the Flexible File Version 2 Layout Type.  By querying it, the
-   client can determine the data block size it is to use when coding
-   the data blocks to chunks.
+The new attribute fattr4_coding_block_size (see
+{{fig-fattr4_coding_block_size}}) is an OPTIONAL to NFSv4.2 attribute
+which MUST be supported if the metadata server supports the Flexible
+File Version 2 Layout Type.  By querying it, the client can determine
+the data block size it is to use when coding the data blocks to
+chunks.
 
 # New NFSv4.2 Common Data Structures
 
@@ -1180,14 +1180,14 @@ is driving the I/O.
 ~~~
 {: #fig-chunk_guard4 title="XDR for chunk_guard4" }
 
-   The chunk_guard4 (see {{fig-chunk_guard4}}) is effectively a 64
-   bit value, with the upper 32 bits, cg_gen_id, being the current
-   generation id of the chunk on the DS and the lower 32 bits,
-   cg_client_id, being an unique id established when the client did
-   the EXCHANGE_ID operation (see Section 18.35 of {{RFC8881}})
-   with the metadata server.  The lower 32 bits are set passed back
-   in the LAYOUTGET operation (see Section 18.43 of {{RFC8881}})
-   as the fml_client_id (see Section 2.9).
+The chunk_guard4 (see {{fig-chunk_guard4}}) is effectively a 64 bit
+value, with the upper 32 bits, cg_gen_id, being the current generation
+id of the chunk on the DS and the lower 32 bits, cg_client_id, being
+an unique id established when the client did the EXCHANGE_ID operation
+(see Section 18.35 of {{RFC8881}}) with the metadata server.  The
+lower 32 bits are set passed back in the LAYOUTGET operation (see
+Section 18.43 of {{RFC8881}}) as the fml_client_id (see Section
+2.9).
 
 ## chunk_owner4
 
@@ -1199,17 +1199,17 @@ is driving the I/O.
 ~~~
 {: #fig-chunk_owner4 title="XDR for chunk_owner4" }
 
-   The chunk_owner4 (see {{fig-chunk_owner4}}) is used to determine when and by
-   whom a block was written.  The co_id is used to identify the block
-   and MUST be the index of the chunk within the file.  I.e., it is the
-   offset of the start of the chunk divided by the chunk length.  The
-   co_guard is a chunk_guard4 (see {{sec-chunk_guard4}}), used to identify a given
-   transaction.
+The chunk_owner4 (see {{fig-chunk_owner4}}) is used to determine
+when and by whom a block was written.  The co_id is used to identify
+the block and MUST be the index of the chunk within the file.  I.e.,
+it is the offset of the start of the chunk divided by the chunk
+length.  The co_guard is a chunk_guard4 (see {{sec-chunk_guard4}}),
+used to identify a given transaction.
 
-   The co_guard is like the change attribute (see Section 5.8.1.4 of
-   {{RFC8881}}) in that each chunk write by a given client has to have an
-   unique co_guard.  I.e., it can be determined which transaction across
-   all data files that a chunk corresponds.
+The co_guard is like the change attribute (see Section 5.8.1.4 of
+{{RFC8881}}) in that each chunk write by a given client has to have
+an unique co_guard.  I.e., it can be determined which transaction
+across all data files that a chunk corresponds.
 
 # New NFSv4.2 Operations
 
@@ -1219,42 +1219,34 @@ is driving the I/O.
    ///
    ///  OP_CHUNK_COMMIT        = 77,
    ///  OP_CHUNK_ERROR         = 78,
-   ///  OP_CHUNK_LOCK          = 79,
-   ///  OP_CHUNK_READ          = 80,
-   ///  OP_CHUNK_REPAIRED      = 81,
-   ///  OP_CHUNK_SWAP          = 82,
-   ///  OP_CHUNK_UNLOCK        = 83,
-   ///  OP_CHUNK_WRITE         = 84,
-   ///  OP_CHUNK_WRITE_SWAP    = 85,
-   ///  OP_CHUNK_WRITE_SWAP_GUARD = 86,
-   ///  OP_GUARD_SWAP          = 87,
-   ///  OP_HEADER_READ         = 88,
-   ///  OP_ROLLBACK_CLOSE      = 89,
-   ///  OP_ROLLBACK_LIST       = 90,
-   ///  OP_ROLLBACK_OPEN       = 91,
-   ///  OP_SWAP                = 92,
+   ///  OP_CHUNK_FINALIZE      = 79,
+   ///  OP_CHUNK_HEADER_READ   = 80,
+   ///  OP_CHUNK_LOCK          = 81,
+   ///  OP_CHUNK_READ          = 82,
+   ///  OP_CHUNK_REPAIRED      = 83,
+   ///  OP_CHUNK_ROLLBACK      = 84,
+   ///  OP_CHUNK_UNLOCK        = 85,
+   ///  OP_CHUNK_WRITE         = 86,
+   ///  OP_CHUNK_WRITE_GUARD   = 87,
+   ///  OP_CHUNK_WRITE_REPAIR  = 88,
    ///
 ~~~
 {: #fig-ops-xdr title="Operations XDR" }
 
    | Operation              | Number | Target Server     | Description |
    | ---
-   | CHUNK_COMMIT           | 77     | DS                | Section 9.1 |
-   | CHUNK_ERROR            | 78     | MDS               | Section 9.2 |
-   | CHUNK_LOCK             | 79     | DS                | Section 9.2 |
-   | CHUNK_READ             | 80     | DS                | Section 9.2 |
-   | CHUNK_REPAIRED         | 81     | MDS               | Section 9.2 |
-   | CHUNK_SWAP             | 82     | DS                | Section 9.2 |
-   | CHUNK_UNLOCK           | 83     | DS                | Section 9.2 |
-   | CHUNK_WRITE            | 84     | DS                | Section 9.5 |
-   | CHUNK_WRITE_SWAP       | 85     | DS                | Section 9.5 |
-   | CHUNK_WRITE_SWAP_GUARD | DS     | 86                | Section 9.5 |
-   | GUARD_SWAP             | 87     | DS                | Section 9.5 |
-   | HEADER_READ            | 88     | DS                | Section 9.3 |
-   | ROLLBACK_CLOSE         | 89     | DS                | Section 9.7 |
-   | ROLLBACK_LIST          | 90     | DS                | Section 9.7 |
-   | ROLLBACK_OPEN          | 91     | DS                | Section 9.7 |
-   | SWAP                   | 92     | non-pNFS, MDS, DS         | Section 9.7 |
+   | CHUNK_COMMIT           | 77     | DS                | {{sec-CHUNK_COMMIT}} |
+   | CHUNK_ERROR            | 78     | MDS               | {{sec-CHUNK_ERROR}} |
+   | CHUNK_FINALIZE         | 79     | DS                | {{sec-CHUNK_FINALIZE}} |
+   | CHUNK_HEADER_READ      | 80     | DS                | {{sec-CHUNK_HEADER_READ}} |
+   | CHUNK_LOCK             | 81     | DS                | {{sec-CHUNK_LOCK}} |
+   | CHUNK_READ             | 82     | DS                | {{sec-CHUNK_READ}} |
+   | CHUNK_REPAIRED         | 83     | MDS               | {{sec-CHUNK_REPAIRED}} |
+   | CHUNK_ROLLBACK         | 84     | DS                | {{sec-CHUNK_ROLLBACK}} |
+   | CHUNK_UNLOCK           | 85     | DS                | {{sec-CHUNK_UNLOCK}} |
+   | CHUNK_WRITE            | 86     | DS                | {{sec-CHUNK_WRITE}} |
+   | CHUNK_WRITE_GUARD      | 87     | DS                | {{sec-CHUNK_WRITE_GUARD}} |
+   | CHUNK_WRITE_REPAIR     | 88     | DS                | {{sec-CHUNK_WRITE_REPAIR}} |
 {: #tbl-protocol-ops title="Protocol OPs"}
 
 ## Operation 77: CHUNK_COMMIT - Activate Cached Chunk Data {#sec-CHUNK_COMMIT}
@@ -1292,21 +1284,21 @@ is driving the I/O.
 
 ### DESCRIPTION
 
-   CHUNK_COMMIT is COMMIT (see Section 18.3 of {{RFC8881}}) with
-   additional semantics over the chunk_owner activating the blocks.  As
-   such, all of the normal semantics of COMMIT directly apply.
+CHUNK_COMMIT is COMMIT (see Section 18.3 of {{RFC8881}}) with
+additional semantics over the chunk_owner activating the blocks.
+As such, all of the normal semantics of COMMIT directly apply.
 
-   The main difference between the two operations is that CHUNK_COMMIT
-   works on blocks and not a raw data stream.  As such cca_offset is the
-   starting block offset in the file and not the byte offset in the
-   file.  Some erasure coding types can have different block sizes
-   depending on the block type.  Further, cca_count is a count of blocks
-   to activate and not bytes to activate.
+The main difference between the two operations is that CHUNK_COMMIT
+works on blocks and not a raw data stream.  As such cca_offset is
+the starting block offset in the file and not the byte offset in
+the file.  Some erasure coding types can have different block sizes
+depending on the block type.  Further, cca_count is a count of
+blocks to activate and not bytes to activate.
 
-   Further, while it may appear that the combination of cca_offset and
-   cca_count are redundant to cca_chunks, the purpose of cca_chunks is
-   to allow the data server to differentiate between potentially
-   multiple pending blocks.
+Further, while it may appear that the combination of cca_offset and
+cca_count are redundant to cca_chunks, the purpose of cca_chunks
+is to allow the data server to differentiate between potentially
+multiple pending blocks.
 
 ## Operation 78: CHUNK_READ - Read Chunks from File {#sec-CHUNK_READ}
 
@@ -1355,29 +1347,30 @@ is driving the I/O.
 
 ### DESCRIPTION
 
-   CHUNK_READ is READ (see Section 18.22 of {{RFC8881}}) with additional
-   semantics over the chunk_owner.  As such, all of the normal semantics
-   of READ directly apply.
+CHUNK_READ is READ (see Section 18.22 of {{RFC8881}}) with additional
+semantics over the chunk_owner.  As such, all of the normal semantics
+of READ directly apply.
 
-   The main difference between the two operations is that CHUNK_READ
-   works on blocks and not a raw data stream.  As such cra_offset is the
-   starting block offset in the file and not the byte offset in the
-   file.  Some erasure coding types can have different block sizes
-   depending on the block type.  Further, cra_count is a count of blocks
-   to read and not bytes to read.
+The main difference between the two operations is that CHUNK_READ
+works on blocks and not a raw data stream.  As such cra_offset is
+the starting block offset in the file and not the byte offset in
+the file.  Some erasure coding types can have different block sizes
+depending on the block type.  Further, cra_count is a count of
+blocks to read and not bytes to read.
 
-   When reading a set of blocks across the data servers, it can be the
-   case that some data servers do not have any data at that location.
-   In that case, the server either returns crr_eof if the cra_offset
-   exceeds the number of blocks that the data server is aware or it
-   returns an empty block for that block.
+When reading a set of blocks across the data servers, it can be the
+case that some data servers do not have any data at that location.
+In that case, the server either returns crr_eof if the cra_offset
+exceeds the number of blocks that the data server is aware or it
+returns an empty block for that block.
 
-   For example, in {{fig-example-CHUNK_READ4args}}, the client asks for 4 blocks starting with
-   the 3rd block in the file.  The second data server responds as in
-   {{fig-example-CHUNK_READ4resok}}.  The client would read this as there is valid data for
-   blocks 2 and 4, there is a hole at block 3, and there is no data for
-   block 5.  The data server MUST calculate a valid cr_crc for block 3
-   based on the generated fields.
+For example, in {{fig-example-CHUNK_READ4args}}, the client asks
+for 4 blocks starting with the 3rd block in the file.  The second
+data server responds as in {{fig-example-CHUNK_READ4resok}}.  The
+client would read this as there is valid data for blocks 2 and 4,
+there is a hole at block 3, and there is no data for block 5.  The
+data server MUST calculate a valid cr_crc for block 3 based on the
+generated fields.
 
 ~~~
                    Data Server 2
@@ -1464,8 +1457,8 @@ is driving the I/O.
 
 ### DESCRIPTION
 
-   HEADER_READ differs from CHUNK_READ in that it only reads chunk
-   headers in the desired data range.
+HEADER_READ differs from CHUNK_READ in that it only reads chunk
+headers in the desired data range.
 
 ## Operation 80: ROLLBACK_CHUNK - Rollback Cached Chunk Data {#sec-ROLLBACK_CHUNK}
 
@@ -1502,26 +1495,26 @@ is driving the I/O.
 
 ### DESCRIPTION
 
-   ROLLBACK_CHUNK is a new form like COMMIT (see Section 18.3 of
-   {{RFC8881}}) with additional semantics over the chunk_owner the rolling
-   back the writing of blocks.  As such, all of the normal semantics of
-   COMMIT directly apply.
+ROLLBACK_CHUNK is a new form like COMMIT (see Section 18.3 of
+{{RFC8881}}) with additional semantics over the chunk_owner the
+rolling back the writing of blocks.  As such, all of the normal
+semantics of COMMIT directly apply.
 
-   The main difference between the two operations is that ROLLBACK_CHUNK
-   works on blocks and not a raw data stream.  As such cra_offset is the
-   starting block offset in the file and not the byte offset in the
-   file.  Some erasure coding types can have different block sizes
-   depending on the block type.  Further, cra_count is a count of blocks
-   to rollback and not bytes to rollback.
+The main difference between the two operations is that ROLLBACK_CHUNK
+works on blocks and not a raw data stream.  As such cra_offset is
+the starting block offset in the file and not the byte offset in
+the file.  Some erasure coding types can have different block sizes
+depending on the block type.  Further, cra_count is a count of
+blocks to rollback and not bytes to rollback.
 
-   Further, while it may appear that the combination of cra_offset and
-   cra_count are redundant to cra_chunks, the purpose of cra_chunks is
-   to allow the data server to differentiate between potentially
-   multiple pending blocks.
+Further, while it may appear that the combination of cra_offset and
+cra_count are redundant to cra_chunks, the purpose of cra_chunks
+is to allow the data server to differentiate between potentially
+multiple pending blocks.
 
-   ROLLBACK_CHUNK deletes prior CHUNK_WRITE transactions.  In case of
-   write holes, it allows the client to undo transactions to repair the
-   file.
+ROLLBACK_CHUNK deletes prior CHUNK_WRITE transactions.  In case of
+write holes, it allows the client to undo transactions to repair
+the file.
 
 ## Operation 81: CHUNK_WRITE - Write Chunks to File {#sec-CHUNK_WRITE}
 
@@ -1577,75 +1570,76 @@ is driving the I/O.
 
 ### DESCRIPTION
 
-   CHUNK_WRITE is WRITE (see Section 18.32 of {{RFC8881}}) with additional
-   semantics over the chunk_owner and the activation of blocks.  As
-   such, all of the normal semantics of WRITE directly apply.
+CHUNK_WRITE is WRITE (see Section 18.32 of {{RFC8881}}) with
+additional semantics over the chunk_owner and the activation of
+blocks.  As such, all of the normal semantics of WRITE directly
+apply.
 
-   The main difference between the two operations is that CHUNK_WRITE
-   works on blocks and not a raw data stream.  As such cwa_offset is the
-   starting block offset in the file and not the byte offset in the
-   file.  Some erasure coding types can have different block sizes
-   depending on the block type.  Further, cwr_count is a count of
-   written blocks and not written bytes.
+The main difference between the two operations is that CHUNK_WRITE
+works on blocks and not a raw data stream.  As such cwa_offset is
+the starting block offset in the file and not the byte offset in
+the file.  Some erasure coding types can have different block sizes
+depending on the block type.  Further, cwr_count is a count of
+written blocks and not written bytes.
 
-   If cwa_stable is FILE_SYNC4, the data server MUST commit the written
-   header and block data plus all file system metadata to stable storage
-   before returning results.  This corresponds to the NFSv2 protocol
-   semantics.  Any other behavior constitutes a protocol violation.  If
-   cwa_stable is DATA_SYNC4, then the data server MUST commit all of the
-   header and block data to stable storage and enough of the metadata to
-   retrieve the data before returning.  The data server implementer is
-   free to implement DATA_SYNC4 in the same fashion as FILE_SYNC4, but
-   with a possible performance drop.  If cwa_stable is UNSTABLE4, the
-   data server is free to commit any part of the header and block data
-   and the metadata to stable storage, including all or none, before
-   returning a reply to the client.  There is no guarantee whether or
-   when any uncommitted data will subsequently be committed to stable
-   storage.  The only guarantees made by the data server are that it
-   will not destroy any data without changing the value of writeverf and
-   that it will not commit the data and metadata at a level less than
-   that requested by the client.
+If cwa_stable is FILE_SYNC4, the data server MUST commit the written
+header and block data plus all file system metadata to stable storage
+before returning results.  This corresponds to the NFSv2 protocol
+semantics.  Any other behavior constitutes a protocol violation.
+If cwa_stable is DATA_SYNC4, then the data server MUST commit all
+of the header and block data to stable storage and enough of the
+metadata to retrieve the data before returning.  The data server
+implementer is free to implement DATA_SYNC4 in the same fashion as
+FILE_SYNC4, but with a possible performance drop.  If cwa_stable
+is UNSTABLE4, the data server is free to commit any part of the
+header and block data and the metadata to stable storage, including
+all or none, before returning a reply to the client.  There is no
+guarantee whether or when any uncommitted data will subsequently
+be committed to stable storage.  The only guarantees made by the
+data server are that it will not destroy any data without changing
+the value of writeverf and that it will not commit the data and
+metadata at a level less than that requested by the client.
 
-   The activation of header and block data interacts with the
-   co_activated for each of the written blocks.  If the data is not
-   committed to stable storage then the co_activated field MUST NOT be
-   set to true.  Once the data is committed to stable storage, then the
-   data server can set the block's co_activated if one of these
-   conditions apply:
+The activation of header and block data interacts with the co_activated
+for each of the written blocks.  If the data is not committed to
+stable storage then the co_activated field MUST NOT be set to true.
+Once the data is committed to stable storage, then the data server
+can set the block's co_activated if one of these conditions apply:
 
-   *  it is the first write to that block and the
-      CHUNK_WRITE_FLAGS_ACTIVATE_IF_EMPTY flag is set
+*  it is the first write to that block and the
+CHUNK_WRITE_FLAGS_ACTIVATE_IF_EMPTY flag is set
 
-   *  the CHUNK_COMMIT is issued later for that block.
+*  the CHUNK_COMMIT is issued later for that block.
 
-   There are subtle interactions with write holes caused by racing
-   clients.  One client could win the race in each case, but because it
-   used a cwa_stable of UNSTABLE4, the subsequent writes from the second
-   client with a cwa_stable of FILE_SYNC4 can be awarded the
-   co_activated being set to true for each of the blocks in the payload.
+There are subtle interactions with write holes caused by racing
+clients.  One client could win the race in each case, but because
+it used a cwa_stable of UNSTABLE4, the subsequent writes from the
+second client with a cwa_stable of FILE_SYNC4 can be awarded the
+co_activated being set to true for each of the blocks in the payload.
 
-   Finally, the interaction of cwa_stable can cause a client to
-   mistakenly believe that by the time it gets the response of
-   co_activated of false, that the blocks are not activated.  A
-   subsequent CHUNK_READ or HEADER_READ might show that the co_activated
-   is true without any interaction by the client via CHUNK_COMMIT.
+Finally, the interaction of cwa_stable can cause a client to
+mistakenly believe that by the time it gets the response of
+co_activated of false, that the blocks are not activated.  A
+subsequent CHUNK_READ or HEADER_READ might show that the co_activated
+is true without any interaction by the client via CHUNK_COMMIT.
 
 #### Guarding the Write
 
-   A guarded CHUNK_WRITE is when the writing of a block MUST fail if
-   cwa_guard.cwg_check is set and the target chunk does not have both
-   the same gen_id cwa_guard.as the cwg_guard.cg_gen_id and the same
-   cwa_guard.cg_gen_id as the cwa_guard.cwg_guard.cg_gen_id.  This is
-   useful in read-update-write scenarios.  The client reads a block,
-   updates it, and is prepared to write it back.  It guards the write
-   such that if another writer has modified the block, the data server
-   will reject the modification.
+A guarded CHUNK_WRITE is when the writing of a block MUST fail if
+cwa_guard.cwg_check is set and the target chunk does not have both
+the same gen_id cwa_guard.as the cwg_guard.cg_gen_id and the same
+cwa_guard.cg_gen_id as the cwa_guard.cwg_guard.cg_gen_id.  This is
+useful in read-update-write scenarios.  The client reads a block,
+updates it, and is prepared to write it back.  It guards the write
+such that if another writer has modified the block, the data server
+will reject the modification.
 
-   As the chunk_guard4 (see {{fig-chunk_guard4}} does not have a chunk_id and the
-   CHUNK_WRITE applies to all blocks in the range of cwa_offset to the
-   length of cwa_data, then each of the target blocks MUST have the same
-   cg_gen_id and cg_client_id.  The client SHOULD present the smallest
-   set of blocks as possible to meet this requirement.
+As the chunk_guard4 (see {{fig-chunk_guard4}} does not have a
+chunk_id and the CHUNK_WRITE applies to all blocks in the range of
+cwa_offset to the length of cwa_data, then each of the target blocks
+MUST have the same cg_gen_id and cg_client_id.  The client SHOULD
+present the smallest set of blocks as possible to meet this
+requirement.
 
 
    // Is the DS supposed to vet all blocks first or proceed to the first
@@ -1685,49 +1679,50 @@ is driving the I/O.
 
 ### DESCRIPTION
 
-   ROLLBACK_OPEN is a new operation to open a per client file for
-   staging of chunks to the data file and populates the current
-   filehandle for it.  As the reservation file is not visible in the
-   server namespace, the client MUST issue a GETFH (see Section 18.8 of
-   {{RFC8881}}) to get the filehandle.  The client file MUST have the
-   exact same authorization as the data file (see Section 2.8.1 of
-   {{RFC8881}}), which means the attributes mode, owner, owner_group, acl,
-   dacl, and sacl MUST track those of the file.  I.e., they MUST NOT be
-   modified by SETATTR on the client file and if they are modified on
-   the data file, they MUST be modified equivalently on the client file.
-   Finally, the values of time_access, time_backup, time_create,
-   time_metadata, time_modify, and change MUST initially be those of the
-   data file, but they MUST be tracked separately from the data file.
+ROLLBACK_OPEN is a new operation to open a per client file for
+staging of chunks to the data file and populates the current
+filehandle for it.  As the reservation file is not visible in the
+server namespace, the client MUST issue a GETFH (see Section 18.8
+of {{RFC8881}}) to get the filehandle.  The client file MUST have
+the exact same authorization as the data file (see Section 2.8.1
+of {{RFC8881}}), which means the attributes mode, owner, owner_group,
+acl, dacl, and sacl MUST track those of the file.  I.e., they MUST
+NOT be modified by SETATTR on the client file and if they are
+modified on the data file, they MUST be modified equivalently on
+the client file.  Finally, the values of time_access, time_backup,
+time_create, time_metadata, time_modify, and change MUST initially
+be those of the data file, but they MUST be tracked separately from
+the data file.
 
-   ROLLBACK_OPEN MUST check for write access just like the WRITE
-   operation.  I.e., if the owner does not have write permissions, if it
-   is a read-only filesystem, etc, the appropriate error MUST be
-   returned to the ROLLBACK_OPEN operation.
+ROLLBACK_OPEN MUST check for write access just like the WRITE
+operation.  I.e., if the owner does not have write permissions, if
+it is a read-only filesystem, etc, the appropriate error MUST be
+returned to the ROLLBACK_OPEN operation.
 
-   The metadata server MUST persist the roa_key and the roa_client_id in
-   order to authenticate subsequent operations on the client file.
-   These are not visible attributes for the client file.  The metadata
-   server MUST not reveal the roa_key in a GETATTR result.  If the
-   metadata server loses the roa_key, then the data server MUST allow
-   for local administrative action to close the client file Note that
-   such means are beyond the scope of this document.
+The metadata server MUST persist the roa_key and the roa_client_id
+in order to authenticate subsequent operations on the client file.
+These are not visible attributes for the client file.  The metadata
+server MUST not reveal the roa_key in a GETATTR result.  If the
+metadata server loses the roa_key, then the data server MUST allow
+for local administrative action to close the client file Note that
+such means are beyond the scope of this document.
 
-   The ra_stateid follows the rules for a WRITE request for pNFS (see
-   Section 2.3.1 of {{I-D.haynes-nfsv4-flexfiles-v2}}).  I.e., an anonymous stateid is
-   presented.
+The ra_stateid follows the rules for a WRITE request for pNFS (see
+Section 2.3.1 of {{I-D.haynes-nfsv4-flexfiles-v2}}).  I.e., an
+anonymous stateid is presented.
 
-   ROLLBACK_OPEN can also be used to recover a client file.  The user
-   has to have access to the underlying file in order to recover the
-   reservation.  If the client file already exists, the roa_key MUST
-   match that which was persisted in the original ROLLBACK_OPEN
-   operation to create the client file.  The roa_client_id MUST also
-   match that of which was persisted in the original ROLLBACK_OPEN
-   operation to create the client file.
+ROLLBACK_OPEN can also be used to recover a client file.  The user
+has to have access to the underlying file in order to recover the
+reservation.  If the client file already exists, the roa_key MUST
+match that which was persisted in the original ROLLBACK_OPEN operation
+to create the client file.  The roa_client_id MUST also match that
+of which was persisted in the original ROLLBACK_OPEN operation to
+create the client file.
 
-   If the roa_key does not match that peristed, then the server MUST
-   send back the error NFS4ERR_PERM.  The client can use GETATTR to
-   determine if this was due to normal file system semantics or a
-   mismatched ffv2_key4.
+If the roa_key does not match that peristed, then the server MUST
+send back the error NFS4ERR_PERM.  The client can use GETATTR to
+determine if this was due to normal file system semantics or a
+mismatched ffv2_key4.
 
 ## Operation 78: ROLLBACK_LIST - Get information on a byte range for writing {#sec-ROLLBACK_LIST}
 
@@ -1770,14 +1765,14 @@ is driving the I/O.
 
 ### DESCRIPTION
 
-   ROLLBACK_LIST is a new operation to list the open client rollback
-   files for the current filehandle.  As shown in {{fig-ROLLBACK_LIST4args}}, a stateid
-   that follows the rules of Section 9.6.3 MUST be presented.
+ROLLBACK_LIST is a new operation to list the open client rollback
+files for the current filehandle.  As shown in {{fig-ROLLBACK_LIST4args}},
+a stateid that follows the rules of Section 9.6.3 MUST be presented.
 
-   The result is an array of rollback_info4 (see {{fig-rollback_info4}}).  The
-   ri_client_id allows the metadata server to determine which
-   reservations belonged to a dead client.  The ffv2_key4 associated
-   with the reservation file MUST NOT be sent back in the results.
+The result is an array of rollback_info4 (see {{fig-rollback_info4}}).
+The ri_client_id allows the metadata server to determine which
+reservations belonged to a dead client.  The ffv2_key4 associated
+with the reservation file MUST NOT be sent back in the results.
 
 ## Operation 80: ROLLBACK_CLOSE - Release reservation on a byte range for writing {#sec-ROLLBACK_CLOSE}
 
@@ -1805,22 +1800,24 @@ is driving the I/O.
 
 ### DESCRIPTION
 
-   ROLLBACK_CLOSE is a new operation to release a reservation on a file.
-   The user has to have access to the underlying file in order to
-   release the reservation.  For the given reservation identified by
-   rra_reservation_id (see {{fig-ROLLBACK_CLOSE4args}}), the rra_key MUST match that which
-   was persisted in the original ROLLBACK_OPEN operation to create the
-   reservation.  As shown in {{fig-ROLLBACK_CLOSE4args}}, a stateid that follows the rules
-   of Section 9.6.3 MUST be presented.
+ROLLBACK_CLOSE is a new operation to release a reservation on a
+file.  The user has to have access to the underlying file in order
+to release the reservation.  For the given reservation identified
+by rra_reservation_id (see {{fig-ROLLBACK_CLOSE4args}}), the rra_key
+MUST match that which was persisted in the original ROLLBACK_OPEN
+operation to create the reservation.  As shown in
+{{fig-ROLLBACK_CLOSE4args}}, a stateid that follows the rules of
+Section 9.6.3 MUST be presented.
 
-   If there is no matching reservation for the rra_reservation_id, then
-   the server MUST send back the error NFS4ERR_NOENT.  If the rra_key
-   does not match that peristed, then the server MUST send back the
-   error NFS4ERR_PERM.  The client can use GETATTR to determine if this
-   was due to normal file system semantics or a mismatched ffv2_key4.
+If there is no matching reservation for the rra_reservation_id,
+then the server MUST send back the error NFS4ERR_NOENT.  If the
+rra_key does not match that peristed, then the server MUST send
+back the error NFS4ERR_PERM.  The client can use GETATTR to determine
+if this was due to normal file system semantics or a mismatched
+ffv2_key4.
 
-   The state of fattr4reserved_state for the reservation file MUST be
-   persisted to NFS4_ROLLBACK_OPEND_RELEASED.
+The state of fattr4reserved_state for the reservation file MUST be
+persisted to NFS4_ROLLBACK_OPEND_RELEASED.
 
 # New NFSv4.2 Callback Operations
 
@@ -1834,7 +1831,7 @@ is driving the I/O.
 
  | Callback Operation | Number | Description  |
  | ---
- | CB_CHUNK_REPAIR    | 16     | Section 10.1 |
+ | CB_CHUNK_REPAIR    | 16     | {{sec-CB_CHUNK_REPAIR}}  |
 {: #tbl-cb_ops title="Protocol Callback Operation Definitions"}
 
 ## Operation 16: CB_CHUNK_REPAIR - Repair a reservation of a byte range for writing {#sec-CB_CHUNK_REPAIR}
@@ -1863,30 +1860,31 @@ is driving the I/O.
 
 ###  DESCRIPTION
 
-   CB_CHUNK_REPAIR is a new callback operation to request that the
-   client repair a reservation on a file.  The user has to have access
-   to the underlying file in order to release the reservation.  For the
-   given reservation identified by rra_reservation_id (see {{fig-CB_CHUNK_REPAIR4args}}),
-   the crra_key MUST match that which was persisted in the original
-   ROLLBACK_OPEN operation to create the reservation.  As shown in
-   {{fig-CB_CHUNK_REPAIR4args}}, a stateid that follows the rules of Section 9.6.3 MUST be
-   presented.
+CB_CHUNK_REPAIR is a new callback operation to request that the
+client repair a reservation on a file.  The user has to have access
+to the underlying file in order to release the reservation.  For
+the given reservation identified by rra_reservation_id (see
+{{fig-CB_CHUNK_REPAIR4args}}), the crra_key MUST match that which
+was persisted in the original ROLLBACK_OPEN operation to create the
+reservation.  As shown in {{fig-CB_CHUNK_REPAIR4args}}, a stateid
+that follows the rules of Section 9.6.3 MUST be presented.
 
-   If the client does not support the ROLLBACK_OPEN family of
-   operations, it MUST return an error of NFS4ERR_NOTSUPP.  Note that
-   this is most likely going to occur as in this case it will not
-   support CB_CHUNK_REPAIR.  If the client does not support the
-   crra_type for the erasure coding type, then it MUST return an error
-   of NFS4ERR_CODING_NOT_SUPPORTED.
+If the client does not support the ROLLBACK_OPEN family of operations,
+it MUST return an error of NFS4ERR_NOTSUPP.  Note that this is most
+likely going to occur as in this case it will not support
+CB_CHUNK_REPAIR.  If the client does not support the crra_type for
+the erasure coding type, then it MUST return an error of
+NFS4ERR_CODING_NOT_SUPPORTED.
 
 #  Extraction of XDR
 
-This document contains the External Data Representation (XDR) {{RFC4506}}
-description of the flexible file layout type.  The XDR description is
-embedded in this document in a way that makes it simple for the reader to
-extract into a ready-to-compile form.  The reader can feed this document
-into the shell script in {{fig-extract}} to produce the machine-readable
-XDR description of the flexible file layout type.
+This document contains the External Data Representation (XDR)
+{{RFC4506}} description of the flexible file layout type.  The XDR
+description is embedded in this document in a way that makes it
+simple for the reader to extract into a ready-to-compile form.  The
+reader can feed this document into the shell script in {{fig-extract}}
+to produce the machine-readable XDR description of the flexible
+file layout type.
 
 ~~~ shell
 #!/bin/sh
@@ -1895,8 +1893,8 @@ grep '^ *///' $* | sed 's?^ */// ??' | sed 's?^ *///$??'
 {: #fig-extract title="extract.sh"}
 
 That is, if the above script is stored in a file called "extract.sh"
-and this document is in a file called "spec.txt", then the reader can
-run the script as in {{fig-extract-example}}.
+and this document is in a file called "spec.txt", then the reader
+can run the script as in {{fig-extract-example}}.
 
 ~~~ shell
 sh extract.sh < spec.txt > flex_files2_prot.x
@@ -1905,24 +1903,24 @@ sh extract.sh < spec.txt > flex_files2_prot.x
 
 The effect of the script is to remove leading blank space from each
 line, plus a sentinel sequence of "///".
-   
+
 The embedded XDR file header follows.  Subsequent XDR descriptions
 with the sentinel sequence are embedded throughout the document.
 
 Note that the XDR code contained in this document depends on types
 from the NFSv4.2 nfs4_prot.x file (generated from {{RFC7863}}) and
 the Flexible File Layout Type flexfiles-v2.x file (generated from
-{{I-D.haynes-nfsv4-flexfiles-v2}}).  This includes both nfs types that
-end with a 4, such as offset4, length4, etc., as well as more generic
-types such as uint32_t and uint64_t.
+{{I-D.haynes-nfsv4-flexfiles-v2}}).  This includes both nfs types
+that end with a 4, such as offset4, length4, etc., as well as more
+generic types such as uint32_t and uint64_t.
 
 While the XDR can be appended to that from {{RFC7863}}, the various
 code snippets belong in their respective areas of that XDR.
 
 12.  Security Considerations
 
-This document has the same security considerations as
-both Flexible File Layout Type version 2 (see Section 15 of
+This document has the same security considerations as both Flexible
+File Layout Type version 2 (see Section 15 of
 {{I-D.haynes-nfsv4-flexfiles-v2}}) and NFSv4.2 (see Section 17 of
 {{RFC7862}}).
 
