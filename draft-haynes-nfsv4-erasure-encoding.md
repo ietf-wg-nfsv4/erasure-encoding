@@ -269,7 +269,7 @@ a layout of iomode LAYOUTIOMODE4_READ from the metadata server.
 FFV2_FLAGS_WRITE_ONE_MIRROR:
 
 :  can be set to indicate that the client only needs to update one of
-the mirrors (see Section 2.2).
+the mirrors (see {{sec-CSM}}).
 
 FFV2_FLAGS_ONLY_ONE_WRITER:
 
@@ -1002,7 +1002,7 @@ when they can start accessing the chunk via HEADER_READ.  Once the
 lock goes away, the clients can CHUNK_READ the chunk to decide if
 they are going to update the chunk.
 
-## Reading Chunks
+## Reading Chunks {#sec-reading-chunks}
 
 The client reads chunks from the data file via CHUNK_READ.  The
 number of chunks in the payload that need to be consistent depend
